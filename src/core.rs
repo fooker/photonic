@@ -1,7 +1,6 @@
 use math::{self, Lerp};
-use scarlet::color::RGBColor;
+use color::RGBColor;
 use std::time::Duration;
-
 
 pub type MainColor = RGBColor;
 
@@ -36,11 +35,9 @@ pub trait Renderer {
     }
 }
 
-pub trait Source {
+pub trait Node: Dynamic {
     fn render<'a>(&'a self) -> Box<Renderer + 'a>;
 }
-
-pub trait Node: Dynamic + Source {}
 
 pub trait Output {
     fn render(&mut self, renderer: &Renderer);

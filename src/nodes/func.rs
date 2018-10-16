@@ -14,9 +14,7 @@ impl BufferNode {
     }
 }
 
-impl Node for BufferNode {}
-
-impl Source for BufferNode {
+impl Node for BufferNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(&self.0)
     }
@@ -46,10 +44,6 @@ impl<C, F> GeneratorNode<C, F>
 }
 
 impl<C, F> Node for GeneratorNode<C, F>
-    where C: Color,
-          F: Fn(usize) -> C {}
-
-impl<C, F> Source for GeneratorNode<C, F>
     where C: Color,
           F: Fn(usize) -> C {
     fn render(&self) -> Box<Renderer> {

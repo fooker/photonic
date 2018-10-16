@@ -2,8 +2,6 @@ use buffer::*;
 use core::*;
 use scarlet::colors::HSVColor;
 use std::time::Duration;
-use core::Source;
-use core::Renderer;
 
 pub struct ColorwheelNode(Buffer<MainColor>);
 
@@ -31,9 +29,6 @@ impl ColorwheelNode {
 }
 
 impl Node for ColorwheelNode {
-}
-
-impl Source for ColorwheelNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(&self.0)
     }

@@ -1,7 +1,5 @@
 use color::Black;
 use core::*;
-use core::Renderer;
-use core::Source;
 use math::Lerp;
 use std::time::Duration;
 
@@ -67,9 +65,7 @@ impl BlackoutNode {
     }
 }
 
-impl Node for BlackoutNode {}
-
-impl Source for BlackoutNode {
+impl Node for BlackoutNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         if let Some(range) = self.range {
             return Box::new(PartialBlackoutRenderer {

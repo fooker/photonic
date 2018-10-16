@@ -19,6 +19,12 @@ pub enum ValueConfig {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct ValueRangeConfig {
+    pub min: Box<ValueConfig>,
+    pub max: Box<ValueConfig>,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct BlackoutNodeConfig {
     pub source: Box<NodeConfig>,
 
@@ -33,10 +39,28 @@ pub struct ColorwheelNodeConfig {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct RaindropsNodeConfig {
+    pub rate: Box<ValueConfig>,
+
+    pub hue: Box<ValueRangeConfig>,
+    pub saturation: Box<ValueRangeConfig>,
+    pub lightness: Box<ValueRangeConfig>,
+
+    pub decay: Box<ValueRangeConfig>,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct RotationNodeConfig {
     pub source: Box<NodeConfig>,
 
     pub speed: Box<ValueConfig>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct LarsonNodeConfig {
+    pub hue: Box<ValueConfig>,
+    pub speed: Box<ValueConfig>,
+    pub width: Box<ValueConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -45,6 +69,8 @@ pub enum NodeImplConfig {
     Blackout(BlackoutNodeConfig),
     Colorwheel(ColorwheelNodeConfig),
     Rotation(RotationNodeConfig),
+    Raindrops(RaindropsNodeConfig),
+    Larson(LarsonNodeConfig),
 }
 
 #[derive(Serialize, Deserialize)]

@@ -1,5 +1,6 @@
 use core::*;
 use super::model::*;
+use std::collections::HashMap;
 
 
 pub struct Builder {
@@ -54,6 +55,24 @@ impl Builder {
                 Box::new(::nodes::rotation::RotationNode::new(
                     self.node(&config.source),
                     self.value(&config.speed),
+                ))
+            }
+            NodeImplConfig::Raindrops(ref config) => {
+                Box::new(::nodes::raindrops::RaindropsNode::new(
+                    self.size,
+                    self.value(&config.rate),
+                    (self.value(&config.hue.min), self.value(&config.hue.max)),
+                    (self.value(&config.saturation.min), self.value(&config.saturation.max)),
+                    (self.value(&config.lightness.min), self.value(&config.lightness.max)),
+                    (self.value(&config.decay.min), self.value(&config.decay.max)),
+                ))
+            }
+            NodeImplConfig::Larson(ref config) => {
+                Box::new(::nodes::larson::LarsonNode::new(
+                    self.size,
+                    self.value(&config.hue),
+                    self.value(&config.speed),
+                    self.value(&config.width),
                 ))
             }
         };

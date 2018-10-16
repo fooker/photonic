@@ -35,9 +35,7 @@ impl RotationNode {
     }
 }
 
-impl Node for RotationNode {}
-
-impl Source for RotationNode {
+impl Node for RotationNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(RotationRenderer {
             source: self.source.render(),
