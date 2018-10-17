@@ -1,6 +1,5 @@
 use core::*;
 use super::model::*;
-use std::collections::HashMap;
 
 
 pub struct Builder {

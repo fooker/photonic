@@ -1,4 +1,3 @@
-use core::MainColor;
 use math;
 
 pub use scarlet::color::Color;

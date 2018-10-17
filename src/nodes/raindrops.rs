@@ -1,4 +1,3 @@
-use buffer::*;
 use color::*;
 use core::*;
 use math;

@@ -1,8 +1,5 @@
-use buffer::*;
 use color::*;
 use core::*;
-use math;
-use rand::prelude::{FromEntropy, Rng, SmallRng};
 use std::time::Duration;
 use utils::FractionalDuration;
 
