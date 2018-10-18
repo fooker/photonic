@@ -1,4 +1,4 @@
-use math;
+use crate::math;
 
 pub use scarlet::color::Color;
 pub use scarlet::color::RGBColor;

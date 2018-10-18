@@ -1,9 +1,9 @@
-use buffer::*;
-use core::*;
-use color::*;
+use photonic::buffer::*;
+use photonic::color::*;
+use photonic::core::*;
 use std::time::Duration;
 
-
+#[derive(Node)]
 pub struct BufferNode(Buffer<MainColor>);
 
 impl BufferNode {
@@ -14,7 +14,7 @@ impl BufferNode {
     }
 }
 
-impl Node for BufferNode {
+impl Source for BufferNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(&self.0)
     }
@@ -25,6 +25,7 @@ impl Dynamic for BufferNode {
 }
 
 
+#[derive(Node)]
 pub struct GeneratorNode<C, F>
     where C: Color,
           F: Fn(usize) -> C {
@@ -43,7 +44,7 @@ impl<C, F> GeneratorNode<C, F>
     }
 }
 
-impl<C, F> Node for GeneratorNode<C, F>
+impl<C, F> Source for GeneratorNode<C, F>
     where C: Color,
           F: Fn(usize) -> C {
     fn render(&self) -> Box<Renderer> {

@@ -1,5 +1,5 @@
 pub trait Lerp {
-    fn lerp(Self, Self, f64) -> Self;
+    fn lerp(a: Self, b: Self, v: f64) -> Self;
 }
 
 impl Lerp for f64 {

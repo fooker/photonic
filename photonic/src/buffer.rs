@@ -1,5 +1,5 @@
-use color::{Black, Color};
-use core::*;
+use crate::color::*;
+use crate::core::*;
 
 pub struct Buffer<C>
     where C: Color + Copy {

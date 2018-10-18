@@ -1,7 +1,7 @@
-use color::Black;
-use core::*;
-use attributes::*;
-use math::Lerp;
+use photonic::attributes::*;
+use photonic::color::Black;
+use photonic::core::*;
+use photonic::math::Lerp;
 use std::time::Duration;
 
 struct PartialBlackoutRenderer<'a> {
@@ -47,6 +47,7 @@ impl<'a> Renderer for FullBlackoutRenderer<'a> {
     }
 }
 
+#[derive(Node)]
 pub struct BlackoutNode {
     source: Box<Node>,
     value: Box<Attribute>,
@@ -66,7 +67,7 @@ impl BlackoutNode {
     }
 }
 
-impl Node for BlackoutNode {
+impl Source for BlackoutNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         if let Some(range) = self.range {
             return Box::new(PartialBlackoutRenderer {

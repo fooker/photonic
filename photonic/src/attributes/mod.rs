@@ -2,8 +2,8 @@
 //pub mod animation;
 
 
-use core::*;
-use math;
+use crate::core::*;
+use crate::math;
 use std::time::Duration;
 
 pub struct DynamicAttribute {

@@ -1,14 +1,14 @@
-use core::*;
-use attributes::*;
+use photonic::attributes::*;
+use photonic::core::*;
+use photonic::utils::FractionalDuration;
 use std::time::Duration;
-use utils::FractionalDuration;
 
 struct RotationRenderer<'a> {
     source: Box<Renderer + 'a>,
     node: &'a RotationNode,
 }
 
-impl <'a> Renderer for RotationRenderer<'a> {
+impl<'a> Renderer for RotationRenderer<'a> {
     fn size(&self) -> usize {
         self.source.size()
     }
@@ -18,6 +18,7 @@ impl <'a> Renderer for RotationRenderer<'a> {
     }
 }
 
+#[derive(Node)]
 pub struct RotationNode {
     source: Box<Node>,
 
@@ -36,7 +37,7 @@ impl RotationNode {
     }
 }
 
-impl Node for RotationNode {
+impl Source for RotationNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(RotationRenderer {
             source: self.source.render(),

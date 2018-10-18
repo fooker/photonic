@@ -1,5 +1,6 @@
-use math::{self, Lerp};
-use color::RGBColor;
+use crate::color::RGBColor;
+use crate::attributes::Attribute;
+use crate::math::{self, Lerp};
 use std::time::Duration;
 
 pub type MainColor = RGBColor;
@@ -25,8 +26,12 @@ pub trait Renderer {
     }
 }
 
-pub trait Node: Dynamic {
+pub trait Source {
     fn render<'a>(&'a self) -> Box<Renderer + 'a>;
+}
+
+pub trait Node: Dynamic + Source {
+    fn attributes(&self) -> Vec<&Attribute>;
 }
 
 pub trait Output {

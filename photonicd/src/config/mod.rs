@@ -1,5 +1,5 @@
-use config::model::Config;
-use core::*;
+use self::model::Config;
+use photonic::core::*;
 use serde_yaml as yaml;
 use std::fs::File;
 use std::path::Path;

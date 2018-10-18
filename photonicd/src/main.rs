@@ -1,32 +1,22 @@
 #![feature(self_struct_ctor)]
 
-#[cfg(test)]
-#[macro_use]
-extern crate assert_approx_eq;
-extern crate ezing;
 #[macro_use]
 extern crate failure;
 extern crate num;
 extern crate rand;
-extern crate scarlet;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_yaml;
+#[macro_use]
+extern crate photonic_derive;
 
-use core::*;
+use photonic::core::*;
 use std::thread;
 use std::time::{Duration, Instant};
 
-mod core;
-mod buffer;
-mod color;
-mod utils;
-mod math;
 mod nodes;
 mod outputs;
-mod services;
-mod attributes;
 mod config;
 
 fn main() {

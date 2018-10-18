@@ -1,8 +1,8 @@
-use color::*;
-use core::*;
-use attributes::*;
+use photonic::color::*;
+use photonic::core::*;
+use photonic::attributes::*;
 use std::time::Duration;
-use utils::FractionalDuration;
+use photonic::utils::FractionalDuration;
 
 struct LarsonRenderer {
     size: usize,
@@ -48,6 +48,7 @@ impl Direction {
     }
 }
 
+#[derive(Node)]
 pub struct LarsonNode {
     size: usize,
 
@@ -76,7 +77,7 @@ impl LarsonNode {
     }
 }
 
-impl Node for LarsonNode {
+impl Source for LarsonNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(LarsonRenderer {
             size: self.size,

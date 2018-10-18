@@ -1,10 +1,10 @@
-use color::*;
-use core::*;
-use attributes::*;
-use math;
+use photonic::color::*;
+use photonic::core::*;
+use photonic::attributes::*;
+use photonic::math;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 use std::time::Duration;
-use utils::FractionalDuration;
+use photonic::utils::FractionalDuration;
 
 #[derive(Clone)]
 struct Raindrop {
@@ -21,13 +21,15 @@ impl Default for Raindrop {
     }
 }
 
-impl<'a> Renderer for &'a Vec<Raindrop> {
+struct Raindrops<'a>(&'a Vec<Raindrop>);
+
+impl<'a> Renderer for Raindrops<'a> {
     fn size(&self) -> usize {
-        self.len()
+        self.0.len()
     }
 
     fn get(&self, index: usize) -> RGBColor {
-        self[index].color.convert()
+        self.0[index].color.convert()
     }
 }
 
@@ -55,6 +57,7 @@ impl Random {
     }
 }
 
+#[derive(Node)]
 pub struct RaindropsNode {
     rate: Box<Attribute>,
     hue: (Box<Attribute>, Box<Attribute>),
@@ -87,9 +90,9 @@ impl RaindropsNode {
     }
 }
 
-impl Node for RaindropsNode {
+impl Source for RaindropsNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
-        Box::new(&self.raindrops)
+        Box::new(Raindrops(&self.raindrops))
     }
 }
 

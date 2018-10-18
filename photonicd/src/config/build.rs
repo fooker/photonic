@@ -1,5 +1,5 @@
-use core::*;
-use attributes::*;
+use photonic::core::*;
+use photonic::attributes::*;
 use super::model::*;
 
 
@@ -19,7 +19,7 @@ impl Builder {
     fn value(&mut self, config: &ValueConfig) -> Box<Attribute> {
         let value: Box<Attribute> = match config {
             ValueConfig::Fixed(value) => {
-                Box::new(::attributes::Attribute::from(*value))
+                Box::new(Attribute::from(*value))
             }
             ValueConfig::Dynamic(config) => {
                 unimplemented!()
@@ -32,7 +32,7 @@ impl Builder {
     fn node(&mut self, config: &NodeConfig) -> Box<Node> {
         let node: Box<Node> = match config.config {
             NodeImplConfig::Blackout(ref config) => {
-                Box::new(::nodes::blackout::BlackoutNode::new(
+                Box::new(crate::nodes::blackout::BlackoutNode::new(
                     self.node(&config.source),
                     self.value(&config.value),
                     config.range,
@@ -40,25 +40,25 @@ impl Builder {
             }
             NodeImplConfig::Colorwheel(ref config) => {
                 if let Some(delta) = config.delta {
-                    Box::new(::nodes::colorwheel::ColorwheelNode::new_delta(
+                    Box::new(crate::nodes::colorwheel::ColorwheelNode::new_delta(
                         config.offset,
                         delta,
                     ))
                 } else {
-                    Box::new(::nodes::colorwheel::ColorwheelNode::new_full(
+                    Box::new(crate::nodes::colorwheel::ColorwheelNode::new_full(
                         self.size,
                         config.offset,
                     ))
                 }
             }
             NodeImplConfig::Rotation(ref config) => {
-                Box::new(::nodes::rotation::RotationNode::new(
+                Box::new(crate::nodes::rotation::RotationNode::new(
                     self.node(&config.source),
                     self.value(&config.speed),
                 ))
             }
             NodeImplConfig::Raindrops(ref config) => {
-                Box::new(::nodes::raindrops::RaindropsNode::new(
+                Box::new(crate::nodes::raindrops::RaindropsNode::new(
                     self.size,
                     self.value(&config.rate),
                     (self.value(&config.hue.min), self.value(&config.hue.max)),
@@ -68,7 +68,7 @@ impl Builder {
                 ))
             }
             NodeImplConfig::Larson(ref config) => {
-                Box::new(::nodes::larson::LarsonNode::new(
+                Box::new(crate::nodes::larson::LarsonNode::new(
                     self.size,
                     self.value(&config.hue),
                     self.value(&config.speed),

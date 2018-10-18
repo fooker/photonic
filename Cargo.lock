@@ -368,10 +368,27 @@ dependencies = [
  "assert_approx_eq 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ezing 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "num 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
- "rand 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "scarlet 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "photonic_derive"
+version = "0.1.0"
+dependencies = [
+ "quote 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "syn 0.15.6 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "photonicd"
+version = "0.1.0"
+dependencies = [
+ "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
+ "photonic 0.1.0",
+ "photonic_derive 0.1.0",
+ "rand 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.79 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.79 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_yaml 0.8.5 (registry+https://github.com/rust-lang/crates.io-index)",

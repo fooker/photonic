@@ -1,18 +1,6 @@
-[package]
-name = "photonic"
-version = "0.1.0"
-authors = ["Dustin Frisch <fooker@lab.sh>"]
-
-[dependencies]
-num = "*"
-rand = "*"
-regex = "0.2"
-ezing = "0.2"
-scarlet = "0.2"
-serde = "1"
-serde_derive = "1"
-serde_yaml = "0.8"
-failure = "0.1"
-
-[dev-dependencies]
-assert_approx_eq = "1"
+[workspace]
+members = [
+    "photonic",
+    "photonic_derive",
+    "photonicd",
+]
