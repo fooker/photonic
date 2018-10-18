@@ -13,7 +13,15 @@ impl math::Lerp for RGBColor {
     fn lerp(c1: Self, c2: Self, f: f64) -> Self {
         use scarlet::colorpoint::ColorPoint;
 
-        ColorPoint::weighted_midpoint(c2, c1, f)
+        if f <= 0.0 {
+            return c1;
+        }
+
+        if f >= 1.0 {
+            return c2;
+        }
+
+        return ColorPoint::weighted_midpoint(c2, c1, f);
     }
 }
 

@@ -5,6 +5,18 @@ use std::time::Duration;
 
 pub type MainColor = RGBColor;
 
+#[derive(Copy, Clone)]
+pub struct AttributeRef<'n> {
+    pub name: &'n str,
+    pub attr: &'n Attribute,
+}
+
+#[derive(Copy, Clone)]
+pub struct NodeRef<'n> {
+    pub name: &'n str,
+    pub node: &'n Node,
+}
+
 pub trait Dynamic {
     fn update(&mut self, duration: Duration);
 }
@@ -31,7 +43,10 @@ pub trait Source {
 }
 
 pub trait Node: Dynamic + Source {
-    fn attributes(&self) -> Vec<&Attribute>;
+    fn class(&self) -> &str;
+
+    fn nodes(&self) -> Vec<NodeRef>;
+    fn attrs(&self) -> Vec<AttributeRef>;
 }
 
 pub trait Output {

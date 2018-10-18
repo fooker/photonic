@@ -3,13 +3,13 @@
 #[macro_use]
 extern crate failure;
 extern crate num;
+#[macro_use]
+extern crate photonic_derive;
 extern crate rand;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_yaml;
-#[macro_use]
-extern crate photonic_derive;
 
 use photonic::core::*;
 use std::thread;
@@ -19,11 +19,25 @@ mod nodes;
 mod outputs;
 mod config;
 
+
+fn dump(ident: usize, name: &str, node: &Node) {
+    println!("{}{}: {}", "  ".repeat(ident), node.class(), name);
+
+    for attr in node.attrs().iter() {
+        println!("{}# {} = {}", "  ".repeat(ident), attr.name, attr.attr.get());
+    }
+
+    for node in node.nodes().iter() {
+        dump(ident + 1, node.name, node.node);
+    }
+}
+
 fn main() {
     let config = config::load("config.yaml")
             .expect("Failed to load config");
 
     let mut root_node: Box<Node> = config.into();
+//    dump(0, "root", root_node.as_ref());
 
     let mut output = outputs::console::ConsoleOutput::new();
 

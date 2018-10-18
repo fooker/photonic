@@ -21,7 +21,7 @@ impl Builder {
             ValueConfig::Fixed(value) => {
                 Box::new(Attribute::from(*value))
             }
-            ValueConfig::Dynamic(config) => {
+            ValueConfig::Dynamic(_config) => {
                 unimplemented!()
             }
         };
@@ -61,10 +61,10 @@ impl Builder {
                 Box::new(crate::nodes::raindrops::RaindropsNode::new(
                     self.size,
                     self.value(&config.rate),
-                    (self.value(&config.hue.min), self.value(&config.hue.max)),
-                    (self.value(&config.saturation.min), self.value(&config.saturation.max)),
-                    (self.value(&config.lightness.min), self.value(&config.lightness.max)),
-                    (self.value(&config.decay.min), self.value(&config.decay.max)),
+                    self.value(&config.hue.min), self.value(&config.hue.max),
+                    self.value(&config.saturation.min), self.value(&config.saturation.max),
+                    self.value(&config.lightness.min), self.value(&config.lightness.max),
+                    self.value(&config.decay.min), self.value(&config.decay.max),
                 ))
             }
             NodeImplConfig::Larson(ref config) => {

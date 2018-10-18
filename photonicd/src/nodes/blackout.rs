@@ -49,7 +49,10 @@ impl<'a> Renderer for FullBlackoutRenderer<'a> {
 
 #[derive(Node)]
 pub struct BlackoutNode {
+    #[node()]
     source: Box<Node>,
+
+    #[attr()]
     value: Box<Attribute>,
 
     range: Option<(usize, usize)>,

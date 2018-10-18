@@ -42,8 +42,8 @@ enum Direction {
 impl Direction {
     pub fn switched(&self) -> Self {
         match self {
-            &Direction::Left => Direction::Right,
-            &Direction::Right => Direction::Left,
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
         }
     }
 }
@@ -52,8 +52,13 @@ impl Direction {
 pub struct LarsonNode {
     size: usize,
 
+    #[attr()]
     hue: Box<Attribute>,
+
+    #[attr()]
     speed: Box<Attribute>,
+
+    #[attr()]
     width: Box<Attribute>,
 
     position: f64,

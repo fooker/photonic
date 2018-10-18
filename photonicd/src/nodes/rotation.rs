@@ -20,8 +20,10 @@ impl<'a> Renderer for RotationRenderer<'a> {
 
 #[derive(Node)]
 pub struct RotationNode {
+    #[node()]
     source: Box<Node>,
 
+    #[attr()]
     speed: Box<Attribute>,
     offset: f64,
 }
