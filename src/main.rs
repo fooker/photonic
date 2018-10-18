@@ -26,7 +26,7 @@ mod math;
 mod nodes;
 mod outputs;
 mod services;
-mod values;
+mod attributes;
 mod config;
 
 fn main() {

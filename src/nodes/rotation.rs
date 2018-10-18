@@ -1,4 +1,5 @@
 use core::*;
+use attributes::*;
 use std::time::Duration;
 use utils::FractionalDuration;
 
@@ -20,13 +21,13 @@ impl <'a> Renderer for RotationRenderer<'a> {
 pub struct RotationNode {
     source: Box<Node>,
 
-    speed: Box<Value>,
+    speed: Box<Attribute>,
     offset: f64,
 }
 
 impl RotationNode {
     pub fn new(source: Box<Node>,
-               speed: Box<Value>) -> Self {
+               speed: Box<Attribute>) -> Self {
         Self {
             source,
             offset: 0.0,

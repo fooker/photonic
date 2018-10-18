@@ -1,5 +1,6 @@
 use color::Black;
 use core::*;
+use attributes::*;
 use math::Lerp;
 use std::time::Duration;
 
@@ -48,14 +49,14 @@ impl<'a> Renderer for FullBlackoutRenderer<'a> {
 
 pub struct BlackoutNode {
     source: Box<Node>,
-    value: Box<Value>,
+    value: Box<Attribute>,
 
     range: Option<(usize, usize)>,
 }
 
 impl BlackoutNode {
     pub fn new(source: Box<Node>,
-               value: Box<Value>,
+               value: Box<Attribute>,
                range: Option<(usize, usize)>) -> Self {
         Self {
             source,

@@ -1,4 +1,5 @@
 use core::*;
+use attributes::*;
 use super::model::*;
 
 
@@ -15,10 +16,10 @@ impl Builder {
         return builder.node(&config.node);
     }
 
-    fn value(&mut self, config: &ValueConfig) -> Box<Value> {
-        let value: Box<Value> = match config {
+    fn value(&mut self, config: &ValueConfig) -> Box<Attribute> {
+        let value: Box<Attribute> = match config {
             ValueConfig::Fixed(value) => {
-                Box::new(::values::fixed::FixedValue::from(*value))
+                Box::new(::attributes::Attribute::from(*value))
             }
             ValueConfig::Dynamic(config) => {
                 unimplemented!()

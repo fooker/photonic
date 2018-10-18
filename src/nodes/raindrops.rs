@@ -1,5 +1,6 @@
 use color::*;
 use core::*;
+use attributes::*;
 use math;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 use std::time::Duration;
@@ -38,13 +39,13 @@ impl Random {
     }
 
     pub fn rate(&mut self,
-                value: &Box<Value>,
+                value: &Box<Attribute>,
                 duration: Duration) -> bool {
         return self.0.gen_bool(math::clamp(duration.as_fractional_secs() * value.get(), (0.0, 1.0)));
     }
 
     pub fn range(&mut self,
-                 values: &(Box<Value>, Box<Value>)) -> f64 {
+                 values: &(Box<Attribute>, Box<Attribute>)) -> f64 {
         let values = math::minmax(values.0.get(), values.1.get());
         if values.0 == values.1 {
             return values.0;
@@ -55,11 +56,11 @@ impl Random {
 }
 
 pub struct RaindropsNode {
-    rate: Box<Value>,
-    hue: (Box<Value>, Box<Value>),
-    saturation: (Box<Value>, Box<Value>),
-    lightness: (Box<Value>, Box<Value>),
-    decay: (Box<Value>, Box<Value>),
+    rate: Box<Attribute>,
+    hue: (Box<Attribute>, Box<Attribute>),
+    saturation: (Box<Attribute>, Box<Attribute>),
+    lightness: (Box<Attribute>, Box<Attribute>),
+    decay: (Box<Attribute>, Box<Attribute>),
 
     raindrops: Vec<Raindrop>,
 
@@ -68,11 +69,11 @@ pub struct RaindropsNode {
 
 impl RaindropsNode {
     pub fn new(size: usize,
-               rate: Box<Value>,
-               hue: (Box<Value>, Box<Value>),
-               saturation: (Box<Value>, Box<Value>),
-               lightness: (Box<Value>, Box<Value>),
-               decay: (Box<Value>, Box<Value>),
+               rate: Box<Attribute>,
+               hue: (Box<Attribute>, Box<Attribute>),
+               saturation: (Box<Attribute>, Box<Attribute>),
+               lightness: (Box<Attribute>, Box<Attribute>),
+               decay: (Box<Attribute>, Box<Attribute>),
     ) -> Self {
         Self {
             rate,

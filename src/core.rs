@@ -8,16 +8,6 @@ pub trait Dynamic {
     fn update(&mut self, duration: Duration);
 }
 
-pub trait Value: Dynamic {
-    fn name(&self) -> &str;
-
-    fn get(&self) -> f64;
-
-    fn get_clamped(&self, range: (f64, f64)) -> f64 {
-        math::clamp(self.get(), range)
-    }
-}
-
 pub trait Renderer {
     fn size(&self) -> usize;
     fn get(&self, index: usize) -> MainColor;

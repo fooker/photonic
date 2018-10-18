@@ -1,5 +1,6 @@
 use color::*;
 use core::*;
+use attributes::*;
 use std::time::Duration;
 use utils::FractionalDuration;
 
@@ -50,9 +51,9 @@ impl Direction {
 pub struct LarsonNode {
     size: usize,
 
-    hue: Box<Value>,
-    speed: Box<Value>,
-    width: Box<Value>,
+    hue: Box<Attribute>,
+    speed: Box<Attribute>,
+    width: Box<Attribute>,
 
     position: f64,
     direction: Direction,
@@ -60,9 +61,9 @@ pub struct LarsonNode {
 
 impl LarsonNode {
     pub fn new(size: usize,
-               hue: Box<Value>,
-               speed: Box<Value>,
-               width: Box<Value>,
+               hue: Box<Attribute>,
+               speed: Box<Attribute>,
+               width: Box<Attribute>,
     ) -> Self {
         Self {
             size,
