@@ -122,17 +122,18 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
     let class = ident.to_string();
     let (nodes, attrs) = collect_meta(&input);
 
+    // FIXME: Pre-generate the vectors or use something lazy
     let nodes = nodes.iter().map(|NodeField { ref name, ref ident }| quote! {
-        ::photonic::core::NodeRef{
+        ::photonic::reflection::NodeRef{
+            ptr: self.#ident.as_ref(),
             name: #name,
-            node: self.#ident.as_ref(),
         }
     });
 
     let attrs = attrs.iter().map(|AttrField { ref name, ref ident }| quote! {
-        ::photonic::core::AttributeRef{
+        ::photonic::reflection::AttributeRef{
+            ptr: self.#ident.as_ref(),
             name: #name,
-            attr: self.#ident.as_ref(),
         }
     });
 
@@ -143,11 +144,11 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
                 return #class;
             }
 
-            fn nodes(&self) -> Vec<photonic::core::NodeRef> {
+            fn childs(&self) -> Vec<photonic::reflection::NodeRef> {
                 return vec![#(#nodes),*];
             }
 
-            fn attrs(&self) -> Vec<photonic::core::AttributeRef> {
+            fn attributes(&self) -> Vec<photonic::reflection::AttributeRef> {
                 return vec![#(#attrs),*];
             }
         }

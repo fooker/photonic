@@ -2,20 +2,10 @@ use crate::color::RGBColor;
 use crate::attributes::Attribute;
 use crate::math::{self, Lerp};
 use std::time::Duration;
+use std::ops::{Deref,DerefMut};
+use crate::reflection::{NodeRef,AttributeRef};
 
 pub type MainColor = RGBColor;
-
-#[derive(Copy, Clone)]
-pub struct AttributeRef<'n> {
-    pub name: &'n str,
-    pub attr: &'n Attribute,
-}
-
-#[derive(Copy, Clone)]
-pub struct NodeRef<'n> {
-    pub name: &'n str,
-    pub node: &'n Node,
-}
 
 pub trait Dynamic {
     fn update(&mut self, duration: Duration);
@@ -45,8 +35,8 @@ pub trait Source {
 pub trait Node: Dynamic + Source {
     fn class(&self) -> &str;
 
-    fn nodes(&self) -> Vec<NodeRef>;
-    fn attrs(&self) -> Vec<AttributeRef>;
+    fn childs(&self) -> Vec<NodeRef>;
+    fn attributes(&self) -> Vec<AttributeRef>;
 }
 
 pub trait Output {

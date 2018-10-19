@@ -14,6 +14,7 @@ extern crate serde_yaml;
 use photonic::core::*;
 use std::thread;
 use std::time::{Duration, Instant};
+use std::ops::Deref;
 
 mod nodes;
 mod outputs;
@@ -23,12 +24,12 @@ mod config;
 fn dump(ident: usize, name: &str, node: &Node) {
     println!("{}{}: {}", "  ".repeat(ident), node.class(), name);
 
-    for attr in node.attrs().iter() {
-        println!("{}# {} = {}", "  ".repeat(ident), attr.name, attr.attr.get());
+    for attr in node.attributes().iter() {
+        println!("{}# {} = {}", "  ".repeat(ident), attr.name, attr.get());
     }
 
-    for node in node.nodes().iter() {
-        dump(ident + 1, node.name, node.node);
+    for node in node.childs().iter() {
+        dump(ident + 1, node.name, node.deref());
     }
 }
 
@@ -37,7 +38,7 @@ fn main() {
             .expect("Failed to load config");
 
     let mut root_node: Box<Node> = config.into();
-//    dump(0, "root", root_node.as_ref());
+    dump(0, "root", root_node.as_mut());
 
     let mut output = outputs::console::ConsoleOutput::new();
 
