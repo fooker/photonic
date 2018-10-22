@@ -12,24 +12,25 @@ extern crate serde_derive;
 extern crate serde_yaml;
 
 use photonic::core::*;
+use photonic::attributes::*;
 use std::thread;
 use std::time::{Duration, Instant};
-use std::ops::Deref;
+use std::rc::Rc;
 
 mod nodes;
 mod outputs;
 mod config;
 
 
-fn dump(ident: usize, name: &str, node: &Node) {
-    println!("{}{}: {}", "  ".repeat(ident), node.class(), name);
-
-    for attr in node.attributes().iter() {
-        println!("{}# {} = {}", "  ".repeat(ident), attr.name, attr.get());
+fn collect_dynamic_attributes(attributes: &mut Vec<Rc<Box<DynamicAttribute>>>, node: &Node) {
+    for attr in node.attributes() {
+        if let Attribute::Dynamic(dynamic) = attr.as_ref() {
+            attributes.push(dynamic.clone());
+        }
     }
 
-    for node in node.childs().iter() {
-        dump(ident + 1, node.name, node.deref());
+    for node in node.children() {
+        collect_dynamic_attributes(attributes, node.as_ref());
     }
 }
 
@@ -38,7 +39,13 @@ fn main() {
             .expect("Failed to load config");
 
     let mut root_node: Box<Node> = config.into();
-    dump(0, "root", root_node.as_mut());
+
+    let mut attrs = Vec::new();
+    collect_dynamic_attributes(&mut attrs, root_node.as_ref());
+
+    for attr in attrs {
+        println!("{} = {}", attr.name(), attr.value());
+    }
 
     let mut output = outputs::console::ConsoleOutput::new();
 
@@ -48,7 +55,7 @@ fn main() {
 
         // Update all manager
         let duration = curr - last;
-        root_node.update(duration);
+        root_node.update(&duration);
 
         {
             let root_renderer = root_node.render();

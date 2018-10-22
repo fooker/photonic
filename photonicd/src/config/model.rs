@@ -1,14 +1,60 @@
-#[derive(Serialize, Deserialize)]
-pub enum EasingFuncConfig {}
-
+use std::time::Duration;
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum DynamicValueConfig {
-    Fader {
-        speed: f64,
-        easing: EasingFuncConfig,
-    }
+pub enum EasingFuncConfig {}
+
+#[derive(Serialize, Deserialize)]
+pub struct EasingConfig {
+    speed: f64,
+    easing: EasingFuncConfig,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct FaderConfig {
+    pub default_value: f64,
+
+    pub min_value: f64,
+    pub max_value: f64,
+
+    pub easing: Option<EasingConfig>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct PushbuttonConfig {
+    pub released_value: f64,
+    pub pressed_value: f64,
+
+    pub hold_time: Duration,
+
+    pub easing_in: Option<EasingConfig>,
+    pub easing_out: Option<EasingConfig>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct TimerConfig {
+    pub time: Duration,
+
+    pub values: Vec<f64>, // FIXME: Other value sets...
+
+    pub easing: Option<EasingConfig>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum BehaviorConfig {
+    Fader(FaderConfig),
+    Pushbutton(PushbuttonConfig),
+    Timer(TimerConfig),
+}
+
+
+#[derive(Serialize, Deserialize)]
+pub struct DynamicValueConfig {
+    pub name: String,
+
+    #[serde(flatten)]
+    pub behavior: BehaviorConfig,
 }
 
 #[derive(Serialize, Deserialize)]

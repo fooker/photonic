@@ -1,4 +1,5 @@
 #![feature(self_struct_ctor)]
+#![feature(cell_update)]
 
 #[cfg(test)]
 #[macro_use]
@@ -14,4 +15,4 @@ pub mod color;
 pub mod utils;
 pub mod math;
 pub mod attributes;
-pub mod reflection;
+pub mod inspection;

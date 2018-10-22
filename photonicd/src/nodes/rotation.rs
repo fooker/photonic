@@ -5,7 +5,7 @@ use std::time::Duration;
 
 struct RotationRenderer<'a> {
     source: Box<Renderer + 'a>,
-    node: &'a RotationNode,
+    offset: f64,
 }
 
 impl<'a> Renderer for RotationRenderer<'a> {
@@ -14,23 +14,23 @@ impl<'a> Renderer for RotationRenderer<'a> {
     }
 
     fn get(&self, index: usize) -> MainColor {
-        self.source.get_interpolated(index as f64 - self.node.offset)
+        self.source.get_interpolated(index as f64 - self.offset)
     }
 }
 
-#[derive(Node)]
+#[derive(Inspection)]
 pub struct RotationNode {
     #[node()]
     source: Box<Node>,
 
     #[attr()]
-    speed: Box<Attribute>,
+    speed: Attribute,
     offset: f64,
 }
 
 impl RotationNode {
     pub fn new(source: Box<Node>,
-               speed: Box<Attribute>) -> Self {
+               speed: Attribute) -> Self {
         Self {
             source,
             offset: 0.0,
@@ -39,17 +39,19 @@ impl RotationNode {
     }
 }
 
+impl Node for RotationNode {}
+
 impl Source for RotationNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(RotationRenderer {
             source: self.source.render(),
-            node: self,
+            offset: self.offset,
         })
     }
 }
 
 impl Dynamic for RotationNode {
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: &Duration) {
         self.source.update(duration);
         self.speed.update(duration);
         self.offset += self.speed.get() * duration.as_fractional_secs();

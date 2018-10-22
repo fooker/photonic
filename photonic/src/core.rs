@@ -3,12 +3,12 @@ use crate::attributes::Attribute;
 use crate::math::{self, Lerp};
 use std::time::Duration;
 use std::ops::{Deref,DerefMut};
-use crate::reflection::{NodeRef,AttributeRef};
+pub use crate::inspection::{Inspection, NodeRef, AttributeRef};
 
 pub type MainColor = RGBColor;
 
 pub trait Dynamic {
-    fn update(&mut self, duration: Duration);
+    fn update(&mut self, duration: &Duration);
 }
 
 pub trait Renderer {
@@ -32,11 +32,7 @@ pub trait Source {
     fn render<'a>(&'a self) -> Box<Renderer + 'a>;
 }
 
-pub trait Node: Dynamic + Source {
-    fn class(&self) -> &str;
-
-    fn childs(&self) -> Vec<NodeRef>;
-    fn attributes(&self) -> Vec<AttributeRef>;
+pub trait Node: Dynamic + Source + Inspection {
 }
 
 pub trait Output {

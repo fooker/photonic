@@ -6,7 +6,7 @@ extern crate proc_macro;
 extern crate quote;
 extern crate syn;
 
-use self::proc_macro::{TokenStream};
+use self::proc_macro::TokenStream;
 use syn::*;
 use syn::export::Span;
 use syn::punctuated::Punctuated;
@@ -113,9 +113,9 @@ fn collect_meta(input: &DeriveInput) -> (Vec<NodeField>, Vec<AttrField>) {
     }
 }
 
-#[proc_macro_derive(Node, attributes(node, attr))]
+#[proc_macro_derive(Inspection, attributes(node, attr))]
 #[allow(unused)]
-pub fn derive_node(input: TokenStream) -> TokenStream {
+pub fn derive_inspection(input: TokenStream) -> TokenStream {
     let input: DeriveInput = parse_macro_input!(input as DeriveInput);
 
     let ident = &input.ident;
@@ -124,31 +124,31 @@ pub fn derive_node(input: TokenStream) -> TokenStream {
 
     // FIXME: Pre-generate the vectors or use something lazy
     let nodes = nodes.iter().map(|NodeField { ref name, ref ident }| quote! {
-        ::photonic::reflection::NodeRef{
-            ptr: self.#ident.as_ref(),
+        ::photonic::inspection::NodeRef{
             name: #name,
+            ptr: self.#ident.as_ref(),
         }
     });
 
     let attrs = attrs.iter().map(|AttrField { ref name, ref ident }| quote! {
-        ::photonic::reflection::AttributeRef{
-            ptr: self.#ident.as_ref(),
+        ::photonic::inspection::AttributeRef{
             name: #name,
+            ptr: &self.#ident,
         }
     });
 
     return TokenStream::from(quote! {
         #[automatically_derived]
-        impl ::photonic::core::Node for #ident {
-            fn class(&self) -> &str {
+        impl ::photonic::inspection::Inspection for #ident {
+            fn class(&self) -> &'static str {
                 return #class;
             }
 
-            fn childs(&self) -> Vec<photonic::reflection::NodeRef> {
+            fn children(&self) -> Vec<photonic::inspection::NodeRef> {
                 return vec![#(#nodes),*];
             }
 
-            fn attributes(&self) -> Vec<photonic::reflection::AttributeRef> {
+            fn attributes(&self) -> Vec<photonic::inspection::AttributeRef> {
                 return vec![#(#attrs),*];
             }
         }

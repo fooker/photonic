@@ -1,8 +1,8 @@
+use photonic::attributes::*;
 use photonic::color::*;
 use photonic::core::*;
-use photonic::attributes::*;
-use std::time::Duration;
 use photonic::utils::FractionalDuration;
+use std::time::Duration;
 
 struct LarsonRenderer {
     size: usize,
@@ -30,13 +30,12 @@ impl Renderer for LarsonRenderer {
             s: 1.0,
             v: value,
         }.convert();
-
     }
 }
 
 enum Direction {
     Left,
-    Right
+    Right,
 }
 
 impl Direction {
@@ -48,18 +47,13 @@ impl Direction {
     }
 }
 
-#[derive(Node)]
+#[derive(Inspection)]
 pub struct LarsonNode {
     size: usize,
 
-    #[attr()]
-    hue: Box<Attribute>,
-
-    #[attr()]
-    speed: Box<Attribute>,
-
-    #[attr()]
-    width: Box<Attribute>,
+    #[attr()] hue: Attribute,
+    #[attr()] speed: Attribute,
+    #[attr()] width: Attribute,
 
     position: f64,
     direction: Direction,
@@ -67,9 +61,9 @@ pub struct LarsonNode {
 
 impl LarsonNode {
     pub fn new(size: usize,
-               hue: Box<Attribute>,
-               speed: Box<Attribute>,
-               width: Box<Attribute>,
+               hue: Attribute,
+               speed: Attribute,
+               width: Attribute,
     ) -> Self {
         Self {
             size,
@@ -81,6 +75,8 @@ impl LarsonNode {
         }
     }
 }
+
+impl Node for LarsonNode {}
 
 impl Source for LarsonNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
@@ -94,7 +90,7 @@ impl Source for LarsonNode {
 }
 
 impl Dynamic for LarsonNode {
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);
         self.width.update(duration);
 

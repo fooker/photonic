@@ -47,20 +47,18 @@ impl<'a> Renderer for FullBlackoutRenderer<'a> {
     }
 }
 
-#[derive(Node)]
+#[derive(Inspection)]
 pub struct BlackoutNode {
-    #[node()]
-    source: Box<Node>,
+    #[node()] source: Box<Node>,
 
-    #[attr()]
-    value: Box<Attribute>,
+    #[attr()] value: Attribute,
 
     range: Option<(usize, usize)>,
 }
 
 impl BlackoutNode {
     pub fn new(source: Box<Node>,
-               value: Box<Attribute>,
+               value: Attribute,
                range: Option<(usize, usize)>) -> Self {
         Self {
             source,
@@ -69,6 +67,8 @@ impl BlackoutNode {
         }
     }
 }
+
+impl Node for BlackoutNode {}
 
 impl Source for BlackoutNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
@@ -88,7 +88,7 @@ impl Source for BlackoutNode {
 }
 
 impl Dynamic for BlackoutNode {
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: &Duration) {
         self.source.update(duration);
         self.value.update(duration);
     }

@@ -1,4 +1,3 @@
-//pub mod func; // FIXME
 pub mod rotation;
 pub mod blackout;
 pub mod colorwheel;

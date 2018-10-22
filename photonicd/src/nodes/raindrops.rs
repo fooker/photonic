@@ -42,7 +42,7 @@ impl Random {
 
     pub fn rate(&mut self,
                 value: &Attribute,
-                duration: Duration) -> bool {
+                duration: &Duration) -> bool {
         return self.0.gen_bool(math::clamp(duration.as_fractional_secs() * value.get(), (0.0, 1.0)));
     }
 
@@ -59,21 +59,21 @@ impl Random {
     }
 }
 
-#[derive(Node)]
+#[derive(Inspection)]
 pub struct RaindropsNode {
-    #[attr()] rate: Box<Attribute>,
+    #[attr()] rate: Attribute,
 
-    #[attr()] hue_min: Box<Attribute>,
-    #[attr()] hue_max: Box<Attribute>,
+    #[attr()] hue_min: Attribute,
+    #[attr()] hue_max: Attribute,
 
-    #[attr()] saturation_min: Box<Attribute>,
-    #[attr()] saturation_max: Box<Attribute>,
+    #[attr()] saturation_min: Attribute,
+    #[attr()] saturation_max: Attribute,
 
-    #[attr()] lightness_min: Box<Attribute>,
-    #[attr()] lightness_max: Box<Attribute>,
+    #[attr()] lightness_min: Attribute,
+    #[attr()] lightness_max: Attribute,
 
-    #[attr()] decay_min: Box<Attribute>,
-    #[attr()] decay_max: Box<Attribute>,
+    #[attr()] decay_min: Attribute,
+    #[attr()] decay_max: Attribute,
 
     raindrops: Vec<Raindrop>,
 
@@ -82,15 +82,15 @@ pub struct RaindropsNode {
 
 impl RaindropsNode {
     pub fn new(size: usize,
-               rate: Box<Attribute>,
-               hue_min: Box<Attribute>,
-               hue_max: Box<Attribute>,
-               saturation_min: Box<Attribute>,
-               saturation_max: Box<Attribute>,
-               lightness_min: Box<Attribute>,
-               lightness_max: Box<Attribute>,
-               decay_min: Box<Attribute>,
-               decay_max: Box<Attribute>,
+               rate: Attribute,
+               hue_min: Attribute,
+               hue_max: Attribute,
+               saturation_min: Attribute,
+               saturation_max: Attribute,
+               lightness_min: Attribute,
+               lightness_max: Attribute,
+               decay_min: Attribute,
+               decay_max: Attribute,
     ) -> Self {
         Self {
             rate,
@@ -108,6 +108,8 @@ impl RaindropsNode {
     }
 }
 
+impl Node for RaindropsNode {}
+
 impl Source for RaindropsNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(Raindrops(&self.raindrops))
@@ -115,7 +117,7 @@ impl Source for RaindropsNode {
 }
 
 impl Dynamic for RaindropsNode {
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: &Duration) {
         self.rate.update(duration);
         self.hue_min.update(duration);
         self.hue_max.update(duration);

@@ -1,9 +1,9 @@
 use photonic::buffer::*;
-use photonic::core::*;
 use photonic::color::HSVColor;
+use photonic::core::*;
 use std::time::Duration;
 
-#[derive(Node)]
+#[derive(Inspection)]
 pub struct ColorwheelNode(Buffer<MainColor>);
 
 impl ColorwheelNode {
@@ -29,6 +29,8 @@ impl ColorwheelNode {
     }
 }
 
+impl Node for ColorwheelNode {}
+
 impl Source for ColorwheelNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(&self.0)
@@ -36,5 +38,5 @@ impl Source for ColorwheelNode {
 }
 
 impl Dynamic for ColorwheelNode {
-    fn update(&mut self, _: Duration) {}
+    fn update(&mut self, _: &Duration) {}
 }
