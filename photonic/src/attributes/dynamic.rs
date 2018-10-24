@@ -1,52 +1,46 @@
-use std::cell::Cell;
+use crate::core::Dynamic;
+use crate::math;
 use std::time::Duration;
-use super::DynamicAttribute;
 
-pub struct Fader {
-    name: String,
-
+pub struct FaderValue {
     limits: (f64, f64),
 
-    value: Cell<f64>,
-    update: Cell<Option<f64>>,
+    value: f64,
+
+    update: Option<f64>,
 }
 
-impl Fader {
-    pub fn new(name: &str,
-               default_value: f64,
+impl FaderValue {
+    pub fn new(default_value: f64,
                limits: (f64, f64)) -> Self {
         Self {
-            name: name.to_owned(),
             limits,
-            value: Cell::new(default_value),
-            update: Cell::new(None),
+            value: default_value,
+            update: None,
         }
     }
 
-    pub fn set(&self, value: f64) {
-        self.update.set(Some(value));
+    pub fn value(&self) -> f64 {
+        self.value
+    }
+
+    pub fn set(&mut self, value: f64) {
+        let value = math::clamp(value, self.limits);
+        self.update = Some(value);
     }
 }
 
-impl DynamicAttribute for Fader {
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn value(&self) -> f64 {
-        self.value.get()
-    }
-
-    fn update(&self, duration: &Duration) {
+impl Dynamic for FaderValue {
+    fn update(&mut self, duration: &Duration) {
         // FIXME: Animation
 
-        if let Some(update) = self.update.get().take() {
-            self.value.set(update);
+        if let Some(update) = self.update.take() {
+            self.value = update;
         }
     }
 }
 
-#[derive(Clone,Copy)]
+#[derive(Clone, Copy)]
 enum PushbuttonState {
     Released,
     Pressed(Duration),
@@ -66,58 +60,74 @@ impl PushbuttonState {
     }
 }
 
-pub struct Pushbutton {
-    name: String,
-
+pub struct ButtonValue {
     released_value: f64,
     pressed_value: f64,
 
     hold_time: Duration,
 
-    state: Cell<PushbuttonState>,
+    state: PushbuttonState,
 
-    update: Cell<Option<()>>,
+    update: Option<()>,
 }
 
-impl Pushbutton {
-    pub fn new(name: &str,
-               released_value: f64,
+impl ButtonValue {
+    pub fn new(released_value: f64,
                pressed_value: f64,
                hold_time: Duration) -> Self {
         Self {
-            name: name.to_owned(),
             released_value,
             pressed_value,
             hold_time,
-            state: Cell::new(PushbuttonState::Released),
-            update: Cell::new(None),
+            state: PushbuttonState::Released,
+            update: None,
         }
     }
 
-    pub fn trigger(&self) {
-        self.update.set(Some(()));
-    }
-}
-
-impl DynamicAttribute for Pushbutton {
-    fn name(&self) -> &str {
-        &self.name
+    pub fn trigger(&mut self) {
+        self.update = Some(());
     }
 
-    fn value(&self) -> f64 {
-        return match &self.state.get() {
+    pub fn value(&self) -> f64 {
+        return match &self.state {
             PushbuttonState::Released => self.released_value,
             PushbuttonState::Pressed(_) => self.pressed_value,
         };
     }
+}
 
-    fn update(&self, duration: &Duration) {
+impl Dynamic for ButtonValue {
+    fn update(&mut self, duration: &Duration) {
         // FIXME: Animation
 
-        if let Some(_) = self.update.get().take() {
-            self.state.set(PushbuttonState::Pressed(self.hold_time));
+        if let Some(_) = self.update.take() {
+            self.state = PushbuttonState::Pressed(self.hold_time);
         }
 
-        self.state.update(|state| state.update(duration));
+        self.state.update(duration);
+    }
+}
+
+pub enum DynamicValue {
+    Fader(FaderValue),
+    Button(ButtonValue),
+//    Timer(dynamic::Timer),
+}
+
+impl DynamicValue {
+    pub fn value(&self) -> f64 {
+        match self {
+            DynamicValue::Fader(ref value) => value.value(),
+            DynamicValue::Button(ref value) => value.value(),
+        }
+    }
+}
+
+impl Dynamic for DynamicValue {
+    fn update(&mut self, duration: &Duration) {
+        match self {
+            DynamicValue::Fader(ref mut value) => value.update(duration),
+            DynamicValue::Button(ref mut value) => value.update(duration),
+        }
     }
 }

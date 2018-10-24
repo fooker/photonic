@@ -119,7 +119,6 @@ pub fn derive_inspection(input: TokenStream) -> TokenStream {
     let input: DeriveInput = parse_macro_input!(input as DeriveInput);
 
     let ident = &input.ident;
-    let class = ident.to_string();
     let (nodes, attrs) = collect_meta(&input);
 
     // FIXME: Pre-generate the vectors or use something lazy
@@ -140,10 +139,6 @@ pub fn derive_inspection(input: TokenStream) -> TokenStream {
     return TokenStream::from(quote! {
         #[automatically_derived]
         impl ::photonic::inspection::Inspection for #ident {
-            fn class(&self) -> &'static str {
-                return #class;
-            }
-
             fn children(&self) -> Vec<photonic::inspection::NodeRef> {
                 return vec![#(#nodes),*];
             }

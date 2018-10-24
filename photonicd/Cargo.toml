@@ -13,3 +13,7 @@ serde_derive = "1"
 serde_yaml = "0.8"
 photonic = { path = "../photonic" }
 photonic_derive = { path = "../photonic_derive" }
+ws = "0.7"
+machine-uid = "0.1"
+iron = "0.6"
+router = "0.6"

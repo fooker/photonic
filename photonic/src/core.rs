@@ -33,6 +33,7 @@ pub trait Source {
 }
 
 pub trait Node: Dynamic + Source + Inspection {
+    fn class(&self) -> &'static str;
 }
 
 pub trait Output {

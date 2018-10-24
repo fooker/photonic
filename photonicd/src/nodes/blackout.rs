@@ -57,6 +57,8 @@ pub struct BlackoutNode {
 }
 
 impl BlackoutNode {
+    const CLASS: &'static str = "blackout";
+
     pub fn new(source: Box<Node>,
                value: Attribute,
                range: Option<(usize, usize)>) -> Self {
@@ -68,7 +70,11 @@ impl BlackoutNode {
     }
 }
 
-impl Node for BlackoutNode {}
+impl Node for BlackoutNode {
+    fn class(&self) -> &'static str {
+        Self::CLASS
+    }
+}
 
 impl Source for BlackoutNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {

@@ -11,28 +11,17 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_yaml;
 
-use photonic::core::*;
 use photonic::attributes::*;
+use photonic::core::*;
+use std::rc::Rc;
 use std::thread;
 use std::time::{Duration, Instant};
-use std::rc::Rc;
 
 mod nodes;
 mod outputs;
 mod config;
+mod exporter;
 
-
-fn collect_dynamic_attributes(attributes: &mut Vec<Rc<Box<DynamicAttribute>>>, node: &Node) {
-    for attr in node.attributes() {
-        if let Attribute::Dynamic(dynamic) = attr.as_ref() {
-            attributes.push(dynamic.clone());
-        }
-    }
-
-    for node in node.children() {
-        collect_dynamic_attributes(attributes, node.as_ref());
-    }
-}
 
 fn main() {
     let config = config::load("config.yaml")
@@ -40,14 +29,11 @@ fn main() {
 
     let mut root_node: Box<Node> = config.into();
 
-    let mut attrs = Vec::new();
-    collect_dynamic_attributes(&mut attrs, root_node.as_ref());
-
-    for attr in attrs {
-        println!("{} = {}", attr.name(), attr.value());
-    }
-
     let mut output = outputs::console::ConsoleOutput::new();
+
+    let remote = exporter::serve(exporter::ExporterConfig {
+        address: "localhost:1337",
+    }, &*root_node).unwrap();
 
     let mut last = Instant::now();
     loop {

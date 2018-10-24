@@ -2,6 +2,7 @@ use photonic::attributes::*;
 use photonic::attributes::dynamic::*;
 use photonic::core::*;
 use super::model::*;
+use std::sync::Arc;
 
 
 pub struct Builder {
@@ -20,26 +21,24 @@ impl Builder {
     fn value(&mut self, config: &ValueConfig) -> Attribute {
         let value: Attribute = match config {
             ValueConfig::Fixed(value) => {
-                Attribute::from(*value)
+                Attribute::new_fixed(*value)
             }
 
             ValueConfig::Dynamic(config) => {
-                let attribute: Box<DynamicAttribute> = match &config.behavior {
+                let value: DynamicValue = match &config.behavior {
                     BehaviorConfig::Fader(behavior) =>
-                        Box::new(Fader::new(&config.name,
-                                            behavior.default_value,
-                                            (behavior.min_value, behavior.max_value))),
+                        DynamicValue::Fader(FaderValue::new(behavior.default_value,
+                                                 (behavior.min_value, behavior.max_value))),
 
-                    BehaviorConfig::Pushbutton(behavior) =>
-                        Box::new(Pushbutton::new(&config.name,
-                                                 behavior.released_value,
-                                                 behavior.pressed_value,
-                                                 behavior.hold_time)),
+                    BehaviorConfig::Button(behavior) =>
+                        DynamicValue::Button(ButtonValue::new(behavior.released_value,
+                                                  behavior.pressed_value,
+                                                  behavior.hold_time)),
 
                     BehaviorConfig::Timer(config) => unimplemented!(),
                 };
 
-                Attribute::from(attribute)
+                Attribute::new_dynamic(&config.name, value)
             }
         };
 

@@ -81,6 +81,8 @@ pub struct RaindropsNode {
 }
 
 impl RaindropsNode {
+    const CLASS: &'static str = "raindrops";
+
     pub fn new(size: usize,
                rate: Attribute,
                hue_min: Attribute,
@@ -108,7 +110,11 @@ impl RaindropsNode {
     }
 }
 
-impl Node for RaindropsNode {}
+impl Node for RaindropsNode {
+    fn class(&self) -> &'static str {
+        Self::CLASS
+    }
+}
 
 impl Source for RaindropsNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {

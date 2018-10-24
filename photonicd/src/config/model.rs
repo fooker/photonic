@@ -21,7 +21,7 @@ pub struct FaderConfig {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct PushbuttonConfig {
+pub struct ButtonConfig {
     pub released_value: f64,
     pub pressed_value: f64,
 
@@ -43,8 +43,13 @@ pub struct TimerConfig {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum BehaviorConfig {
+    #[serde(rename = "fader")]
     Fader(FaderConfig),
-    Pushbutton(PushbuttonConfig),
+
+    #[serde(rename = "button")]
+    Button(ButtonConfig),
+
+    #[serde(rename = "timer")]
     Timer(TimerConfig),
 }
 
@@ -112,10 +117,19 @@ pub struct LarsonNodeConfig {
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum NodeImplConfig {
+    #[serde(rename = "blackout")]
     Blackout(BlackoutNodeConfig),
+
+    #[serde(rename = "colorwheel")]
     Colorwheel(ColorwheelNodeConfig),
+
+    #[serde(rename = "rotation")]
     Rotation(RotationNodeConfig),
+
+    #[serde(rename = "raindrops")]
     Raindrops(RaindropsNodeConfig),
+
+    #[serde(rename = "larson")]
     Larson(LarsonNodeConfig),
 }
 

@@ -60,6 +60,8 @@ pub struct LarsonNode {
 }
 
 impl LarsonNode {
+    const CLASS: &'static str = "larson";
+
     pub fn new(size: usize,
                hue: Attribute,
                speed: Attribute,
@@ -76,7 +78,11 @@ impl LarsonNode {
     }
 }
 
-impl Node for LarsonNode {}
+impl Node for LarsonNode {
+    fn class(&self) -> &'static str {
+        Self::CLASS
+    }
+}
 
 impl Source for LarsonNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {

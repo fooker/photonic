@@ -7,6 +7,8 @@ use std::time::Duration;
 pub struct ColorwheelNode(Buffer<MainColor>);
 
 impl ColorwheelNode {
+    const CLASS: &'static str = "colorwheel";
+
     pub fn new_delta(offset: f64, delta: f64) -> Self {
         let size = (360.0 / delta) as usize;
 
@@ -29,7 +31,11 @@ impl ColorwheelNode {
     }
 }
 
-impl Node for ColorwheelNode {}
+impl Node for ColorwheelNode {
+    fn class(&self) -> &'static str {
+        Self::CLASS
+    }
+}
 
 impl Source for ColorwheelNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {

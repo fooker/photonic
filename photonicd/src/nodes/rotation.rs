@@ -29,6 +29,8 @@ pub struct RotationNode {
 }
 
 impl RotationNode {
+    const CLASS: &'static str = "rotation";
+
     pub fn new(source: Box<Node>,
                speed: Attribute) -> Self {
         Self {
@@ -39,7 +41,11 @@ impl RotationNode {
     }
 }
 
-impl Node for RotationNode {}
+impl Node for RotationNode {
+    fn class(&self) -> &'static str {
+        Self::CLASS
+    }
+}
 
 impl Source for RotationNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
