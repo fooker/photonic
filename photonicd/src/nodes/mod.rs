@@ -3,3 +3,4 @@ pub mod blackout;
 pub mod colorwheel;
 pub mod raindrops;
 pub mod larson;
+pub mod overlay;

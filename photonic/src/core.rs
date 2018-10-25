@@ -12,7 +12,7 @@ pub trait Dynamic {
 }
 
 pub trait Renderer {
-    fn size(&self) -> usize;
+    fn size(&self) -> usize; // FIXME: Do we really need this??
     fn get(&self, index: usize) -> MainColor;
 
     fn get_interpolated(&self, index: f64) -> MainColor {

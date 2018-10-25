@@ -106,6 +106,13 @@ impl Builder {
                     self.value(&config.speed),
                     self.value(&config.width),
                 )),
+
+            NodeImplConfig::Overlay(ref config) =>
+                Box::new(crate::nodes::overlay::OverlayNode::new(
+                   self.node(&config.base),
+                   self.node(&config.overlay),
+                   self.value(&config.blend),
+                )),
         };
 
         return node;

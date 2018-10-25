@@ -117,6 +117,13 @@ pub struct LarsonNodeConfig {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct OverlayNodeConfig {
+    pub base: Box<NodeConfig>,
+    pub overlay: Box<NodeConfig>,
+    pub blend: Box<ValueConfig>,
+}
+
+#[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum NodeImplConfig {
     #[serde(rename = "blackout")]
@@ -133,6 +140,9 @@ pub enum NodeImplConfig {
 
     #[serde(rename = "larson")]
     Larson(LarsonNodeConfig),
+
+    #[serde(rename = "overlay")]
+    Overlay(OverlayNodeConfig),
 }
 
 #[derive(Serialize, Deserialize)]
