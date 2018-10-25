@@ -6,6 +6,14 @@ impl Lerp for f64 {
     fn lerp(f1: Self, f2: Self, i: f64) -> Self {
         assert!(0.0 <= i && i <= 1.0);
 
+        if i == 0.0 {
+            return f1;
+        }
+
+        if i == 1.0 {
+            return f2;
+        }
+
         return f1 + (f2 - f1) * i;
     }
 }

@@ -1,22 +1,29 @@
 use crate::core::Dynamic;
 use crate::math;
+use std::sync::mpsc::{self, Receiver, SyncSender};
 use std::time::Duration;
-use std::sync::mpsc::{self,Receiver,SyncSender};
+use super::animation::*;
 
 pub struct FaderValue {
     limits: (f64, f64),
+    easing: Option<Easing>,
 
     value: f64,
+
+    animation: Animation,
 
     update: (SyncSender<f64>, Receiver<f64>),
 }
 
 impl FaderValue {
-    pub fn new(default_value: f64,
-               limits: (f64, f64)) -> Self {
+    pub fn new(initial_value: f64,
+               limits: (f64, f64),
+               easing: Option<Easing>) -> Self {
         Self {
             limits,
-            value: default_value,
+            easing,
+            value: initial_value,
+            animation: Animation::Idle,
             update: mpsc::sync_channel(0),
         }
     }
@@ -25,95 +32,131 @@ impl FaderValue {
         self.value
     }
 
-//    pub fn set(&mut self, value: f64) {
-//        let value = math::clamp(value, self.limits);
-//        self.update = Some(value);
-//    }
-
     pub fn updater(&self) -> SyncSender<f64> {
+        // FIXME: Return setter lambda function
         return self.update.0.clone();
     }
 }
 
 impl Dynamic for FaderValue {
     fn update(&mut self, duration: &Duration) {
-        // FIXME: Animation
-
         if let Ok(update) = self.update.1.try_recv() {
-            self.value = update;
+            if let Some(easing) = self.easing {
+                self.animation = Animation::start(easing, self.value, update);
+            } else {
+                self.value = update;
+            }
+        }
+
+        if let Some(value) = self.animation.update(duration) {
+            self.value = value;
         }
     }
 }
 
 #[derive(Clone, Copy)]
-enum PushbuttonState {
+enum ButtonState {
     Released,
     Pressed(Duration),
 }
 
-impl PushbuttonState {
-    fn update(self, duration: &Duration) -> Self {
-        if let PushbuttonState::Pressed(ref remaining) = self {
+impl ButtonState {
+    fn update(&mut self, duration: &Duration) {
+        if let ButtonState::Pressed(ref mut remaining) = self {
             if *remaining > *duration {
-                return PushbuttonState::Pressed(*remaining - *duration);
+                *remaining -= *duration;
             } else {
-                return PushbuttonState::Released;
+                *self = ButtonState::Released;
             }
-        } else {
-            return self;
         }
+    }
+
+    pub fn pressed(&self) -> bool {
+        return match self {
+            ButtonState::Released => false,
+            ButtonState::Pressed(_) => true,
+        };
     }
 }
 
 pub struct ButtonValue {
-    released_value: f64,
-    pressed_value: f64,
+    value_released: f64,
+    value_pressed: f64,
 
     hold_time: Duration,
 
-    state: PushbuttonState,
+    easing_pressed: Option<Easing>,
+    easing_released: Option<Easing>,
+
+    state: ButtonState,
+    value: f64,
+
+    animation: Animation,
 
     update: (SyncSender<()>, Receiver<()>),
 }
 
 impl ButtonValue {
-    pub fn new(released_value: f64,
-               pressed_value: f64,
-               hold_time: Duration) -> Self {
+    pub fn new(value_released: f64,
+               value_pressed: f64,
+               hold_time: Duration,
+               easing_pressed: Option<Easing>,
+               easing_released: Option<Easing>) -> Self {
         Self {
-            released_value,
-            pressed_value,
+            value_released,
+            value_pressed,
             hold_time,
-            state: PushbuttonState::Released,
+            easing_pressed,
+            easing_released,
+            state: ButtonState::Released,
+            value: value_released,
+            animation: Animation::Idle,
             update: mpsc::sync_channel(0),
         }
     }
 
-//    pub fn trigger(&mut self) {
-//        self.update = Some(());
-//    }
-
     pub fn value(&self) -> f64 {
-        return match &self.state {
-            PushbuttonState::Released => self.released_value,
-            PushbuttonState::Pressed(_) => self.pressed_value,
-        };
+        self.value
     }
 
     pub fn updater(&self) -> SyncSender<()> {
+        // FIXME: Return trigger lambda function
         return self.update.0.clone();
     }
 }
 
 impl Dynamic for ButtonValue {
     fn update(&mut self, duration: &Duration) {
-        // FIXME: Animation
-
-        if let Ok(_) = self.update.1.try_recv() {
-            self.state = PushbuttonState::Pressed(self.hold_time);
-        }
+        let state_old = self.state.pressed();
 
         self.state.update(duration);
+        if let Ok(_) = self.update.1.try_recv() {
+            self.state = ButtonState::Pressed(self.hold_time);
+        }
+
+        let state_new = self.state.pressed();
+
+        if (state_old, state_new) == (false, true) {
+            if let Some(easing) = self.easing_pressed {
+                println!("{:?}", easing.speed);
+                self.animation = Animation::start(easing, self.value_released, self.value_pressed);
+            } else {
+                self.value = self.value_pressed;
+            }
+        }
+
+        if (state_old, state_new) == (true, false) {
+            if let Some(easing) = self.easing_released {
+                println!("{:?}", easing.speed);
+                self.animation = Animation::start(easing, self.value_pressed, self.value_released);
+            } else {
+                self.value = self.value_released;
+            }
+        }
+
+        if let Some(value) = self.animation.update(duration) {
+            self.value = value;
+        }
     }
 }
 
@@ -162,7 +205,6 @@ pub enum DynamicValue {
     Button(ButtonValue),
     Ticker(TickerValue),
 }
-
 
 
 impl DynamicValue {

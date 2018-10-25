@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 pub mod dynamic;
-//pub mod animation;
+pub mod animation;
 
 
 pub enum Attribute {

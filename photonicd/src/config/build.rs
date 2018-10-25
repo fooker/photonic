@@ -1,8 +1,10 @@
 use photonic::attributes::*;
+use photonic::attributes::animation::*;
 use photonic::attributes::dynamic::*;
 use photonic::core::*;
-use super::model::*;
 use std::sync::Arc;
+use std::time::Duration;
+use super::model::*;
 
 
 pub struct Builder {
@@ -18,6 +20,17 @@ impl Builder {
         return builder.node(&config.node);
     }
 
+    fn easing(&mut self, config: &Option<EasingConfig>) -> Option<Easing> {
+        if let Some(config) = config {
+            return Some(Easing {
+                func: |v| v, // FIXME: Use real function
+                speed: Duration::from_float_secs(config.speed),
+            });
+        } else {
+            return None;
+        }
+    }
+
     fn value(&mut self, config: &ValueConfig) -> Attribute {
         let value: Attribute = match config {
             ValueConfig::Fixed(value) => {
@@ -27,13 +40,16 @@ impl Builder {
             ValueConfig::Dynamic(config) => {
                 let value: DynamicValue = match &config.behavior {
                     BehaviorConfig::Fader(behavior) =>
-                        DynamicValue::Fader(FaderValue::new(behavior.default_value,
-                                                 (behavior.min_value, behavior.max_value))),
+                        DynamicValue::Fader(FaderValue::new(behavior.initial_value,
+                                                            (behavior.min_value, behavior.max_value),
+                                                            self.easing(&behavior.easing))),
 
                     BehaviorConfig::Button(behavior) =>
-                        DynamicValue::Button(ButtonValue::new(behavior.released_value,
-                                                  behavior.pressed_value,
-                                                  behavior.hold_time)),
+                        DynamicValue::Button(ButtonValue::new(behavior.value_released,
+                                                              behavior.value_pressed,
+                                                              Duration::from_float_secs(behavior.hold_time),
+                                                              self.easing(&behavior.easing_pressed),
+                                                              self.easing(&behavior.easing_released))),
 
                     BehaviorConfig::Timer(config) => unimplemented!(),
                 };

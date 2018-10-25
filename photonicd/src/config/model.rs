@@ -1,18 +1,20 @@
 use std::time::Duration;
 
 #[derive(Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum EasingFuncConfig {}
+pub enum EasingFuncConfig {
+    #[serde(rename = "linear")]
+    Linear
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct EasingConfig {
-    speed: f64,
-    easing: EasingFuncConfig,
+    pub speed: f64,
+    pub func: EasingFuncConfig,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct FaderConfig {
-    pub default_value: f64,
+    pub initial_value: f64,
 
     pub min_value: f64,
     pub max_value: f64,
@@ -22,13 +24,13 @@ pub struct FaderConfig {
 
 #[derive(Serialize, Deserialize)]
 pub struct ButtonConfig {
-    pub released_value: f64,
-    pub pressed_value: f64,
+    pub value_released: f64,
+    pub value_pressed: f64,
 
-    pub hold_time: Duration,
+    pub hold_time: f64,
 
-    pub easing_in: Option<EasingConfig>,
-    pub easing_out: Option<EasingConfig>,
+    pub easing_pressed: Option<EasingConfig>,
+    pub easing_released: Option<EasingConfig>,
 }
 
 #[derive(Serialize, Deserialize)]

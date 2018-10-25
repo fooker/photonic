@@ -30,7 +30,7 @@ fn main() {
             .subcommand(SubCommand::with_name("button")
                     .about("Triggers a button")
                     .arg(Arg::with_name("name")
-                            .index(0)
+                            .index(1)
                             .required(true)
                             .help("name of the button to trigger")))
             .get_matches();

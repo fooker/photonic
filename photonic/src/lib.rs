@@ -1,5 +1,6 @@
 #![feature(self_struct_ctor)]
 #![feature(cell_update)]
+#![feature(duration_float)]
 
 #[cfg(test)]
 #[macro_use]
