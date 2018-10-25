@@ -1,10 +1,10 @@
 extern crate ws;
+extern crate photonic_proto as proto;
 
 use photonic::attributes::{Attribute, DynamicValue};
 use photonic::attributes::dynamic::{ButtonValue, FaderValue};
 use photonic::core::Node;
 use photonic::inspection;
-use photonic_proto as proto;
 use std::collections::HashMap;
 use std::io::Read;
 use std::rc::Rc;

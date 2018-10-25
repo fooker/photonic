@@ -7,9 +7,9 @@ use std::thread;
 use std::time::Duration;
 
 fn main() {
-    let matches = App::new("Photonic")
+    let matches = App::new("Photonic Remote Control")
             .author("Dustin Frisch <fooker@lab.sh>")
-            .about("Shines bright like a diamond")
+            .about("Shine on you crazy diamond")
             .arg(Arg::with_name("remote")
                     .short("r")
                     .long("remote")
