@@ -8,14 +8,15 @@ pub trait Inspection {
     fn attributes(&self) -> Vec<AttributeRef>;
 }
 
-pub fn recurse_attributes<F>(node: &Node, f: &mut F)
+/// Visits all attributes of the node and its children recursively
+pub fn visit_attributes<F>(node: &Node, f: &mut F)
     where F: FnMut(&Attribute) {
     for attr in node.attributes() {
         f(&attr);
     }
 
     for node in node.children() {
-        recurse_attributes(node.as_ref(), f);
+        visit_attributes(node.as_ref(), f);
     }
 }
 

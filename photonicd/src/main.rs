@@ -20,7 +20,7 @@ use std::time::{Duration, Instant};
 mod nodes;
 mod outputs;
 mod config;
-mod exporter;
+mod api;
 
 
 fn main() {
@@ -31,9 +31,9 @@ fn main() {
 
     let mut output = outputs::console::ConsoleOutput::new();
 
-    let remote = exporter::serve(exporter::ExporterConfig {
+    let remote = api::serve(api::Config {
         address: "localhost:1337",
-    }, &*root_node).unwrap();
+    }, &*root_node);
 
     let mut last = Instant::now();
     loop {

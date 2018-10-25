@@ -1,0 +1,10 @@
+[package]
+name = "photonictl"
+version = "0.1.0"
+authors = ["Dustin Frisch <fooker@lab.sh>"]
+edition = "2018"
+
+[dependencies]
+photonic_proto = { path = "../photonic_proto" }
+ws = "0.7"
+clap = "2"

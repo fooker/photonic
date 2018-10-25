@@ -1,13 +1,14 @@
 use crate::core::Dynamic;
 use crate::math;
 use std::time::Duration;
+use std::sync::mpsc::{self,Receiver,SyncSender};
 
 pub struct FaderValue {
     limits: (f64, f64),
 
     value: f64,
 
-    update: Option<f64>,
+    update: (SyncSender<f64>, Receiver<f64>),
 }
 
 impl FaderValue {
@@ -16,7 +17,7 @@ impl FaderValue {
         Self {
             limits,
             value: default_value,
-            update: None,
+            update: mpsc::sync_channel(0),
         }
     }
 
@@ -24,9 +25,13 @@ impl FaderValue {
         self.value
     }
 
-    pub fn set(&mut self, value: f64) {
-        let value = math::clamp(value, self.limits);
-        self.update = Some(value);
+//    pub fn set(&mut self, value: f64) {
+//        let value = math::clamp(value, self.limits);
+//        self.update = Some(value);
+//    }
+
+    pub fn updater(&self) -> SyncSender<f64> {
+        return self.update.0.clone();
     }
 }
 
@@ -34,7 +39,7 @@ impl Dynamic for FaderValue {
     fn update(&mut self, duration: &Duration) {
         // FIXME: Animation
 
-        if let Some(update) = self.update.take() {
+        if let Ok(update) = self.update.1.try_recv() {
             self.value = update;
         }
     }
@@ -68,7 +73,7 @@ pub struct ButtonValue {
 
     state: PushbuttonState,
 
-    update: Option<()>,
+    update: (SyncSender<()>, Receiver<()>),
 }
 
 impl ButtonValue {
@@ -80,13 +85,13 @@ impl ButtonValue {
             pressed_value,
             hold_time,
             state: PushbuttonState::Released,
-            update: None,
+            update: mpsc::sync_channel(0),
         }
     }
 
-    pub fn trigger(&mut self) {
-        self.update = Some(());
-    }
+//    pub fn trigger(&mut self) {
+//        self.update = Some(());
+//    }
 
     pub fn value(&self) -> f64 {
         return match &self.state {
@@ -94,13 +99,17 @@ impl ButtonValue {
             PushbuttonState::Pressed(_) => self.pressed_value,
         };
     }
+
+    pub fn updater(&self) -> SyncSender<()> {
+        return self.update.0.clone();
+    }
 }
 
 impl Dynamic for ButtonValue {
     fn update(&mut self, duration: &Duration) {
         // FIXME: Animation
 
-        if let Some(_) = self.update.take() {
+        if let Ok(_) = self.update.1.try_recv() {
             self.state = PushbuttonState::Pressed(self.hold_time);
         }
 
@@ -108,17 +117,60 @@ impl Dynamic for ButtonValue {
     }
 }
 
+pub struct TickerValue {
+    delta: f64,
+    duration: Duration,
+    limits: (f64, f64),
+
+    remaining: Duration,
+    value: f64,
+}
+
+impl TickerValue {
+    pub fn new(delta: f64,
+               duration: Duration,
+               limits: (f64, f64)) -> Self {
+        Self {
+            delta,
+            duration,
+            limits,
+            remaining: duration,
+            value: limits.0,
+        }
+    }
+
+    pub fn value(&self) -> f64 {
+        self.value
+    }
+}
+
+impl Dynamic for TickerValue {
+    fn update(&mut self, duration: &Duration) {
+        // FIXME: Animation
+
+        if self.remaining < *duration {
+            self.value += self.delta;
+            self.remaining += self.duration - *duration;
+        } else {
+            self.remaining -= *duration;
+        }
+    }
+}
+
 pub enum DynamicValue {
     Fader(FaderValue),
     Button(ButtonValue),
-//    Timer(dynamic::Timer),
+    Ticker(TickerValue),
 }
+
+
 
 impl DynamicValue {
     pub fn value(&self) -> f64 {
         match self {
             DynamicValue::Fader(ref value) => value.value(),
             DynamicValue::Button(ref value) => value.value(),
+            DynamicValue::Ticker(ref value) => value.value(),
         }
     }
 }
@@ -128,6 +180,7 @@ impl Dynamic for DynamicValue {
         match self {
             DynamicValue::Fader(ref mut value) => value.update(duration),
             DynamicValue::Button(ref mut value) => value.update(duration),
+            DynamicValue::Ticker(ref mut value) => value.update(duration),
         }
     }
 }
