@@ -1,7 +1,6 @@
 use photonic::attributes::*;
 use photonic::color::*;
 use photonic::core::*;
-use photonic::utils::FractionalDuration;
 use std::time::Duration;
 
 struct LarsonRenderer {
@@ -104,14 +103,14 @@ impl Dynamic for LarsonNode {
 
         match self.direction {
             Direction::Right => {
-                self.position += self.speed.get() * duration.as_fractional_secs();
+                self.position += self.speed.get() * duration.as_float_secs();
                 if self.position > size {
                     self.position = size - (self.position - size);
                     self.direction = self.direction.switched();
                 }
             }
             Direction::Left => {
-                self.position -= self.speed.get() * duration.as_fractional_secs();
+                self.position -= self.speed.get() * duration.as_float_secs();
                 if self.position < 0.0 {
                     self.position = -self.position;
                     self.direction = self.direction.switched();

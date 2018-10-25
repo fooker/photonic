@@ -2,7 +2,6 @@ use photonic::attributes::*;
 use photonic::color::*;
 use photonic::core::*;
 use photonic::math;
-use photonic::utils::FractionalDuration;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 use std::time::Duration;
 
@@ -43,7 +42,7 @@ impl Random {
     pub fn rate(&mut self,
                 value: &Attribute,
                 duration: &Duration) -> bool {
-        return self.0.gen_bool(math::clamp(duration.as_fractional_secs() * value.get(), (0.0, 1.0)));
+        return self.0.gen_bool(math::clamp(duration.as_float_secs() * value.get(), (0.0, 1.0)));
     }
 
     #[allow(clippy::float_cmp)]
@@ -141,7 +140,7 @@ impl Dynamic for RaindropsNode {
                 raindrop.color.l = self.random.range(&self.lightness_min, &self.lightness_max);
                 raindrop.decay = self.random.range(&self.decay_min, &self.decay_max);
             } else {
-                raindrop.color.l = f64::max(0.0, raindrop.color.l * 1.0 - raindrop.decay * duration.as_fractional_secs());
+                raindrop.color.l = f64::max(0.0, raindrop.color.l * 1.0 - raindrop.decay * duration.as_float_secs());
             }
         }
     }

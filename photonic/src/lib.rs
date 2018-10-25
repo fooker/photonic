@@ -12,7 +12,6 @@ extern crate scarlet;
 pub mod core;
 pub mod buffer;
 pub mod color;
-pub mod utils;
 pub mod math;
 pub mod attributes;
 pub mod inspection;

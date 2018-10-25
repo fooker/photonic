@@ -1,5 +1,7 @@
 #![feature(self_struct_ctor)]
+#![feature(duration_float)]
 
+extern crate clap;
 #[macro_use]
 extern crate failure;
 extern crate num;
@@ -10,19 +12,17 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_yaml;
-extern crate clap;
 
+use clap::{App, Arg, ArgMatches, SubCommand};
 use photonic::attributes::*;
 use photonic::core::*;
-use std::rc::Rc;
-use std::thread;
-use std::time::{Duration, Instant};
-use clap::{App, Arg, ArgMatches, SubCommand};
+use self::utils::*;
 
 mod nodes;
 mod outputs;
 mod config;
 mod api;
+mod utils;
 
 
 fn main() {
@@ -49,42 +49,32 @@ fn main() {
                     .help("Maximum FPS"))
             .get_matches();
 
+    // Load the config and build a node tree from it
     let config = config::load(matches.value_of("config").unwrap())
             .expect("Failed to load config");
+    let mut node: Box<Node> = config.into();
 
-    let mut root_node: Box<Node> = config.into();
-
+    // Build the output
     let mut output = outputs::console::ConsoleOutput::new();
 
+    // Start the remote API
     let remote = api::serve(api::Config {
         address: matches.value_of("listen").unwrap().to_owned(),
-    }, &*root_node);
+    }, &*node);
 
-    // Calculate maximum frame duration from FPS
-    let frame_dur = Duration::from_secs(1) / matches.value_of("fps").unwrap().parse().unwrap();
+    let mut stats = FrameStats::new();
 
-    let mut frame_lst = Instant::now();
-    loop {
-        let frame_cur = Instant::now();
+    // Start main loop
+    let fps = matches.value_of("fps").unwrap().parse().unwrap();
+    for duration in FrameTimer::new(fps) {
+        // Update node tree
+        node.update(&duration);
 
-        // Update all manager
-        let duration = frame_cur - frame_lst;
-        root_node.update(&duration);
+        // Render node tree to output
+        output.render(node.render().as_ref());
 
-        {
-            let root_renderer = root_node.render();
-            output.render(root_renderer.as_ref());
-        }
-
-        // Remember when frame started
-        // TODO: Print render time and other FPS stats
-        frame_lst = frame_cur;
-
-        // Sleep until it's time to render next frame
-        let next = frame_cur + frame_dur;
-        let curr = Instant::now();
-        if next > curr {
-            thread::sleep(next - curr);
+        if let Some(stats) = stats.update(duration, 100) {
+            println!("Stats: min={:3.2}, max={:3.2}, avg={:3.2}", stats.min_fps(), stats.max_fps(), stats.avg_fps())
         }
     }
 }

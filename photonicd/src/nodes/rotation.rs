@@ -1,6 +1,5 @@
 use photonic::attributes::*;
 use photonic::core::*;
-use photonic::utils::FractionalDuration;
 use std::time::Duration;
 
 struct RotationRenderer<'a> {
@@ -60,6 +59,6 @@ impl Dynamic for RotationNode {
     fn update(&mut self, duration: &Duration) {
         self.source.update(duration);
         self.speed.update(duration);
-        self.offset += self.speed.get() * duration.as_fractional_secs();
+        self.offset += self.speed.get() * duration.as_float_secs();
     }
 }
