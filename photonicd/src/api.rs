@@ -13,8 +13,8 @@ use std::time::Duration;
 use std::sync::mpsc::SyncSender;
 
 
-pub struct Config<'c> {
-    pub address: &'c str,
+pub struct Config {
+    pub address: String,
 }
 
 pub struct Server<'s> {
@@ -44,7 +44,7 @@ impl <'s> ws::Handler for Server<'s> {
     }
 }
 
-pub fn serve(config: Config<'static>, root_node: &Node) {
+pub fn serve(config: Config, root_node: &Node) {
     let mut faders = HashMap::new();
     let mut buttons = HashMap::new();
 

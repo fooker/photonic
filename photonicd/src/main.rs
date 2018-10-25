@@ -57,7 +57,7 @@ fn main() {
     let mut output = outputs::console::ConsoleOutput::new();
 
     let remote = api::serve(api::Config {
-        address: "localhost:1337",
+        address: matches.value_of("listen").unwrap().to_owned(),
     }, &*root_node);
 
     // Calculate maximum frame duration from FPS
