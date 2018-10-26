@@ -155,7 +155,5 @@ pub struct NodeConfig {
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    pub size: usize,
-
     pub node: Box<NodeConfig>,
 }

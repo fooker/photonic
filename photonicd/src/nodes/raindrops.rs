@@ -23,10 +23,6 @@ impl Default for Raindrop {
 struct Raindrops<'a>(&'a Vec<Raindrop>);
 
 impl<'a> Renderer for Raindrops<'a> {
-    fn size(&self) -> usize {
-        self.0.len()
-    }
-
     fn get(&self, index: usize) -> RGBColor {
         self.0[index].color.convert()
     }

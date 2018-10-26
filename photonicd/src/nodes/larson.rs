@@ -11,18 +11,10 @@ struct LarsonRenderer {
 }
 
 impl Renderer for LarsonRenderer {
-    fn size(&self) -> usize {
-        self.size
-    }
-
     fn get(&self, index: usize) -> MainColor {
-        self.get_interpolated(index as f64)
-    }
-
-    fn get_interpolated(&self, index: f64) -> MainColor {
         // Calculate value as the linear distance between the pixel and the current
         // position scaled from 0.0 for ±width/2 to 1.0 for center
-        let value = f64::max(0.0, ((self.width / 2.0) - f64::abs(index - self.position)) / (self.width / 2.0));
+        let value = f64::max(0.0, ((self.width / 2.0) - f64::abs((index as f64) - self.position)) / (self.width / 2.0));
 
         return HSVColor {
             h: self.hue,

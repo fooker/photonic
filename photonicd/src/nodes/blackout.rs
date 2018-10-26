@@ -12,20 +12,16 @@ struct PartialBlackoutRenderer<'a> {
 }
 
 impl<'a> Renderer for PartialBlackoutRenderer<'a> {
-    fn size(&self) -> usize {
-        self.source.size()
-    }
-
     fn get(&self, index: usize) -> MainColor {
         let value = self.source.get(index);
 
-        if self.range.0 < index && index < self.range.1 {
-            return MainColor::lerp(value,
-                                   MainColor::black(),
-                                   self.value);
-        } else {
+//        if self.range.0 < index && index < self.range.1 {
+//            return MainColor::lerp(value,
+//                                   MainColor::black(),
+//                                   self.value);
+//        } else {
             return value;
-        }
+//        }
     }
 }
 
@@ -36,10 +32,6 @@ struct FullBlackoutRenderer<'a> {
 }
 
 impl<'a> Renderer for FullBlackoutRenderer<'a> {
-    fn size(&self) -> usize {
-        self.source.size()
-    }
-
     fn get(&self, index: usize) -> MainColor {
         return MainColor::lerp(self.source.get(index),
                                MainColor::black(),

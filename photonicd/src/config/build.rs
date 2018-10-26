@@ -12,12 +12,15 @@ pub struct Builder {
 }
 
 impl Builder {
-    pub fn from_config(config: &Config) -> Box<Node> {
-        let mut builder = Self {
-            size: config.size,
+    pub fn with_size(size: usize) -> Self {
+        return Self {
+            size,
         };
+    }
 
-        return builder.node(&config.node);
+    pub fn build(&mut self, config: &Config) -> Box<Node> {
+        // FIXME: Make config more flat / DSL style
+        return self.node(&config.node);
     }
 
     fn easing(&mut self, config: &Option<EasingConfig>) -> Option<Easing> {
@@ -87,6 +90,7 @@ impl Builder {
                 Box::new(crate::nodes::rotation::RotationNode::new(
                     self.node(&config.source),
                     self.value(&config.speed),
+                    self.size,
                 )),
 
             NodeImplConfig::Raindrops(ref config) =>

@@ -12,10 +12,6 @@ struct OverlayRenderer<'a> {
 }
 
 impl<'a> Renderer for OverlayRenderer<'a> {
-    fn size(&self) -> usize {
-        self.base.size()
-    }
-
     fn get(&self, index: usize) -> MainColor {
         let base = self.base.get(index);
         let overlay = self.overlay.get(index);

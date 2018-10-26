@@ -41,12 +41,8 @@ pub fn clamp<F>(f: F, r: (F, F)) -> F
 }
 
 pub fn wrap(f: f64, s: usize) -> f64 {
-    let f = f % (s as f64);
-    if f.is_sign_positive() {
-        return f;
-    } else {
-        return f + (s as f64);
-    }
+    let s = s as f64;
+    return (s + (f % s)) % s;
 }
 
 
@@ -57,14 +53,36 @@ mod test {
 
     #[test]
     fn test_wrap() {
-        assert_approx_eq!(wrap(0.0, 10), 0.0);
-        assert_approx_eq!(wrap(1.0, 10), 1.0);
-        assert_approx_eq!(wrap(1.1, 10), 1.1);
+        assert_approx_eq!(wrap(0.0, 13), 0.0);
+        assert_approx_eq!(wrap(0.2, 13), 0.2);
+        assert_approx_eq!(wrap(1.0, 13), 1.0);
+        assert_approx_eq!(wrap(12.9, 13), 12.9);
 
+        assert_approx_eq!(wrap(13.0, 13), 0.0);
+        assert_approx_eq!(wrap(13.5, 13), 0.5);
+        assert_approx_eq!(wrap(15.0, 13), 2.0);
 
-        assert_approx_eq!(wrap(12.34, 10), 2.34);
+        assert_approx_eq!(wrap(-0.0, 5), 0.0);
+        assert_approx_eq!(wrap(-1.0, 5), 4.0);
+        assert_approx_eq!(wrap(-2.0, 5), 3.0);
+        assert_approx_eq!(wrap(-3.0, 5), 2.0);
+        assert_approx_eq!(wrap(-4.0, 5), 1.0);
+        assert_approx_eq!(wrap(-5.0, 5), 0.0);
+        assert_approx_eq!(wrap(-6.0, 5), 4.0);
+        assert_approx_eq!(wrap(-7.0, 5), 3.0);
+        assert_approx_eq!(wrap(-8.0, 5), 2.0);
+        assert_approx_eq!(wrap(-9.0, 5), 1.0);
 
-        assert_approx_eq!(wrap(-5.6, 10), 4.4);
-        assert_approx_eq!(wrap(-23.4, 10), 6.6);
+        assert_approx_eq!(wrap(-0.3, 13), 12.7);
+        assert_approx_eq!(wrap(-1.0, 13), 12.0);
+        assert_approx_eq!(wrap(-1.6, 13), 11.4);
+        assert_approx_eq!(wrap(-5.0, 13), 8.0);
+        assert_approx_eq!(wrap(-11.0, 13), 2.0);
+        assert_approx_eq!(wrap(-12.0, 13), 1.0);
+        assert_approx_eq!(wrap(-12.2, 13), 0.8);
+        assert_approx_eq!(wrap(-13.0, 13), 0.0);
+        assert_approx_eq!(wrap(-13.6, 13), 12.4);
+        assert_approx_eq!(wrap(-14.0, 13), 12.0);
+        assert_approx_eq!(wrap(-23.0, 13), 3.0);
     }
 }

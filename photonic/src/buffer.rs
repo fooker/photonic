@@ -1,5 +1,6 @@
 use crate::color::*;
 use crate::core::*;
+use crate::math;
 
 pub struct Buffer<C>
     where C: Color + Copy {
@@ -42,7 +43,7 @@ impl<C> Buffer<C>
     }
 
     pub fn get(&self, index: usize) -> C {
-        self.data[index]
+        return self.data[index];
     }
 
     pub fn set(&mut self, index: usize, value: C) {
@@ -52,10 +53,6 @@ impl<C> Buffer<C>
 
 impl <C> Renderer for Buffer<C>
     where C: Color + Copy {
-    fn size(&self) -> usize {
-        Buffer::size(self)
-    }
-
     fn get(&self, index: usize) -> MainColor {
         // FIXME: Do not convert for same color type (maybe use into instead?)
         Buffer::get(self, index).convert()
@@ -64,10 +61,6 @@ impl <C> Renderer for Buffer<C>
 
 impl <'a, C> Renderer for &'a Buffer<C>
     where C: Color + Copy {
-    fn size(&self) -> usize {
-        Buffer::size(self)
-    }
-
     fn get(&self, index: usize) -> MainColor {
         // FIXME: Do not convert for same color type (maybe use into instead?)
         Buffer::get(self, index).convert()

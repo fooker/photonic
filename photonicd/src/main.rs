@@ -49,13 +49,18 @@ fn main() {
                     .help("Maximum FPS"))
             .get_matches();
 
+    // FIXME: Make this configurable via CLI / depending on output
+    let size: usize = 120;
+
     // Load the config and build a node tree from it
     let config = config::load(matches.value_of("config").unwrap())
             .expect("Failed to load config");
-    let mut node: Box<Node> = config.into();
+
+    let mut builder = config::Builder::with_size(size);
+    let mut node = builder.build(&config);
 
     // Build the output
-    let mut output = outputs::console::ConsoleOutput::new();
+    let mut output = outputs::console::ConsoleOutput::new(size);
 
     // Start the remote API
     let remote = api::serve(api::Config {

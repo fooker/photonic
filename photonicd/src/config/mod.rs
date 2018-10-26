@@ -1,5 +1,6 @@
-use self::model::Config;
 use photonic::core::*;
+pub use self::build::Builder;
+use self::model::Config;
 use serde_yaml as yaml;
 use std::fs::File;
 use std::path::Path;
@@ -33,10 +34,4 @@ pub fn load<P>(path: P) -> Result<Config, ConfigError> where P: AsRef<Path> {
     let config = yaml::from_reader(file)?;
 
     return Ok(config);
-}
-
-impl Into<Box<Node>> for Config {
-    fn into(self) -> Box<Node> {
-        build::Builder::from_config(&self)
-    }
 }
