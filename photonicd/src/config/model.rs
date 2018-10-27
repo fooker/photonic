@@ -31,10 +31,10 @@ pub struct ButtonConfig {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct TimerConfig {
-    pub time: Duration,
-
+pub struct SequenceConfig {
     pub values: Vec<f64>, // FIXME: Other value sets...
+
+    pub duration: f64,
 
     pub easing: Option<EasingConfig>,
 }
@@ -48,8 +48,8 @@ pub enum BehaviorConfig {
     #[serde(rename = "button")]
     Button(ButtonConfig),
 
-    #[serde(rename = "timer")]
-    Timer(TimerConfig),
+    #[serde(rename = "sequence")]
+    Sequence(SequenceConfig),
 }
 
 

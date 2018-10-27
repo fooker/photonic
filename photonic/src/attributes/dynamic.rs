@@ -157,42 +157,61 @@ impl Dynamic for ButtonValue {
     }
 }
 
-pub struct TickerValue {
-    delta: f64,
+pub struct SequenceValue {
+    values: Vec<f64>,
+
     duration: Duration,
-    limits: (f64, f64),
+
+    easing: Option<Easing>,
 
     remaining: Duration,
+    position: usize,
+
     value: f64,
+
+    animation: Animation,
 }
 
-impl TickerValue {
-    pub fn new(delta: f64,
+impl SequenceValue {
+    // TODO: Allow manual switching
+    pub fn new(values: Vec<f64>,
                duration: Duration,
-               limits: (f64, f64)) -> Self {
+               easing: Option<Easing>) -> Self {
         Self {
-            delta,
+            values: values.clone(),
             duration,
-            limits,
+            easing,
             remaining: duration,
-            value: limits.0,
+            position: 0,
+            value: values[0],
+            animation: Animation::Idle,
         }
     }
 
     pub fn value(&self) -> f64 {
-        self.value
+        return self.value;
     }
 }
 
-impl Dynamic for TickerValue {
+impl Dynamic for SequenceValue {
     fn update(&mut self, duration: &Duration) {
-        // FIXME: Animation
-
         if self.remaining < *duration {
-            self.value += self.delta;
             self.remaining += self.duration - *duration;
+            self.position = (self.position + 1) % self.values.len();
+
+            if let Some(easing) = self.easing {
+                self.animation = Animation::start(easing,
+                                                  self.value,
+                                                  self.values[self.position]);
+            } else {
+                self.value = self.values[self.position];
+            }
         } else {
             self.remaining -= *duration;
+        }
+
+        if let Some(value) = self.animation.update(duration) {
+            self.value = value;
         }
     }
 }
@@ -200,7 +219,7 @@ impl Dynamic for TickerValue {
 pub enum DynamicValue {
     Fader(FaderValue),
     Button(ButtonValue),
-    Ticker(TickerValue),
+    Sequence(SequenceValue),
 }
 
 
@@ -209,7 +228,7 @@ impl DynamicValue {
         match self {
             DynamicValue::Fader(ref value) => value.value(),
             DynamicValue::Button(ref value) => value.value(),
-            DynamicValue::Ticker(ref value) => value.value(),
+            DynamicValue::Sequence(ref value) => value.value(),
         }
     }
 }
@@ -219,7 +238,7 @@ impl Dynamic for DynamicValue {
         match self {
             DynamicValue::Fader(ref mut value) => value.update(duration),
             DynamicValue::Button(ref mut value) => value.update(duration),
-            DynamicValue::Ticker(ref mut value) => value.update(duration),
+            DynamicValue::Sequence(ref mut value) => value.update(duration),
         }
     }
 }

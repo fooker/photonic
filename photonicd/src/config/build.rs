@@ -53,7 +53,10 @@ impl Builder {
                                                               self.easing(&behavior.easing_pressed),
                                                               self.easing(&behavior.easing_released))),
 
-                    BehaviorConfig::Timer(config) => unimplemented!(),
+                    BehaviorConfig::Sequence(behavior) =>
+                        DynamicValue::Sequence(SequenceValue::new(behavior.values.clone(),
+                                                                  Duration::from_float_secs(behavior.duration),
+                                                                  self.easing(&behavior.easing))),
                 };
 
                 Attribute::new_dynamic(&config.name, value)
@@ -112,16 +115,16 @@ impl Builder {
 
             NodeImplConfig::Overlay(ref config) =>
                 Box::new(crate::nodes::overlay::OverlayNode::new(
-                   self.node(&config.base),
-                   self.node(&config.overlay),
-                   self.value(&config.blend),
+                    self.node(&config.base),
+                    self.node(&config.overlay),
+                    self.value(&config.blend),
                 )),
 
             NodeImplConfig::Switch(ref config) =>
                 Box::new(crate::nodes::switch::SwitchNode::new(
                     config.sources.iter()
-                            .map(|config| self.node(&config))
-                            .collect(),
+                          .map(|config| self.node(&config))
+                          .collect(),
                     self.value(&config.position),
                 )),
         };
