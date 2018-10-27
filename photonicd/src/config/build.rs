@@ -44,7 +44,6 @@ impl Builder {
                 let value: DynamicValue = match &config.behavior {
                     BehaviorConfig::Fader(behavior) =>
                         DynamicValue::Fader(FaderValue::new(behavior.initial_value,
-                                                            (behavior.min_value, behavior.max_value),
                                                             self.easing(&behavior.easing))),
 
                     BehaviorConfig::Button(behavior) =>
@@ -116,6 +115,14 @@ impl Builder {
                    self.node(&config.base),
                    self.node(&config.overlay),
                    self.value(&config.blend),
+                )),
+
+            NodeImplConfig::Switch(ref config) =>
+                Box::new(crate::nodes::switch::SwitchNode::new(
+                    config.sources.iter()
+                            .map(|config| self.node(&config))
+                            .collect(),
+                    self.value(&config.position),
                 )),
         };
 

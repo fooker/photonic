@@ -5,7 +5,6 @@ use std::time::Duration;
 use super::animation::*;
 
 pub struct FaderValue {
-    limits: (f64, f64),
     easing: Option<Easing>,
 
     value: f64,
@@ -17,10 +16,8 @@ pub struct FaderValue {
 
 impl FaderValue {
     pub fn new(initial_value: f64,
-               limits: (f64, f64),
                easing: Option<Easing>) -> Self {
         Self {
-            limits,
             easing,
             value: initial_value,
             animation: Animation::Idle,

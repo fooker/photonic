@@ -16,9 +16,6 @@ pub struct EasingConfig {
 pub struct FaderConfig {
     pub initial_value: f64,
 
-    pub min_value: f64,
-    pub max_value: f64,
-
     pub easing: Option<EasingConfig>,
 }
 
@@ -124,6 +121,12 @@ pub struct OverlayNodeConfig {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct SwitchNodeConfig {
+    pub sources: Vec<Box<NodeConfig>>,
+    pub position: Box<ValueConfig>,
+}
+
+#[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum NodeImplConfig {
     #[serde(rename = "blackout")]
@@ -143,6 +146,9 @@ pub enum NodeImplConfig {
 
     #[serde(rename = "overlay")]
     Overlay(OverlayNodeConfig),
+
+    #[serde(rename = "switch")]
+    Switch(SwitchNodeConfig),
 }
 
 #[derive(Serialize, Deserialize)]
