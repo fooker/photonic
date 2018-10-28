@@ -1,6 +1,6 @@
 use crate::core::*;
 use crate::math;
-pub use self::dynamic::DynamicValue;
+pub use self::dynamic::DynamicAttribute;
 use std::cell::Cell;
 use std::cell::RefCell;
 use std::fmt;
@@ -13,7 +13,7 @@ pub mod animation;
 
 pub enum Attribute {
     Fixed(f64),
-    Dynamic { name: String, value: DynamicValue },
+    Dynamic { name: String, value: DynamicAttribute },
 }
 
 impl Attribute {
@@ -21,7 +21,7 @@ impl Attribute {
         Attribute::Fixed(value)
     }
 
-    pub fn new_dynamic<S: AsRef<str>>(name: S, value: DynamicValue) -> Self {
+    pub fn new_dynamic<S: AsRef<str>>(name: S, value: DynamicAttribute) -> Self {
         Attribute::Dynamic {
             name: name.as_ref().to_owned(),
             value,

@@ -3,7 +3,43 @@ use std::time::Duration;
 #[derive(Serialize, Deserialize)]
 pub enum EasingFuncConfig {
     #[serde(rename = "linear")]
-    Linear
+    Linear,
+
+    #[serde(rename = "in_quad")]
+    InQuad,
+
+    #[serde(rename = "out_quad")]
+    OutQuad,
+
+    #[serde(rename = "quad")]
+    Quad,
+
+    #[serde(rename = "in_cubic")]
+    InCubic,
+
+    #[serde(rename = "out_cubic")]
+    OutCubic,
+
+    #[serde(rename = "cubic")]
+    Cubic,
+
+    #[serde(rename = "in_quart")]
+    InQuart,
+
+    #[serde(rename = "out_quart")]
+    OutQuart,
+
+    #[serde(rename = "quart")]
+    Quart,
+
+    #[serde(rename = "in_quint")]
+    InQuint,
+
+    #[serde(rename = "out_quint")]
+    OutQuint,
+
+    #[serde(rename = "quint")]
+    Quint,
 }
 
 #[derive(Serialize, Deserialize)]

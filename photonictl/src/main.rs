@@ -3,8 +3,6 @@ extern crate photonic_proto as proto;
 extern crate ws;
 
 use clap::{App, Arg, ArgMatches, SubCommand};
-use std::thread;
-use std::time::Duration;
 
 fn main() {
     let matches = App::new("Photonic Remote Control")

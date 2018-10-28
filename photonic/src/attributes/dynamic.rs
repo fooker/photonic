@@ -4,7 +4,7 @@ use std::sync::mpsc::{self, Receiver, SyncSender};
 use std::time::Duration;
 use super::animation::*;
 
-pub struct FaderValue {
+pub struct Fader {
     easing: Option<Easing>,
 
     value: f64,
@@ -14,7 +14,7 @@ pub struct FaderValue {
     update: (SyncSender<f64>, Receiver<f64>),
 }
 
-impl FaderValue {
+impl Fader {
     pub fn new(initial_value: f64,
                easing: Option<Easing>) -> Self {
         Self {
@@ -35,7 +35,7 @@ impl FaderValue {
     }
 }
 
-impl Dynamic for FaderValue {
+impl Dynamic for Fader {
     fn update(&mut self, duration: &Duration) {
         if let Ok(update) = self.update.1.try_recv() {
             if let Some(easing) = self.easing {
@@ -76,7 +76,7 @@ impl ButtonState {
     }
 }
 
-pub struct ButtonValue {
+pub struct Button {
     value_released: f64,
     value_pressed: f64,
 
@@ -93,7 +93,7 @@ pub struct ButtonValue {
     update: (SyncSender<()>, Receiver<()>),
 }
 
-impl ButtonValue {
+impl Button {
     pub fn new(value_released: f64,
                value_pressed: f64,
                hold_time: Duration,
@@ -122,7 +122,7 @@ impl ButtonValue {
     }
 }
 
-impl Dynamic for ButtonValue {
+impl Dynamic for Button {
     fn update(&mut self, duration: &Duration) {
         let state_old = self.state.pressed();
 
@@ -157,7 +157,7 @@ impl Dynamic for ButtonValue {
     }
 }
 
-pub struct SequenceValue {
+pub struct Sequence {
     values: Vec<f64>,
 
     duration: Duration,
@@ -172,7 +172,7 @@ pub struct SequenceValue {
     animation: Animation,
 }
 
-impl SequenceValue {
+impl Sequence {
     // TODO: Allow manual switching
     pub fn new(values: Vec<f64>,
                duration: Duration,
@@ -193,7 +193,7 @@ impl SequenceValue {
     }
 }
 
-impl Dynamic for SequenceValue {
+impl Dynamic for Sequence {
     fn update(&mut self, duration: &Duration) {
         if self.remaining < *duration {
             self.remaining += self.duration - *duration;
@@ -216,29 +216,29 @@ impl Dynamic for SequenceValue {
     }
 }
 
-pub enum DynamicValue {
-    Fader(FaderValue),
-    Button(ButtonValue),
-    Sequence(SequenceValue),
+pub enum DynamicAttribute {
+    Fader(Fader),
+    Button(Button),
+    Sequence(Sequence),
 }
 
 
-impl DynamicValue {
+impl DynamicAttribute {
     pub fn value(&self) -> f64 {
         match self {
-            DynamicValue::Fader(ref value) => value.value(),
-            DynamicValue::Button(ref value) => value.value(),
-            DynamicValue::Sequence(ref value) => value.value(),
+            DynamicAttribute::Fader(ref value) => value.value(),
+            DynamicAttribute::Button(ref value) => value.value(),
+            DynamicAttribute::Sequence(ref value) => value.value(),
         }
     }
 }
 
-impl Dynamic for DynamicValue {
+impl Dynamic for DynamicAttribute {
     fn update(&mut self, duration: &Duration) {
         match self {
-            DynamicValue::Fader(ref mut value) => value.update(duration),
-            DynamicValue::Button(ref mut value) => value.update(duration),
-            DynamicValue::Sequence(ref mut value) => value.update(duration),
+            DynamicAttribute::Fader(ref mut value) => value.update(duration),
+            DynamicAttribute::Button(ref mut value) => value.update(duration),
+            DynamicAttribute::Sequence(ref mut value) => value.update(duration),
         }
     }
 }

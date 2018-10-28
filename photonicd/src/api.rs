@@ -1,8 +1,8 @@
 extern crate ws;
 extern crate photonic_proto as proto;
 
-use photonic::attributes::{Attribute, DynamicValue};
-use photonic::attributes::dynamic::{ButtonValue, FaderValue};
+use photonic::attributes::{Attribute, DynamicAttribute};
+use photonic::attributes::dynamic::{Button, Fader};
 use photonic::core::Node;
 use photonic::inspection;
 use std::collections::HashMap;
@@ -51,10 +51,10 @@ pub fn serve(config: Config, root_node: &Node) {
     inspection::visit_attributes(root_node, &mut |attr| {
         if let Attribute::Dynamic { ref name, ref value } = attr {
             match value {
-                DynamicValue::Fader(ref fader) => {
+                DynamicAttribute::Fader(ref fader) => {
                     faders.insert(name.to_owned(), fader.updater());
                 }
-                DynamicValue::Button(ref button) => {
+                DynamicAttribute::Button(ref button) => {
                     buttons.insert(name.to_owned(), button.updater());
                 }
                 _ => {}
