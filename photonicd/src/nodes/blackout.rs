@@ -15,13 +15,13 @@ impl<'a> Renderer for PartialBlackoutRenderer<'a> {
     fn get(&self, index: usize) -> MainColor {
         let value = self.source.get(index);
 
-//        if self.range.0 < index && index < self.range.1 {
-//            return MainColor::lerp(value,
-//                                   MainColor::black(),
-//                                   self.value);
-//        } else {
+        if self.range.0 < index && index < self.range.1 {
+            return MainColor::lerp(value,
+                                   MainColor::black(),
+                                   self.value);
+        } else {
             return value;
-//        }
+        }
     }
 }
 
