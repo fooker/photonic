@@ -65,9 +65,9 @@ pub struct FrameTimer {
 }
 
 impl FrameTimer {
-    pub fn new(fps: u32) -> Self {
+    pub fn new(fps: usize) -> Self {
         Self {
-            frame_time: Duration::from_secs(1) / fps,
+            frame_time: Duration::from_secs(1) / fps as u32,
             frame_last: Instant::now(),
             frame_curr: Instant::now(),
         }

@@ -60,7 +60,7 @@ fn main() {
     let mut node = builder.build(&config);
 
     // Build the output
-    let mut output = outputs::console::ConsoleOutput::new(size);
+    let mut output = outputs::console::ConsoleOutput::new(size, false);
 
     // Start the remote API
     let remote = api::serve(api::Config {
@@ -70,7 +70,7 @@ fn main() {
     let mut stats = FrameStats::new();
 
     // Start main loop
-    let fps = matches.value_of("fps").unwrap().parse().unwrap();
+    let fps: usize = matches.value_of("fps").unwrap().parse().unwrap();
     for duration in FrameTimer::new(fps) {
         // Update node tree
         node.update(&duration);
@@ -78,8 +78,8 @@ fn main() {
         // Render node tree to output
         output.render(node.render().as_ref());
 
-        if let Some(stats) = stats.update(duration, 100) {
-            println!("Stats: min={:3.2}, max={:3.2}, avg={:3.2}", stats.min_fps(), stats.max_fps(), stats.avg_fps())
+        if let Some(stats) = stats.update(duration, fps) {
+            eprintln!("Stats: min={:3.2}, max={:3.2}, avg={:3.2}", stats.min_fps(), stats.max_fps(), stats.avg_fps())
         }
     }
 }
