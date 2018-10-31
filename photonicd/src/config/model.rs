@@ -40,6 +40,51 @@ pub enum EasingFuncConfig {
 
     #[serde(rename = "quint")]
     Quint,
+
+    #[serde(rename = "in_sine")]
+    InSine,
+
+    #[serde(rename = "out_sine")]
+    OutSine,
+
+    #[serde(rename = "sine")]
+    Sine,
+
+    #[serde(rename = "in_expo")]
+    InExpo,
+
+    #[serde(rename = "out_expo")]
+    OutExpo,
+
+    #[serde(rename = "expo")]
+    Expo,
+
+    #[serde(rename = "in_elastic")]
+    InElastic,
+
+    #[serde(rename = "out_elastic")]
+    OutElastic,
+
+    #[serde(rename = "elastic")]
+    Elastic,
+
+    #[serde(rename = "in_back")]
+    InBack,
+
+    #[serde(rename = "out_back")]
+    OutBack,
+
+    #[serde(rename = "back")]
+    Back,
+
+    #[serde(rename = "in_bounce")]
+    InBounce,
+
+    #[serde(rename = "out_bounce")]
+    OutBounce,
+
+    #[serde(rename = "bounce")]
+    Bounce,
 }
 
 #[derive(Serialize, Deserialize)]

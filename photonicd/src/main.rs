@@ -12,6 +12,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_yaml;
+extern crate ezing;
 
 use clap::{App, Arg, ArgMatches, SubCommand};
 use photonic::attributes::*;

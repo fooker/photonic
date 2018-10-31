@@ -5,6 +5,7 @@ use photonic::core::*;
 use std::sync::Arc;
 use std::time::Duration;
 use super::model::*;
+use ezing;
 
 
 pub struct Builder {
@@ -24,21 +25,38 @@ impl Builder {
     }
 
     fn easing(&mut self, config: &Option<EasingConfig>) -> Option<Easing> {
+        fn linear(t: f64) -> f64 { t } // TODO: https://github.com/michaelfairley/ezing/pull/1
+
         if let Some(config) = config {
             let func = match config.func {
-                EasingFuncConfig::Linear => easing::linear,
-                EasingFuncConfig::InQuad => easing::in_quad,
-                EasingFuncConfig::OutQuad => easing::out_quad,
-                EasingFuncConfig::Quad => easing::quad,
-                EasingFuncConfig::InCubic => easing::in_cubic,
-                EasingFuncConfig::OutCubic => easing::out_cubic,
-                EasingFuncConfig::Cubic => easing::cubic,
-                EasingFuncConfig::InQuart => easing::in_quart,
-                EasingFuncConfig::OutQuart => easing::out_quart,
-                EasingFuncConfig::Quart => easing::quart,
-                EasingFuncConfig::InQuint => easing::in_quint,
-                EasingFuncConfig::OutQuint => easing::out_quint,
-                EasingFuncConfig::Quint => easing::quint,
+                EasingFuncConfig::Linear => linear,
+                EasingFuncConfig::InQuad => ezing::quad_in,
+                EasingFuncConfig::OutQuad => ezing::quad_out,
+                EasingFuncConfig::Quad => ezing::quad_inout,
+                EasingFuncConfig::InCubic => ezing::cubic_in,
+                EasingFuncConfig::OutCubic => ezing::cubic_out,
+                EasingFuncConfig::Cubic => ezing::cubic_inout,
+                EasingFuncConfig::InQuart => ezing::quart_in,
+                EasingFuncConfig::OutQuart => ezing::quart_out,
+                EasingFuncConfig::Quart => ezing::quart_inout,
+                EasingFuncConfig::InQuint => ezing::quint_in,
+                EasingFuncConfig::OutQuint => ezing::quint_out,
+                EasingFuncConfig::Quint => ezing::quint_inout,
+                EasingFuncConfig::InSine => ezing::sine_in,
+                EasingFuncConfig::OutSine => ezing::sine_out,
+                EasingFuncConfig::Sine => ezing::sine_inout,
+                EasingFuncConfig::InExpo => ezing::expo_in,
+                EasingFuncConfig::OutExpo => ezing::expo_out,
+                EasingFuncConfig::Expo => ezing::expo_inout,
+                EasingFuncConfig::InElastic => ezing::elastic_in,
+                EasingFuncConfig::OutElastic => ezing::elastic_out,
+                EasingFuncConfig::Elastic => ezing::elastic_inout,
+                EasingFuncConfig::InBack => ezing::back_in,
+                EasingFuncConfig::OutBack => ezing::back_out,
+                EasingFuncConfig::Back => ezing::back_inout,
+                EasingFuncConfig::InBounce => ezing::bounce_in,
+                EasingFuncConfig::OutBounce => ezing::bounce_out,
+                EasingFuncConfig::Bounce => ezing::bounce_inout,
             };
 
             return Some(Easing {

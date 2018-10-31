@@ -6,8 +6,7 @@ edition = "2018"
 
 [dependencies]
 regex = "0.2"
-ezing = "0.2"
-scarlet = "0.2"
+scarlet = "1"
 failure = "0.1"
 
 [dev-dependencies]

@@ -16,3 +16,4 @@ photonic_derive = { path = "../photonic_derive" }
 photonic_proto = { path = "../photonic_proto" }
 ws = "0.7"
 clap = "2"
+ezing = "0.2"
