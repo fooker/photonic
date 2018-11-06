@@ -40,11 +40,27 @@ pub fn clamp<F>(f: F, r: (F, F)) -> F
     return f;
 }
 
+pub fn clamp_opt<F>(f: F, r: (Option<F>, Option<F>)) -> F
+    where F: PartialOrd {
+    if let Some(r) = r.0 {
+        if f <= r {
+            return r;
+        }
+    }
+
+    if let Some(r) = r.1 {
+        if f >= r {
+            return r;
+        }
+    }
+
+    return f;
+}
+
 pub fn wrap(f: f64, s: usize) -> f64 {
     let s = s as f64;
     return (s + (f % s)) % s;
 }
-
 
 
 #[cfg(test)]

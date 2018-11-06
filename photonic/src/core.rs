@@ -1,6 +1,6 @@
-use crate::attributes::Attribute;
+use crate::values::float::Value;
 use crate::color::RGBColor;
-pub use crate::inspection::{AttributeRef, Inspection, NodeRef};
+pub use crate::inspection::{ValueRef, Inspection, NodeRef};
 use crate::math::{self, Lerp};
 use std::ops::{Deref, DerefMut};
 use std::time::Duration;

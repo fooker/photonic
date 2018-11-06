@@ -1,4 +1,4 @@
-use photonic::attributes::*;
+use photonic::values::*;
 use photonic::color::Black;
 use photonic::core::*;
 use photonic::inspection::*;
@@ -27,18 +27,20 @@ impl<'a> Renderer for SwitchRenderer<'a> {
 pub struct SwitchNode {
     sources: Vec<Box<Node>>,
 
-    position: Attribute,
+    position: IntValue,
 }
 
 impl SwitchNode {
     const CLASS: &'static str = "switch";
 
     pub fn new(sources: Vec<Box<Node>>,
-               position: Attribute) -> Self {
-        Self {
+               position: IntValueFactory) -> Result<Self, String> {
+        let max = sources.len() as i64 - 1; // FIXME: Ugly?
+
+        Ok(Self {
             sources,
-            position,
-        }
+            position: position(IntValueDecl{name: "position", min: Some(0), max: Some(max)})?,
+        })
     }
 }
 
@@ -51,17 +53,21 @@ impl Node for SwitchNode {
 impl Source for SwitchNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         let position = self.position.get();
-        let (position, blend) = (position.trunc() as usize, position.fract());
+        // FIXME: Blending
 
-        if blend != 0f64 {
-            return Box::new(SwitchRenderer {
-                source1: self.sources[(position + 0) % self.sources.len()].render(),
-                source2: self.sources[(position + 1) % self.sources.len()].render(),
-                blend,
-            });
-        } else {
-            return self.sources[position % self.sources.len()].render();
-        }
+//        let (position, blend) = (position.trunc() as usize, position.fract());
+//
+//        if blend != 0f64 {
+//            return Box::new(SwitchRenderer {
+//                source1: self.sources[(position + 0) % self.sources.len()].render(),
+//                source2: self.sources[(position + 1) % self.sources.len()].render(),
+//                blend,
+//            });
+//        } else {
+//            return self.sources[position % self.sources.len()].render();
+//        }
+
+        return self.sources[position as usize % self.sources.len()].render();
     }
 }
 
@@ -82,9 +88,9 @@ impl Inspection for SwitchNode {
         }).collect();
     }
 
-    fn attributes(&self) -> Vec<AttributeRef> {
+    fn values(&self) -> Vec<ValueRef> {
         vec![
-            AttributeRef { name: "position", ptr: &self.position }
+            ValueRef { name: "position", ptr: ValuePtr::Int(&self.position) }
         ]
     }
 }

@@ -1,11 +1,10 @@
-use photonic::attributes::*;
-use photonic::attributes::animation::*;
-use photonic::attributes::dynamic::*;
+use ezing;
+use photonic::animation::*;
 use photonic::core::*;
+use photonic::values::*;
 use std::sync::Arc;
 use std::time::Duration;
 use super::model::*;
-use ezing;
 
 
 pub struct Builder {
@@ -19,17 +18,16 @@ impl Builder {
         };
     }
 
-    pub fn build(&mut self, config: &Config) -> Box<Node> {
+    pub fn build(&mut self, config: &Config) -> Result<Box<Node>, String> {
         // FIXME: Make config more flat / DSL style
+        // Maybe a file per node is a starting point?
         return self.node(&config.node);
     }
 
     fn easing(&mut self, config: &Option<EasingConfig>) -> Option<Easing> {
-        fn linear(t: f64) -> f64 { t } // TODO: https://github.com/michaelfairley/ezing/pull/1
-
         if let Some(config) = config {
             let func = match config.func {
-                EasingFuncConfig::Linear => linear,
+                EasingFuncConfig::Linear => ezing::linear,
                 EasingFuncConfig::InQuad => ezing::quad_in,
                 EasingFuncConfig::OutQuad => ezing::quad_out,
                 EasingFuncConfig::Quad => ezing::quad_inout,
@@ -68,101 +66,159 @@ impl Builder {
         }
     }
 
-    fn value(&mut self, config: &ValueConfig) -> Attribute {
-        let value: Attribute = match config {
-            ValueConfig::Fixed(value) => {
-                Attribute::new_fixed(*value)
+    fn float_value(&mut self, config: &FloatValueConfig) -> FloatValueFactory {
+        match config {
+            FloatValueConfig::Fixed(value) => {
+                return FloatValue::new_fixed(*value);
             }
 
-            ValueConfig::Dynamic(config) => {
-                let value: DynamicAttribute = match &config.behavior {
-                    BehaviorConfig::Fader(behavior) =>
-                        DynamicAttribute::Fader(Fader::new(behavior.initial_value,
-                                                           self.easing(&behavior.easing))),
+            FloatValueConfig::Dynamic(config) => {
+                match &config.details {
+                    DynamicFloatValueDetailsConfig::Fader(details) => {
+                        return FloatValue::new_fader(config.name.to_owned(),
+                                                     details.min_value,
+                                                     details.max_value,
+                                                     self.easing(&details.easing));
+                    }
 
-                    BehaviorConfig::Button(behavior) =>
-                        DynamicAttribute::Button(Button::new(behavior.value_released,
-                                                             behavior.value_pressed,
-                                                             Duration::from_float_secs(behavior.hold_time),
-                                                             self.easing(&behavior.easing_pressed),
-                                                             self.easing(&behavior.easing_released))),
+                    DynamicFloatValueDetailsConfig::Button(details) => {
+                        return FloatValue::new_button(config.name.to_owned(),
+                                                      details.value_released,
+                                                      details.value_pressed,
+                                                      Duration::from_float_secs(details.hold_time),
+                                                      details.auto_trigger.map(Duration::from_float_secs),
+                                                      self.easing(&details.easing_pressed),
+                                                      self.easing(&details.easing_released));
+                    }
 
-                    BehaviorConfig::Sequence(behavior) =>
-                        DynamicAttribute::Sequence(Sequence::new(behavior.values.clone(),
-                                                                 Duration::from_float_secs(behavior.duration),
-                                                                 self.easing(&behavior.easing))),
-                };
+                    DynamicFloatValueDetailsConfig::Sequence(details) => {
+                        return FloatValue::new_sequence(config.name.to_owned(),
+                                                        details.values.clone(),
+                                                        details.auto_trigger.map(Duration::from_float_secs),
+                                                        self.easing(&details.easing));
+                    }
 
-                Attribute::new_dynamic(&config.name, value)
+                    DynamicFloatValueDetailsConfig::Random(details) => {
+                        return FloatValue::new_random(config.name.to_owned(),
+                                                      details.min_value,
+                                                      details.max_value,
+                                                      details.auto_trigger.map(Duration::from_float_secs),
+                                                      self.easing(&details.easing));
+                    }
+                }
             }
         };
-
-        return value;
     }
 
-    fn node(&mut self, config: &NodeConfig) -> Box<Node> {
-        let node: Box<Node> = match config.config {
-            NodeImplConfig::Blackout(ref config) =>
-                Box::new(crate::nodes::blackout::BlackoutNode::new(
-                    self.node(&config.source),
-                    self.value(&config.value),
-                    config.range,
-                )),
+    fn int_value(&mut self, config: &IntValueConfig) -> IntValueFactory {
+        match config {
+            IntValueConfig::Fixed(value) => {
+                return IntValue::new_fixed(*value);
+            }
 
-            NodeImplConfig::Colorwheel(ref config) =>
-                if let Some(delta) = config.delta {
+            IntValueConfig::Dynamic(config) => {
+                match &config.details {
+                    DynamicIntValueDetailsConfig::Manual(details) => {
+                        return IntValue::new_manual(config.name.to_owned(),
+                                                    details.min_value,
+                                                    details.max_value);
+                    }
+
+                    DynamicIntValueDetailsConfig::Loop(details) => {
+                        return IntValue::new_loop(config.name.to_owned(),
+                                                  details.min_value,
+                                                  details.max_value,
+                                                  details.step.unwrap_or(1),
+                                                  details.auto_trigger.map(Duration::from_float_secs));
+                    }
+
+                    DynamicIntValueDetailsConfig::Sequence(details) => {
+                        return IntValue::new_sequence(config.name.to_owned(),
+                                                      details.values.clone(),
+                                                      details.auto_trigger.map(Duration::from_float_secs));
+                    }
+
+                    DynamicIntValueDetailsConfig::Random(details) => {
+                        return IntValue::new_random(config.name.to_owned(),
+                                                    details.min_value,
+                                                    details.max_value,
+                                                    details.auto_trigger.map(Duration::from_float_secs));
+                    }
+                }
+            }
+        };
+    }
+
+    fn node(&mut self, config: &NodeConfig) -> Result<Box<Node>, String> {
+        match config.config {
+            NodeImplConfig::Blackout(ref config) => {
+                return Ok(Box::new(crate::nodes::blackout::BlackoutNode::new(
+                    self.node(&config.source)?,
+                    config.range,
+                    self.float_value(&config.value),
+                )?));
+            }
+
+            NodeImplConfig::Colorwheel(ref config) => {
+                return Ok(if let Some(delta) = config.delta {
                     Box::new(crate::nodes::colorwheel::ColorwheelNode::new_delta(
                         config.offset,
                         delta,
-                    ))
+                    )?)
                 } else {
                     Box::new(crate::nodes::colorwheel::ColorwheelNode::new_full(
                         self.size,
                         config.offset,
-                    ))
-                },
+                    )?)
+                });
+            }
 
-            NodeImplConfig::Rotation(ref config) =>
-                Box::new(crate::nodes::rotation::RotationNode::new(
-                    self.node(&config.source),
-                    self.value(&config.speed),
+            NodeImplConfig::Rotation(ref config) => {
+                return Ok(Box::new(crate::nodes::rotation::RotationNode::new(
                     self.size,
-                )),
+                    self.node(&config.source)?,
+                    self.float_value(&config.speed),
+                )?));
+            }
 
-            NodeImplConfig::Raindrops(ref config) =>
-                Box::new(crate::nodes::raindrops::RaindropsNode::new(
+            NodeImplConfig::Raindrops(ref config) => {
+                return Ok(Box::new(crate::nodes::raindrops::RaindropsNode::new(
                     self.size,
-                    self.value(&config.rate),
-                    self.value(&config.hue.min), self.value(&config.hue.max),
-                    self.value(&config.saturation.min), self.value(&config.saturation.max),
-                    self.value(&config.lightness.min), self.value(&config.lightness.max),
-                    self.value(&config.decay.min), self.value(&config.decay.max),
-                )),
+                    self.float_value(&config.rate),
+                    self.float_value(&config.hue.min), self.float_value(&config.hue.max),
+                    self.float_value(&config.saturation.min), self.float_value(&config.saturation.max),
+                    self.float_value(&config.lightness.min), self.float_value(&config.lightness.max),
+                    self.float_value(&config.decay.min), self.float_value(&config.decay.max),
+                )?));
+            }
 
-            NodeImplConfig::Larson(ref config) =>
-                Box::new(crate::nodes::larson::LarsonNode::new(
+            NodeImplConfig::Larson(ref config) => {
+                return Ok(Box::new(crate::nodes::larson::LarsonNode::new(
                     self.size,
-                    self.value(&config.hue),
-                    self.value(&config.speed),
-                    self.value(&config.width),
-                )),
+                    self.float_value(&config.hue),
+                    self.float_value(&config.speed),
+                    self.float_value(&config.width),
+                )?));
+            }
 
-            NodeImplConfig::Overlay(ref config) =>
-                Box::new(crate::nodes::overlay::OverlayNode::new(
-                    self.node(&config.base),
-                    self.node(&config.overlay),
-                    self.value(&config.blend),
-                )),
+            NodeImplConfig::Overlay(ref config) => {
+                return Ok(Box::new(crate::nodes::overlay::OverlayNode::new(
+                    self.node(&config.base)?,
+                    self.node(&config.overlay)?,
+                    self.float_value(&config.blend),
+                )?));
+            }
 
-            NodeImplConfig::Switch(ref config) =>
-                Box::new(crate::nodes::switch::SwitchNode::new(
-                    config.sources.iter()
-                          .map(|config| self.node(&config))
-                          .collect(),
-                    self.value(&config.position),
-                )),
+            NodeImplConfig::Switch(ref config) => {
+                let sources: Result<Vec<_>, _> = config.sources.iter()
+                                                       .map(|config| self.node(&config))
+                                                       .collect();
+
+                return Ok(Box::new(crate::nodes::switch::SwitchNode::new(
+                    sources?,
+                    self.int_value(&config.position),
+                )?));
+            }
         };
-
-        return node;
     }
 }

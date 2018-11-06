@@ -1,4 +1,4 @@
-use photonic::attributes::*;
+use photonic::values::*;
 use photonic::color::*;
 use photonic::core::*;
 use photonic::math;
@@ -36,15 +36,15 @@ impl Random {
     }
 
     pub fn rate(&mut self,
-                value: &Attribute,
+                value: &FloatValue,
                 duration: &Duration) -> bool {
         return self.0.gen_bool(math::clamp(duration.as_float_secs() * value.get(), (0.0, 1.0)));
     }
 
     #[allow(clippy::float_cmp)]
     pub fn range(&mut self,
-                 min: &Attribute,
-                 max: &Attribute) -> f64 {
+                 min: &FloatValue,
+                 max: &FloatValue) -> f64 {
         let values = math::minmax(min.get(), max.get());
         if values.0 == values.1 {
             return values.0;
@@ -56,19 +56,19 @@ impl Random {
 
 #[derive(Inspection)]
 pub struct RaindropsNode {
-    #[attr()] rate: Attribute,
+    #[value()] rate: FloatValue,
 
-    #[attr()] hue_min: Attribute,
-    #[attr()] hue_max: Attribute,
+    #[value()] hue_min: FloatValue,
+    #[value()] hue_max: FloatValue,
 
-    #[attr()] saturation_min: Attribute,
-    #[attr()] saturation_max: Attribute,
+    #[value()] saturation_min: FloatValue,
+    #[value()] saturation_max: FloatValue,
 
-    #[attr()] lightness_min: Attribute,
-    #[attr()] lightness_max: Attribute,
+    #[value()] lightness_min: FloatValue,
+    #[value()] lightness_max: FloatValue,
 
-    #[attr()] decay_min: Attribute,
-    #[attr()] decay_max: Attribute,
+    #[value()] decay_min: FloatValue,
+    #[value()] decay_max: FloatValue,
 
     raindrops: Vec<Raindrop>,
 
@@ -79,29 +79,29 @@ impl RaindropsNode {
     const CLASS: &'static str = "raindrops";
 
     pub fn new(size: usize,
-               rate: Attribute,
-               hue_min: Attribute,
-               hue_max: Attribute,
-               saturation_min: Attribute,
-               saturation_max: Attribute,
-               lightness_min: Attribute,
-               lightness_max: Attribute,
-               decay_min: Attribute,
-               decay_max: Attribute,
-    ) -> Self {
-        Self {
-            rate,
-            hue_min,
-            hue_max,
-            saturation_min,
-            saturation_max,
-            lightness_min,
-            lightness_max,
-            decay_min,
-            decay_max,
+               rate: FloatValueFactory,
+               hue_min: FloatValueFactory,
+               hue_max: FloatValueFactory,
+               saturation_min: FloatValueFactory,
+               saturation_max: FloatValueFactory,
+               lightness_min: FloatValueFactory,
+               lightness_max: FloatValueFactory,
+               decay_min: FloatValueFactory,
+               decay_max: FloatValueFactory,
+    ) -> Result<Self, String> {
+        Ok(Self {
+            rate: rate(FloatValueDecl{name: "rate", min: Some(0.0), max: None})?,
+            hue_min: hue_min(FloatValueDecl{name: "hue_min", min: Some(0.0), max: Some(360.0)})?,
+            hue_max: hue_max(FloatValueDecl{name: "hue_max", min: Some(0.0), max: Some(360.0)})?,
+            saturation_min: saturation_min(FloatValueDecl{name: "saturation_min", min: Some(0.0), max: Some(1.0)})?,
+            saturation_max: saturation_max(FloatValueDecl{name: "saturation_max", min: Some(0.0), max: Some(1.0)})?,
+            lightness_min: lightness_min(FloatValueDecl{name: "lightness_min", min: Some(0.0), max: Some(1.0)})?,
+            lightness_max: lightness_max(FloatValueDecl{name: "lightness_max", min: Some(0.0), max: Some(1.0)})?,
+            decay_min: decay_min(FloatValueDecl{name: "decay_min", min: Some(0.0), max: None})?,
+            decay_max: decay_max(FloatValueDecl{name: "decay_max", min: Some(0.0), max: None})?,
             raindrops: vec![Raindrop::default(); size],
             random: Random::new(),
-        }
+        })
     }
 }
 

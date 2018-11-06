@@ -8,6 +8,7 @@ edition = "2018"
 regex = "0.2"
 scarlet = "1"
 failure = "0.1"
+rand = "*"
 
 [dev-dependencies]
 assert_approx_eq = "1"

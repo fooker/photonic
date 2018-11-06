@@ -94,65 +94,142 @@ pub struct EasingConfig {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct FaderConfig {
-    pub initial_value: f64,
+pub struct FaderFloatValueConfig {
+    pub min_value: Option<f64>,
+    pub max_value: Option<f64>,
 
     pub easing: Option<EasingConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct ButtonConfig {
-    pub value_released: f64,
-    pub value_pressed: f64,
+pub struct ButtonFloatValueConfig {
+    pub value_released: Option<f64>,
+    pub value_pressed: Option<f64>,
 
     pub hold_time: f64,
+
+    pub auto_trigger: Option<f64>,
 
     pub easing_pressed: Option<EasingConfig>,
     pub easing_released: Option<EasingConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct SequenceConfig {
+pub struct SequenceFloatValueConfig {
     pub values: Vec<f64>, // FIXME: Other value sets...
 
-    pub duration: f64,
+    pub auto_trigger: Option<f64>,
+
+    pub easing: Option<EasingConfig>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RandomFloatValueConfig {
+    pub min_value: Option<f64>,
+    pub max_value: Option<f64>,
+
+    pub auto_trigger: Option<f64>,
 
     pub easing: Option<EasingConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum BehaviorConfig {
+pub enum DynamicFloatValueDetailsConfig {
     #[serde(rename = "fader")]
-    Fader(FaderConfig),
+    Fader(FaderFloatValueConfig),
 
     #[serde(rename = "button")]
-    Button(ButtonConfig),
+    Button(ButtonFloatValueConfig),
 
     #[serde(rename = "sequence")]
-    Sequence(SequenceConfig),
+    Sequence(SequenceFloatValueConfig),
+
+    #[serde(rename = "random")]
+    Random(RandomFloatValueConfig),
 }
 
-
 #[derive(Serialize, Deserialize)]
-pub struct DynamicValueConfig {
-    pub name: String,
+pub struct DynamicFloatValueConfig {
+    pub name: Option<String>,
 
     #[serde(flatten)]
-    pub behavior: BehaviorConfig,
+    pub details: DynamicFloatValueDetailsConfig,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum ValueConfig {
+pub enum FloatValueConfig {
     Fixed(f64),
-    Dynamic(DynamicValueConfig),
+    Dynamic(DynamicFloatValueConfig),
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ManualIntValueConfig {
+    pub min_value: Option<i64>,
+    pub max_value: Option<i64>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct LoopIntValueConfig {
+    pub min_value: Option<i64>,
+    pub max_value: Option<i64>,
+
+    pub step: Option<i64>,
+
+    pub auto_trigger: Option<f64>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SequenceIntValueConfig {
+    pub values: Vec<i64>,
+
+    pub auto_trigger: Option<f64>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RandomIntValueConfig {
+    pub min_value: Option<i64>,
+    pub max_value: Option<i64>,
+
+    pub auto_trigger: Option<f64>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum DynamicIntValueDetailsConfig {
+    #[serde(rename = "manual")]
+    Manual(ManualIntValueConfig),
+
+    #[serde(rename = "loop")]
+    Loop(LoopIntValueConfig),
+
+    #[serde(rename = "sequence")]
+    Sequence(SequenceIntValueConfig),
+
+    #[serde(rename = "random")]
+    Random(RandomIntValueConfig),
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DynamicIntValueConfig {
+    pub name: Option<String>,
+
+    #[serde(flatten)]
+    pub details: DynamicIntValueDetailsConfig,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum IntValueConfig {
+    Fixed(i64),
+    Dynamic(DynamicIntValueConfig),
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct ValueRangeConfig {
-    pub min: Box<ValueConfig>,
-    pub max: Box<ValueConfig>,
+    pub min: Box<FloatValueConfig>,
+    pub max: Box<FloatValueConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -160,7 +237,7 @@ pub struct BlackoutNodeConfig {
     pub source: Box<NodeConfig>,
 
     pub range: Option<(usize, usize)>,
-    pub value: Box<ValueConfig>,
+    pub value: Box<FloatValueConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -171,7 +248,7 @@ pub struct ColorwheelNodeConfig {
 
 #[derive(Serialize, Deserialize)]
 pub struct RaindropsNodeConfig {
-    pub rate: Box<ValueConfig>,
+    pub rate: Box<FloatValueConfig>,
 
     pub hue: Box<ValueRangeConfig>,
     pub saturation: Box<ValueRangeConfig>,
@@ -184,27 +261,27 @@ pub struct RaindropsNodeConfig {
 pub struct RotationNodeConfig {
     pub source: Box<NodeConfig>,
 
-    pub speed: Box<ValueConfig>,
+    pub speed: Box<FloatValueConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct LarsonNodeConfig {
-    pub hue: Box<ValueConfig>,
-    pub speed: Box<ValueConfig>,
-    pub width: Box<ValueConfig>,
+    pub hue: Box<FloatValueConfig>,
+    pub speed: Box<FloatValueConfig>,
+    pub width: Box<FloatValueConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct OverlayNodeConfig {
     pub base: Box<NodeConfig>,
     pub overlay: Box<NodeConfig>,
-    pub blend: Box<ValueConfig>,
+    pub blend: Box<FloatValueConfig>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SwitchNodeConfig {
     pub sources: Vec<Box<NodeConfig>>,
-    pub position: Box<ValueConfig>,
+    pub position: Box<IntValueConfig>,
 }
 
 #[derive(Serialize, Deserialize)]

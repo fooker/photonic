@@ -15,7 +15,7 @@ extern crate serde_yaml;
 extern crate ezing;
 
 use clap::{App, Arg, ArgMatches, SubCommand};
-use photonic::attributes::*;
+use photonic::values::*;
 use photonic::core::*;
 use self::utils::*;
 
@@ -58,7 +58,8 @@ fn main() {
             .expect("Failed to load config");
 
     let mut builder = config::Builder::with_size(size);
-    let mut node = builder.build(&config);
+    let mut node = builder.build(&config)
+            .expect("Failed to build node tree");
 
     // Build the output
     let mut output = outputs::console::ConsoleOutput::new(size, false);

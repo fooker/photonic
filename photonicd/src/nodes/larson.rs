@@ -1,4 +1,4 @@
-use photonic::attributes::*;
+use photonic::values::*;
 use photonic::color::*;
 use photonic::core::*;
 use std::time::Duration;
@@ -42,9 +42,9 @@ impl Direction {
 pub struct LarsonNode {
     size: usize,
 
-    #[attr()] hue: Attribute,
-    #[attr()] speed: Attribute,
-    #[attr()] width: Attribute,
+    #[value()] hue: FloatValue,
+    #[value()] speed: FloatValue,
+    #[value()] width: FloatValue,
 
     position: f64,
     direction: Direction,
@@ -54,18 +54,18 @@ impl LarsonNode {
     const CLASS: &'static str = "larson";
 
     pub fn new(size: usize,
-               hue: Attribute,
-               speed: Attribute,
-               width: Attribute,
-    ) -> Self {
-        Self {
+               hue: FloatValueFactory,
+               speed: FloatValueFactory,
+               width: FloatValueFactory,
+    ) -> Result<Self, String> {
+        Ok(Self {
             size,
-            hue,
-            speed,
-            width,
+            hue: hue(FloatValueDecl{name: "hue", min: Some(0.0), max: Some(360.0)})?,
+            speed: speed(FloatValueDecl{name: "speed", min: Some(0.0), max: None})?,
+            width: width(FloatValueDecl{name: "width", min: Some(0.0), max: Some(size as f64)})?,
             position: 0.0,
             direction: Direction::Right,
-        }
+        })
     }
 }
 

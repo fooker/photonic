@@ -1,8 +1,8 @@
-use photonic::attributes::*;
 use photonic::core::*;
 use photonic::math;
-use std::time::Duration;
 use photonic::math::Lerp;
+use photonic::values::*;
+use std::time::Duration;
 
 struct RotationRenderer<'a> {
     source: Box<Renderer + 'a>,
@@ -24,13 +24,13 @@ impl<'a> Renderer for RotationRenderer<'a> {
 
 #[derive(Inspection)]
 pub struct RotationNode {
+    size: usize,
+
     #[node()]
     source: Box<Node>,
 
-    #[attr()]
-    speed: Attribute,
-
-    size: usize,
+    #[value()]
+    speed: FloatValue,
 
     offset: f64,
 }
@@ -38,15 +38,15 @@ pub struct RotationNode {
 impl RotationNode {
     const CLASS: &'static str = "rotation";
 
-    pub fn new(source: Box<Node>,
-               speed: Attribute,
-               size: usize) -> Self {
-        Self {
-            source,
-            speed,
+    pub fn new(size: usize,
+               source: Box<Node>,
+               speed: FloatValueFactory) -> Result<Self, String> {
+        Ok(Self {
             size,
+            source,
+            speed: speed(FloatValueDecl { name: "speed", min: None, max: None })?,
             offset: 0.0,
-        }
+        })
     }
 }
 

@@ -9,16 +9,16 @@ pub struct ColorwheelNode(Buffer<MainColor>);
 impl ColorwheelNode {
     const CLASS: &'static str = "colorwheel";
 
-    pub fn new_delta(offset: f64, delta: f64) -> Self {
+    pub fn new_delta(offset: f64, delta: f64) -> Result<Self, String> {
         let size = (360.0 / delta) as usize;
 
-        return Self(Self::create_buffer(size, offset, delta));
+        return Ok(Self(Self::create_buffer(size, offset, delta)));
     }
 
-    pub fn new_full(size: usize, offset: f64) -> Self {
+    pub fn new_full(size: usize, offset: f64) -> Result<Self, String> {
         let delta = 360.0 / size as f64;
 
-        return Self(Self::create_buffer(size, offset, delta));
+        return Ok(Self(Self::create_buffer(size, offset, delta)));
     }
 
     fn create_buffer(size: usize, offset: f64, delta: f64) -> Buffer<MainColor> {

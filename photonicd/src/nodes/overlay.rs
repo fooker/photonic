@@ -1,4 +1,4 @@
-use photonic::attributes::*;
+use photonic::values::*;
 use photonic::color::Black;
 use photonic::core::*;
 use photonic::math::Lerp;
@@ -28,7 +28,7 @@ pub struct OverlayNode {
     #[node()] base: Box<Node>,
     #[node()] overlay: Box<Node>,
 
-    #[attr()] blend: Attribute,
+    #[value()] blend: FloatValue,
 }
 
 impl OverlayNode {
@@ -36,12 +36,12 @@ impl OverlayNode {
 
     pub fn new(base: Box<Node>,
                overlay: Box<Node>,
-               blend: Attribute) -> Self {
-        Self {
+               blend: FloatValueFactory) -> Result<Self, String> {
+        Ok(Self {
             base,
             overlay,
-            blend,
-        }
+            blend: blend(FloatValueDecl{name: "blend", min: Some(0.0), max: Some(1.0)})?,
+        })
     }
 }
 

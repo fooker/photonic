@@ -1,7 +1,7 @@
-use photonic::attributes::*;
 use photonic::color::Black;
 use photonic::core::*;
 use photonic::math::Lerp;
+use photonic::values::*;
 use std::time::Duration;
 
 struct PartialBlackoutRenderer<'a> {
@@ -43,7 +43,7 @@ impl<'a> Renderer for FullBlackoutRenderer<'a> {
 pub struct BlackoutNode {
     #[node()] source: Box<Node>,
 
-    #[attr()] value: Attribute,
+    #[value()] value: FloatValue,
 
     range: Option<(usize, usize)>,
 }
@@ -52,13 +52,13 @@ impl BlackoutNode {
     const CLASS: &'static str = "blackout";
 
     pub fn new(source: Box<Node>,
-               value: Attribute,
-               range: Option<(usize, usize)>) -> Self {
-        Self {
+               range: Option<(usize, usize)>,
+               value: FloatValueFactory) -> Result<Self, String> {
+        Ok(Self {
             source,
             range,
-            value,
-        }
+            value: value(FloatValueDecl { name: "value", min: Some(0.0), max: Some(1.0)})?,
+        })
     }
 }
 

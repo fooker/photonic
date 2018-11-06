@@ -1,44 +1,50 @@
-use crate::attributes::Attribute;
+use crate::values::{FloatValue,IntValue};
 use crate::core::Node;
 use std::ops::{Deref, DerefMut};
 use std::error::Error;
 
 pub trait Inspection {
     fn children(&self) -> Vec<NodeRef>;
-    fn attributes(&self) -> Vec<AttributeRef>;
+    fn values(&self) -> Vec<ValueRef>;
 }
 
-/// Visits all attributes of the node and its children recursively
-pub fn visit_attributes<F>(node: &Node, f: &mut F)
-    where F: FnMut(&Attribute) {
-    for attr in node.attributes() {
-        f(&attr);
+/// Visits all values of the node and its children recursively
+pub fn visit_values<F>(node: &Node, f: &mut F)
+    where F: FnMut(&ValuePtr) {
+    for value in node.values() {
+        f(&value.ptr);
     }
 
     for node in node.children() {
-        visit_attributes(node.as_ref(), f);
+        visit_values(node.as_ref(), f);
     }
 }
 
 #[derive(Clone)]
-pub struct AttributeRef<'n> {
+pub enum ValuePtr<'n> {
+    Float(&'n FloatValue),
+    Int(&'n IntValue),
+}
+
+#[derive(Clone)]
+pub struct ValueRef<'n> {
     pub name: &'static str,
-    pub ptr: &'n Attribute,
+    pub ptr: ValuePtr<'n>,
 }
 
-impl<'n> Deref for AttributeRef<'n> {
-    type Target = Attribute;
-
-    fn deref(&self) -> &Self::Target {
-        self.ptr
-    }
-}
-
-impl<'n> AsRef<Attribute> for AttributeRef<'n> {
-    fn as_ref(&self) -> &Attribute {
-        self.ptr
-    }
-}
+//impl<'n> Deref for ValueRef<'n> {
+//    type Target = Value;
+//
+//    fn deref(&self) -> &Self::Target {
+//        self.ptr
+//    }
+//}
+//
+//impl<'n> AsRef<Value> for ValueRef<'n> {
+//    fn as_ref(&self) -> &Value {
+//        self.ptr
+//    }
+//}
 
 #[derive(Clone)]
 pub struct NodeRef<'n> {

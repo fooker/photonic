@@ -20,20 +20,20 @@ struct NodeField {
 
 #[derive(Debug)]
 #[allow(unused)]
-struct AttrField {
+struct ValueField {
     ident: Ident,
     name: String,
 }
 
-fn collect_meta_fields(fields: &Punctuated<Field, Token![,]>) -> (Vec<NodeField>, Vec<AttrField>) {
-    let (mut nodes, mut attrs) = (vec![], vec![]);
+fn collect_meta_fields(fields: &Punctuated<Field, Token![,]>) -> (Vec<NodeField>, Vec<ValueField>) {
+    let (mut nodes, mut values) = (vec![], vec![]);
 
     for (i, field) in fields.iter().enumerate() {
-        for attr in field.attrs.iter() {
+        for value in field.attrs.iter() {
             let ident = field.ident.clone()
                              .unwrap_or_else(|| Ident::new(&format!("{}", i), Span::call_site()));
 
-            let meta = attr.interpret_meta();
+            let meta = value.interpret_meta();
             if let Some(Meta::List(ref meta)) = meta {
                 if meta.ident == "node" {
                     let mut name: Option<String> = None;
@@ -59,7 +59,7 @@ fn collect_meta_fields(fields: &Punctuated<Field, Token![,]>) -> (Vec<NodeField>
                     });
                 }
 
-                if meta.ident == "attr" {
+                if meta.ident == "value" {
                     let mut name: Option<String> = None;
 
                     for item in meta.nested.iter() {
@@ -77,7 +77,7 @@ fn collect_meta_fields(fields: &Punctuated<Field, Token![,]>) -> (Vec<NodeField>
                         }
                     }
 
-                    attrs.push(AttrField {
+                    values.push(ValueField {
                         ident: ident.clone(),
                         name: name.unwrap_or_else(|| ident.to_string()),
                     });
@@ -88,11 +88,11 @@ fn collect_meta_fields(fields: &Punctuated<Field, Token![,]>) -> (Vec<NodeField>
         }
     }
 
-    return (nodes, attrs);
+    return (nodes, values);
 }
 
-/// Iterates over all fields of the struct and returns all owned boxed attributes
-fn collect_meta(input: &DeriveInput) -> (Vec<NodeField>, Vec<AttrField>) {
+/// Iterates over all fields of the struct and returns all owned boxed value
+fn collect_meta(input: &DeriveInput) -> (Vec<NodeField>, Vec<ValueField>) {
     if let Data::Struct(ref data) = input.data {
         match data.fields {
             Fields::Named(ref data) => {
@@ -113,13 +113,13 @@ fn collect_meta(input: &DeriveInput) -> (Vec<NodeField>, Vec<AttrField>) {
     }
 }
 
-#[proc_macro_derive(Inspection, attributes(node, attr))]
+#[proc_macro_derive(Inspection, attributes(node, value))]
 #[allow(unused)]
 pub fn derive_inspection(input: TokenStream) -> TokenStream {
     let input: DeriveInput = parse_macro_input!(input as DeriveInput);
 
     let ident = &input.ident;
-    let (nodes, attrs) = collect_meta(&input);
+    let (nodes, values) = collect_meta(&input);
 
     // FIXME: Pre-generate the vectors or use something lazy
     let nodes = nodes.iter().map(|NodeField { ref name, ref ident }| quote! {
@@ -129,10 +129,10 @@ pub fn derive_inspection(input: TokenStream) -> TokenStream {
         }
     });
 
-    let attrs = attrs.iter().map(|AttrField { ref name, ref ident }| quote! {
-        ::photonic::inspection::AttributeRef{
+    let values = values.iter().map(|ValueField { ref name, ref ident }| quote! {
+        ::photonic::inspection::ValueRef{
             name: #name,
-            ptr: &self.#ident,
+            ptr: ::photonic::inspection::ValuePtr::Float(&self.#ident)
         }
     });
 
@@ -143,8 +143,8 @@ pub fn derive_inspection(input: TokenStream) -> TokenStream {
                 return vec![#(#nodes),*];
             }
 
-            fn attributes(&self) -> Vec<photonic::inspection::AttributeRef> {
-                return vec![#(#attrs),*];
+            fn values(&self) -> Vec<photonic::inspection::ValueRef> {
+                return vec![#(#values),*];
             }
         }
     });
