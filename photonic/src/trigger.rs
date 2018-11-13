@@ -23,7 +23,6 @@ impl Timer {
         if let Some(ref mut ticker) = self.0 {
             if ticker.remaining < *duration {
                 ticker.remaining += ticker.duration - *duration;
-                println!("tock");
                 return true;
             } else {
                 ticker.remaining -= *duration;

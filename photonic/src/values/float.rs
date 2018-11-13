@@ -51,10 +51,8 @@ impl Fader {
         // FIXME: Respect min/max
         return self.update.0.clone();
     }
-}
 
-impl Dynamic for Fader {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) {
         if let Ok(update) = self.update.1.try_recv() {
             if let Some(easing) = self.easing {
                 self.animation = Animation::start(easing, self.value, update);
@@ -141,10 +139,8 @@ impl Button {
         // FIXME: Return trigger lambda function
         return self.update.0.clone();
     }
-}
 
-impl Dynamic for Button {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) {
         let state_old = self.state.pressed();
 
         self.state.update(duration);
@@ -157,7 +153,6 @@ impl Dynamic for Button {
 
         if (state_old, state_new) == (false, true) {
             if let Some(easing) = self.easing_pressed {
-                println!("{:?}", easing.speed);
                 self.animation = Animation::start(easing, self.value_released, self.value_pressed);
             } else {
                 self.value = self.value_pressed;
@@ -166,7 +161,6 @@ impl Dynamic for Button {
 
         if (state_old, state_new) == (true, false) {
             if let Some(easing) = self.easing_released {
-                println!("{:?}", easing.speed);
                 self.animation = Animation::start(easing, self.value_pressed, self.value_released);
             } else {
                 self.value = self.value_released;
@@ -217,10 +211,8 @@ impl Sequence {
         // FIXME: Return setter lambda function
         return self.update.0.clone();
     }
-}
 
-impl Dynamic for Sequence {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) {
         if self.auto_trigger.update(duration) || self.update.1.try_recv().is_ok() {
             self.position = (self.position + 1) % self.values.len();
 
@@ -281,10 +273,8 @@ impl Random {
         // FIXME: Return setter lambda function
         return self.update.0.clone();
     }
-}
 
-impl Dynamic for Random {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) {
         if self.auto_trigger.update(duration) || self.update.1.try_recv().is_ok() {
             let value = self.random.gen_range(self.min, self.max);
 
@@ -320,10 +310,8 @@ impl DynamicValue {
             DynamicValue::Random(ref value) => value.value(),
         }
     }
-}
 
-impl Dynamic for DynamicValue {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) {
         match self {
             DynamicValue::Fader(ref mut value) => value.update(duration),
             DynamicValue::Button(ref mut value) => value.update(duration),
@@ -441,10 +429,8 @@ impl Value {
     pub fn get_clamped(&self, range: (f64, f64)) -> f64 {
         math::clamp(self.get(), range)
     }
-}
 
-impl Dynamic for Value {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) {
         match self {
             &mut Value::Fixed(_) => {}
             &mut Value::Dynamic { ref name, ref mut value } => value.update(duration),

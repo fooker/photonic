@@ -11,7 +11,7 @@ pub struct Manual {
     min: Option<i64>,
     max: Option<i64>,
 
-    value: i64,
+//    value: i64,
 
     update: (SyncSender<i64>, Receiver<i64>),
 }
@@ -24,26 +24,27 @@ impl Manual {
         return Self {
             min,
             max,
-            value: min.or(max).unwrap_or(0),
+//            value: min.or(max).unwrap_or(0),
             update: mpsc::sync_channel(0),
         };
     }
 
-    pub fn value(&self) -> i64 {
-        self.value
-    }
+//    pub fn value(&self) -> i64 {
+//        self.value
+//    }
 
     pub fn updater(&self) -> SyncSender<i64> {
         // FIXME: Return setter lambda function
         // FIXME: Respect min/max
         return self.update.0.clone();
     }
-}
 
-impl Dynamic for Manual {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) -> Option<i64> {
         if let Ok(update) = self.update.1.try_recv() {
-            self.value = update;
+//            self.value = update;
+            return Some(update);
+        } else {
+            return None;
         }
     }
 }
@@ -53,7 +54,7 @@ pub struct Loop {
     max: i64,
     step: i64,
 
-    value: i64,
+    current: i64,
 
     auto_trigger: Timer,
     update: (SyncSender<()>, Receiver<()>),
@@ -76,26 +77,27 @@ impl Loop {
             min,
             max,
             step,
-            value: min,
+            current: min,
             auto_trigger: Timer::new(auto_trigger),
             update: mpsc::sync_channel(0),
         }
     }
 
-    pub fn value(&self) -> i64 {
-        self.value
-    }
+//    pub fn value(&self) -> i64 {
+//        self.value
+//    }
 
     pub fn updater(&self) -> SyncSender<()> {
         // FIXME: Return setter lambda function
         return self.update.0.clone();
     }
-}
 
-impl Dynamic for Loop {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) -> Option<i64> {
         if self.auto_trigger.update(duration) || self.update.1.try_recv().is_ok() {
-            self.value = self.min + (self.value + self.step - self.min) % (self.max - self.min);
+            self.current = self.min + (self.current + self.step - self.min) % (self.max - self.min);
+            return Some(self.current);
+        } else {
+            return None;
         }
     }
 }
@@ -104,7 +106,7 @@ pub struct Sequence {
     values: Vec<i64>,
 
     position: usize,
-    value: i64,
+//    value: i64,
 
     auto_trigger: Timer,
     update: (SyncSender<()>, Receiver<()>),
@@ -117,23 +119,23 @@ impl Sequence {
         Self {
             values: values.clone(),
             position: 0,
-            value: values[0],
+//            value: values[0],
             auto_trigger: Timer::new(auto_trigger),
             update: mpsc::sync_channel(0),
         }
     }
 
-    pub fn value(&self) -> i64 {
-        return self.value;
-    }
-}
+//    pub fn value(&self) -> i64 {
+//        return self.value;
+//    }
 
-impl Dynamic for Sequence {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) -> Option<i64> {
         if self.auto_trigger.update(duration) || self.update.1.try_recv().is_ok() {
             // TODO: Unify manual and automatic triggers
             self.position = (self.position + 1) % self.values.len();
-            self.value = self.values[self.position];
+            return Some(self.values[self.position]);
+        } else {
+            return None;
         }
     }
 }
@@ -142,7 +144,7 @@ pub struct Random {
     min: i64,
     max: i64,
 
-    value: i64,
+//    value: i64,
 
     random: SmallRng,
 
@@ -159,27 +161,27 @@ impl Random {
         return Self {
             min,
             max,
-            value: min,
+//            value: min,
             random: SmallRng::from_entropy(),
             auto_trigger: Timer::new(auto_trigger),
             update: mpsc::sync_channel(0),
         };
     }
 
-    pub fn value(&self) -> i64 {
-        self.value
-    }
+//    pub fn value(&self) -> i64 {
+//        self.value
+//    }
 
     pub fn updater(&self) -> SyncSender<()> {
         // FIXME: Return setter lambda function
         return self.update.0.clone();
     }
-}
 
-impl Dynamic for Random {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) -> Option<i64> {
         if self.auto_trigger.update(duration) || self.update.1.try_recv().is_ok() {
-            self.value = self.random.gen_range(self.min, self.max);
+            return Some(self.random.gen_range(self.min, self.max));
+        } else {
+            return None;
         }
     }
 }
@@ -192,18 +194,16 @@ pub enum DynamicValue {
 }
 
 impl DynamicValue {
-    pub fn value(&self) -> i64 {
-        match self {
-            DynamicValue::Manual(ref value) => value.value(),
-            DynamicValue::Loop(ref value) => value.value(),
-            DynamicValue::Sequence(ref value) => value.value(),
-            DynamicValue::Random(ref value) => value.value(),
-        }
-    }
-}
+//    pub fn value(&self) -> i64 {
+//        match self {
+//            DynamicValue::Manual(ref value) => value.value(),
+//            DynamicValue::Loop(ref value) => value.value(),
+//            DynamicValue::Sequence(ref value) => value.value(),
+//            DynamicValue::Random(ref value) => value.value(),
+//        }
+//    }
 
-impl Dynamic for DynamicValue {
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: &Duration) -> Option<i64> {
         match self {
             DynamicValue::Manual(ref mut value) => value.update(duration),
             DynamicValue::Loop(ref mut value) => value.update(duration),
@@ -301,23 +301,26 @@ impl Value {
         })
     }
 
-    pub fn get(&self) -> i64 {
-        match self {
-            &Value::Fixed(v) => v,
-            &Value::Dynamic { ref name, ref value } => value.value(),
-        }
-    }
+//    pub fn get(&self) -> i64 {
+//        match self {
+//            &Value::Fixed(v) => v,
+//            &Value::Dynamic { ref name, ref value } => value.value(),
+//        }
+//    }
+//
+//    pub fn get_clamped(&self, range: (i64, i64)) -> i64 {
+//        math::clamp(self.get(), range)
+//    }
 
-    pub fn get_clamped(&self, range: (i64, i64)) -> i64 {
-        math::clamp(self.get(), range)
-    }
-}
-
-impl Dynamic for Value {
-    fn update(&mut self, duration: &Duration) {
+    pub fn update(&mut self, duration: &Duration) -> Option<i64> {
         match self {
-            &mut Value::Fixed(_) => {}
-            &mut Value::Dynamic { ref name, ref mut value } => value.update(duration),
+            Value::Fixed(_) => {
+                return None;
+            }
+
+            Value::Dynamic { ref name, ref mut value } => {
+                return value.update(duration);
+            }
         }
     }
 }

@@ -282,6 +282,7 @@ pub struct OverlayNodeConfig {
 pub struct SwitchNodeConfig {
     pub sources: Vec<Box<NodeConfig>>,
     pub position: Box<IntValueConfig>,
+    pub easing: Option<EasingConfig>,
 }
 
 #[derive(Serialize, Deserialize)]

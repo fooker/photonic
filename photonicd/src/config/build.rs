@@ -216,6 +216,7 @@ impl Builder {
 
                 return Ok(Box::new(crate::nodes::switch::SwitchNode::new(
                     sources?,
+                    self.easing(&config.easing),
                     self.int_value(&config.position),
                 )?));
             }
