@@ -9,6 +9,7 @@ regex = "0.2"
 scarlet = "1"
 failure = "0.1"
 rand = "*"
+num = "0.2"
 
 [dev-dependencies]
 assert_approx_eq = "1"

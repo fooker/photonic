@@ -1,10 +1,10 @@
-use photonic::values::*;
-use photonic::color::*;
-use photonic::core::*;
+use crate::values::*;
+use crate::color::*;
+use crate::core::*;
 use std::time::Duration;
+use failure::Error;
 
 struct LarsonRenderer {
-    size: usize,
     hue: f64,
     width: f64,
     position: f64,
@@ -38,55 +38,50 @@ impl Direction {
     }
 }
 
-#[derive(Inspection)]
+
+pub struct LarsonNodeDecl {
+    pub hue: Box<BoundValueDecl<f64>>,
+    pub speed: Box<UnboundValueDecl<f64>>,
+    pub width: Box<BoundValueDecl<f64>>,
+}
+
 pub struct LarsonNode {
     size: usize,
 
-    #[value()] hue: FloatValue,
-    #[value()] speed: FloatValue,
-    #[value()] width: FloatValue,
+    hue: Box<Value<f64>>,
+    speed: Box<Value<f64>>,
+    width: Box<Value<f64>>,
 
     position: f64,
     direction: Direction,
 }
 
-impl LarsonNode {
-    const CLASS: &'static str = "larson";
+impl NodeDecl for LarsonNodeDecl {
+    type Node = LarsonNode;
 
-    pub fn new(size: usize,
-               hue: FloatValueFactory,
-               speed: FloatValueFactory,
-               width: FloatValueFactory,
-    ) -> Result<Self, String> {
-        Ok(Self {
+    fn new(self, size: usize) -> Result<Self::Node, Error> {
+        return Ok(Self::Node {
             size,
-            hue: hue(FloatValueDecl{name: "hue", min: Some(0.0), max: Some(360.0)})?,
-            speed: speed(FloatValueDecl{name: "speed", min: Some(0.0), max: None})?,
-            width: width(FloatValueDecl{name: "width", min: Some(0.0), max: Some(size as f64)})?,
+            hue: self.hue.new((0.0, 360.0).into())?,
+            speed: self.speed.new()?,
+            width: self.width.new((0.0, size as f64).into())?,
             position: 0.0,
             direction: Direction::Right,
-        })
+        });
     }
 }
 
 impl Node for LarsonNode {
-    fn class(&self) -> &'static str {
-        Self::CLASS
-    }
-}
+    const TYPE: &'static str = "larson";
 
-impl Source for LarsonNode {
     fn render<'a>(&'a self) -> Box<Renderer + 'a> {
         Box::new(LarsonRenderer {
-            size: self.size,
             hue: self.hue.get(),
             width: self.width.get(),
             position: self.position,
         })
     }
-}
 
-impl Dynamic for LarsonNode {
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);
         self.width.update(duration);
@@ -95,14 +90,14 @@ impl Dynamic for LarsonNode {
 
         match self.direction {
             Direction::Right => {
-                self.position += self.speed.get() * duration.as_float_secs();
+                self.position += self.speed.get() * duration.as_secs_f64();
                 if self.position > size {
                     self.position = size - (self.position - size);
                     self.direction = self.direction.switched();
                 }
             }
             Direction::Left => {
-                self.position -= self.speed.get() * duration.as_float_secs();
+                self.position -= self.speed.get() * duration.as_secs_f64();
                 if self.position < 0.0 {
                     self.position = -self.position;
                     self.direction = self.direction.switched();
@@ -111,3 +106,15 @@ impl Dynamic for LarsonNode {
         }
     }
 }
+
+//impl Inspection for LarsonNode {
+//    fn children(&self) -> Vec<NodeRef> { vec![] }
+//
+//    fn values(&self) -> Vec<ValueRef> {
+//        vec![
+////            ValueRef { name: "hue", ptr: self.hue },
+////            ValueRef { name: "speed", ptr: self.speed },
+////            ValueRef { name: "width", ptr: self.width },
+//        ]
+//    }
+//}

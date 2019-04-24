@@ -1,19 +1,24 @@
-use photonic::core::*;
+use crate::core::*;
 use std::io::{Write,stdout};
+use failure::Error;
 
+pub struct ConsoleOutputDecl {
+    pub whaterfall: bool,
+}
 
 pub struct ConsoleOutput {
     size: usize,
     whaterfall: bool,
 }
 
-impl ConsoleOutput {
-    pub fn new(size: usize,
-               whaterfall: bool) -> Self {
-        Self {
+impl OutputDecl for ConsoleOutputDecl {
+    type Output = ConsoleOutput;
+
+    fn new(self, size: usize) -> Result<Self::Output, Error> {
+        return Ok(Self::Output {
             size,
-            whaterfall,
-        }
+            whaterfall: self.whaterfall,
+        });
     }
 }
 

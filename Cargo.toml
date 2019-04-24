@@ -1,8 +1,5 @@
 [workspace]
 members = [
     "photonic",
-    "photonic_derive",
-    "photonic_proto",
-    "photonicd",
-    "photonictl",
+    "example",
 ]

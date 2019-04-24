@@ -67,6 +67,8 @@ pub fn wrap(f: f64, s: usize) -> f64 {
 mod test {
     use super::*;
 
+    use assert_approx_eq::assert_approx_eq;
+
     #[test]
     fn test_wrap() {
         assert_approx_eq!(wrap(0.0, 13), 0.0);
