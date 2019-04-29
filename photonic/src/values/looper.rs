@@ -36,7 +36,6 @@ impl<T> Value<T> for Looper<T>
 
 pub struct LooperDecl<T> {
     pub step: T,
-
     pub trigger: Input<()>,
 }
 

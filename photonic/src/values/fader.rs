@@ -1,49 +1,58 @@
 use std::time::Duration;
 
+use crate::animation::{Animation, Easing};
+use crate::input::{Input, Poll};
+
 use super::*;
-use crate::input::{Poll, Input};
-use std::fmt::Display;
 
-pub struct Fader<T> {
-    bounds: Bounds<T>,
+// TODO: Generalize this to Num or Float?
 
-    input: Input<T>,
-    current: T,
+pub struct Fader {
+    bounds: Bounds<f64>,
+
+    input: Box<Value<f64>>,
+    current: f64,
+
+    easing: Easing,
+    transition: Animation,
 }
 
-impl<T> Value<T> for Fader<T>
-    where T: Copy + PartialOrd + Display {
-    fn get(&self) -> T {
+impl Value<f64> for Fader {
+    fn get(&self) -> f64 {
         self.current
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<T> {
-        if let Poll::Ready(update) = self.input.poll() {
-            if let Ok(update) = self.bounds.ensure(update) {
-                self.current = update;
-                return Update::Changed(self.current);
-            } else {
-                return Update::Idle;
-            }
+    fn update(&mut self, duration: &Duration) -> Update<f64> {
+        if let Update::Changed(next) = self.input.update(duration) {
+            self.transition = Animation::start(self.easing, self.current, next);
+        }
+
+        if let Some(value) = self.transition.update(duration) {
+            self.current = value;
+            return Update::Changed(self.current);
         } else {
             return Update::Idle;
         }
     }
 }
 
-pub struct FaderDecl<T> {
-    input: Input<T>,
+pub struct FaderDecl {
+    pub input: Box<BoundValueDecl<f64>>,
+    pub easing: Easing,
 }
 
-impl<T> BoundValueDecl<T> for FaderDecl<T>
-    where T: Copy + PartialOrd + Display + 'static {
-    fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
-        let current = bounds.min;
+impl BoundValueDecl<f64> for FaderDecl {
+    fn new(self: Box<Self>, bounds: Bounds<f64>) -> Result<Box<Value<f64>>, Error> {
+        let input = self.input.new(bounds)?;
+
+        let current = input.get();
 
         return Ok(Box::new(Fader {
             bounds,
-            input: self.input,
+            input,
             current,
+            easing: self.easing,
+            transition: Animation::Idle,
         }));
     }
 }

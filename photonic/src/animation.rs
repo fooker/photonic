@@ -14,11 +14,15 @@ impl Easing {
         return None;
     }
 
-    pub fn with(func: fn(f64) -> f64, speed: Duration) -> Option<Self> {
-        return Some(Self {
+    pub fn some(func: fn(f64) -> f64, speed: Duration) -> Option<Self> {
+        return Some(Self::with(func, speed));
+    }
+
+    pub fn with(func: fn(f64) -> f64, speed: Duration) -> Self {
+        return Self {
             func,
             speed,
-        });
+        };
     }
 }
 

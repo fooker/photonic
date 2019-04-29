@@ -73,10 +73,8 @@ where T: Copy {
 }
 
 pub struct ButtonDecl<T> {
-    value: (T, T),
-
-    hold_time: Duration,
-
+    pub value: (T, T),
+    pub hold_time: Duration,
     pub trigger: Input<()>,
 }
 

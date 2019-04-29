@@ -14,6 +14,9 @@ use photonic::nodes::switch::SwitchNodeDecl;
 use photonic::outputs::console::ConsoleOutputDecl;
 use photonic::timer::Timer;
 use photonic::values::looper::LooperDecl;
+use photonic_mqtt::MqttHandleBuilder;
+use photonic::values::button::ButtonDecl;
+use photonic::values::fader::FaderDecl;
 
 const SIZE: usize = 42;
 const FPS: usize = 60;
@@ -22,6 +25,8 @@ fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
     let mut timer = Timer::new();
+    let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883)
+        .with_realm("photonic");
 
     let raindrops_violet = scene.node("raindrops:violet", RaindropsNodeDecl {
         rate: 0.3.into(),
@@ -55,7 +60,7 @@ fn main() -> Result<!, Error> {
     let switch_raindrops = scene.node("raindrops", SwitchNodeDecl {
         sources: vec![raindrops_violet, raindrops_orange, raindrops_iceblue],
         position: switch_raindrops_timer,
-        easing: Easing::with(animation::linear, Duration::from_secs(4)),
+        easing: Easing::some(animation::linear, Duration::from_secs(4)),
     })?;
 
     let overlay_bell = scene.node("bell", LarsonNodeDecl {
@@ -64,15 +69,27 @@ fn main() -> Result<!, Error> {
         width: 25.0.into(),
     })?;
 
+    let overlay_bell_button = Box::new(ButtonDecl {
+        value: (0.0, 1.0),
+        hold_time: Duration::from_secs(4),
+        trigger: mqtt.trigger("bell"),
+    });
+    let overlay_bell_button = Box::new(FaderDecl {
+        input: overlay_bell_button,
+        easing: Easing::with(animation::linear, Duration::from_secs(2)),
+    });
+
     let overlay_bell = scene.node("bell:overlay", OverlayNodeDecl {
         base: switch_raindrops,
         overlay: overlay_bell,
-        blend: 0.5.into(),
+        blend: overlay_bell_button,
     })?;
 
     let mut main = scene.output(overlay_bell, ConsoleOutputDecl {
         whaterfall: true,
     })?;
+
+    mqtt.start()?;
 
     main.register(move |d| timer.update(d));
 

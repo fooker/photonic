@@ -3,7 +3,7 @@ use std::str::FromStr;
 use std::thread;
 
 use failure::Error;
-use rumqtt::{MqttClient, MqttOptions, Notification, ReconnectOptions};
+use rumqtt::{MqttClient, MqttOptions, Notification, ReconnectOptions, QoS};
 
 use photonic::input::Input;
 
@@ -18,27 +18,31 @@ pub struct MqttHandleBuilder {
 }
 
 impl MqttHandleBuilder {
-    pub fn new(id: String, host: String, port: u16) -> Self {
+    pub fn new<Id, Host>(id: Id, host: Host, port: u16) -> Self
+        where Id: Into<String>,
+              Host: Into<String> {
         return Self {
-            id,
-            host,
+            id: id.into(),
+            host: host.into(),
             port,
             realm: None,
             endpoints: HashMap::new(),
         };
     }
 
-    pub fn with_realm(mut self, realm: String) -> Self {
-        self.realm = Some(realm);
+    pub fn with_realm<Realm>(mut self, realm: Realm) -> Self
+        where Realm: Into<String> {
+        self.realm = Some(realm.into());
         return self;
     }
 
-    pub fn endpoint<T, F>(&mut self, topic: String, f: F) -> Input<T>
+    pub fn endpoint<T, F, Topic>(&mut self, topic: Topic, f: F) -> Input<T>
         where T: Send + 'static,
-              F: Fn(String) -> Option<T> + Send + 'static {
+              F: Fn(String) -> Option<T> + Send + 'static,
+              Topic: Into<String> {
         let (input, mut sink) = Input::new();
 
-        let mut topic = topic;
+        let mut topic = topic.into();
         if let Some(ref realm) = self.realm {
             topic = format!("{}/{}", realm, topic);
         };
@@ -52,12 +56,14 @@ impl MqttHandleBuilder {
         return input;
     }
 
-    pub fn trigger(&mut self, topic: String) -> Input<()> {
+    pub fn trigger<Topic>(&mut self, topic: Topic) -> Input<()>
+        where Topic: Into<String> {
         return self.endpoint(topic, move |_| { Some(()) });
     }
 
-    pub fn value<T>(&mut self, topic: String) -> Input<T>
-        where T: FromStr + Send + 'static {
+    pub fn value<T, Topic>(&mut self, topic: Topic) -> Input<T>
+        where T: FromStr + Send + 'static,
+              Topic: Into<String> {
         return self.endpoint(topic, move |s| {
             return T::from_str(&s).ok();
         });
@@ -68,7 +74,11 @@ impl MqttHandleBuilder {
             .set_clean_session(true)
             .set_reconnect_opts(ReconnectOptions::Always(5));
 
-        let (client, notifications) = MqttClient::start(opts)?;
+        let (mut client, notifications) = MqttClient::start(opts)?;
+
+        for endpoint in self.endpoints.keys() {
+            client.subscribe(endpoint.to_owned(), QoS::AtLeastOnce);
+        }
 
         let mut endpoints = self.endpoints;
         let worker = thread::spawn(move || {

@@ -53,6 +53,17 @@ impl<T> Bounds<T>
     }
 }
 
+impl <T: Clone> Clone for Bounds<T> {
+    fn clone(&self) -> Self {
+        return Self {
+            min: self.min.clone(),
+            max: self.max.clone(),
+        };
+    }
+}
+
+impl <T: Copy> Copy for Bounds<T> {}
+
 impl<T> fmt::Display for Bounds<T>
     where T: fmt::Display {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

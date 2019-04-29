@@ -32,9 +32,8 @@ impl<T> Value<T> for Sequence<T>
 }
 
 pub struct SequenceDecl<T> {
-    values: Vec<T>,
-
-    trigger: Input<()>,
+    pub values: Vec<T>,
+    pub trigger: Input<()>,
 }
 
 impl<T> BoundValueDecl<T> for SequenceDecl<T>
