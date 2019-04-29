@@ -1,19 +1,18 @@
-use std::sync::mpsc;
 use std::time::Duration;
 
 use failure::Error;
 
-use crate::math;
-use crate::trigger::Timer;
+use crate::input::{Input, Poll};
 
 use super::*;
+use std::fmt::Display;
 
 pub struct Sequence<T> {
     values: Vec<T>,
 
     position: usize,
 
-    auto_trigger: Timer, // TODO: Unify auto_trigger and event input?
+    trigger: Input<()>,
 }
 
 impl<T> Value<T> for Sequence<T>
@@ -22,8 +21,8 @@ impl<T> Value<T> for Sequence<T>
         self.values[self.position]
     }
 
-    fn update(&mut self, duration: &Duration) -> Update<T> {
-        if self.auto_trigger.update(duration) {
+    fn update(&mut self, _duration: &Duration) -> Update<T> {
+        if let Poll::Ready(()) = self.trigger.poll() {
             self.position = (self.position + 1) % self.values.len();
             return Update::Changed(self.values[self.position]);
         } else {
@@ -35,19 +34,20 @@ impl<T> Value<T> for Sequence<T>
 pub struct SequenceDecl<T> {
     values: Vec<T>,
 
-    auto_trigger: Timer,
+    trigger: Input<()>,
 }
 
 impl<T> BoundValueDecl<T> for SequenceDecl<T>
-    where T: Copy + 'static {
+    where T: Copy + PartialOrd + Display + 'static {
     fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
-
-        // TODO: Check bounds
+        let values = self.values.into_iter()
+            .map(|v| bounds.ensure(v))
+            .collect::<Result<Vec<T>, Error>>()?;
 
         return Ok(Box::new(Sequence {
-            values: self.values.clone(),
+            values,
             position: 0,
-            auto_trigger: self.auto_trigger,
+            trigger: self.trigger,
         }));
     }
 }
@@ -58,7 +58,7 @@ impl<T> UnboundValueDecl<T> for SequenceDecl<T>
         return Ok(Box::new(Sequence {
             values: self.values.clone(),
             position: 0,
-            auto_trigger: self.auto_trigger,
+            trigger: self.trigger,
         }));
     }
 }

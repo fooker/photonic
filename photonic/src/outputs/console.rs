@@ -23,26 +23,26 @@ impl OutputDecl for ConsoleOutputDecl {
 }
 
 impl Output for ConsoleOutput {
-    fn render(&mut self, renderer: &Renderer) {
+    fn render(&mut self, renderer: &Render) {
         // TODO: Maybe with inline replacement?
-        let mut out = Vec::with_capacity(self.size * 20 + 5);
+        let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
         for i in 0..self.size {
             let (r, g, b) = renderer.get(i).int_rgb_tup();
-            write!(&mut out, "\x1b[48;2;{:03};{:03};{:03}m ", r, g, b);
+            write!(&mut buf, "\x1b[48;2;{:03};{:03};{:03}m ", r, g, b).unwrap();
         }
 
-        write!(&mut out, "\x1b[0m");
+        write!(&mut buf, "\x1b[0m").unwrap();
         if self.whaterfall {
-            write!(&mut out, "\n");
+            write!(&mut buf, "\n").unwrap();
         } else {
-            write!(&mut out, "\r");
+            write!(&mut buf, "\r").unwrap();
         }
 
-        let mut stdout = stdout();
-        let mut stdout = stdout.lock();
-        stdout.write_all(&out).unwrap();
-        stdout.flush().unwrap();
+        let out = stdout();
+        let mut out = out.lock();
+        out.write_all(&buf).unwrap();
+        out.flush().unwrap();
 
     }
 }

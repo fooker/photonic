@@ -1,7 +1,5 @@
-#![feature(self_struct_ctor)]
 #![feature(cell_update)]
 #![feature(duration_float)]
-#![feature(associated_consts)]
 #![feature(fnbox)]
 #![feature(never_type)]
 
@@ -14,5 +12,6 @@ pub mod outputs;
 pub mod utils;
 pub mod values;
 pub mod animation;
-pub mod trigger;
+pub mod timer;
+pub mod input;
 //pub mod inspection;

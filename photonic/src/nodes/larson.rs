@@ -10,7 +10,7 @@ struct LarsonRenderer {
     position: f64,
 }
 
-impl Renderer for LarsonRenderer {
+impl Render for LarsonRenderer {
     fn get(&self, index: usize) -> MainColor {
         // Calculate value as the linear distance between the pixel and the current
         // position scaled from 0.0 for ±width/2 to 1.0 for center
@@ -57,10 +57,10 @@ pub struct LarsonNode {
 }
 
 impl NodeDecl for LarsonNodeDecl {
-    type Node = LarsonNode;
+    type Target = LarsonNode;
 
-    fn new(self, size: usize) -> Result<Self::Node, Error> {
-        return Ok(Self::Node {
+    fn new(self, size: usize) -> Result<Self::Target, Error> {
+        return Ok(Self::Target {
             size,
             hue: self.hue.new((0.0, 360.0).into())?,
             speed: self.speed.new()?,
@@ -72,16 +72,6 @@ impl NodeDecl for LarsonNodeDecl {
 }
 
 impl Node for LarsonNode {
-    const TYPE: &'static str = "larson";
-
-    fn render<'a>(&'a self) -> Box<Renderer + 'a> {
-        Box::new(LarsonRenderer {
-            hue: self.hue.get(),
-            width: self.width.get(),
-            position: self.position,
-        })
-    }
-
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);
         self.width.update(duration);
@@ -105,16 +95,12 @@ impl Node for LarsonNode {
             }
         }
     }
-}
 
-//impl Inspection for LarsonNode {
-//    fn children(&self) -> Vec<NodeRef> { vec![] }
-//
-//    fn values(&self) -> Vec<ValueRef> {
-//        vec![
-////            ValueRef { name: "hue", ptr: self.hue },
-////            ValueRef { name: "speed", ptr: self.speed },
-////            ValueRef { name: "width", ptr: self.width },
-//        ]
-//    }
-//}
+    fn render<'a>(&'a self, _renderer: &Renderer) -> Box<Render + 'a> {
+        Box::new(LarsonRenderer {
+            hue: self.hue.get(),
+            width: self.width.get(),
+            position: self.position,
+        })
+    }
+}

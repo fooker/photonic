@@ -1,11 +1,25 @@
 use crate::math::Lerp;
-use std::f64::consts::PI;
 use std::time::Duration;
+
+pub use ezing::*;
 
 #[derive(Clone, Copy)]
 pub struct Easing {
     pub func: fn(f64) -> f64,
     pub speed: Duration,
+}
+
+impl Easing {
+    pub fn none() -> Option<Self> {
+        return None;
+    }
+
+    pub fn with(func: fn(f64) -> f64, speed: Duration) -> Option<Self> {
+        return Some(Self {
+            func,
+            speed,
+        });
+    }
 }
 
 pub enum Animation {

@@ -1,12 +1,10 @@
 use crate::buffer::*;
 use crate::color::HSVColor;
 use crate::core::*;
-use std::time::Duration;
 
 pub struct ColorwheelNode(Buffer<MainColor>);
 
 impl ColorwheelNode {
-
     pub fn new_delta(offset: f64, delta: f64) -> Result<Self, String> {
         let size = (360.0 / delta) as usize;
 
@@ -28,19 +26,3 @@ impl ColorwheelNode {
                                       });
     }
 }
-
-//impl Node for ColorwheelNode {
-//    const TYPE: &'static str = "colorwheel";
-//
-//    fn render<'a>(&'a self) -> Box<Renderer + 'a> {
-//        Box::new(&self.0)
-//    }
-//
-//    fn update(&mut self, _: &Duration) {}
-//}
-//
-//impl Inspection for ColorwheelNode {
-//    fn children(&self) -> Vec<NodeRef> { vec![] }
-//
-//    fn values(&self) -> Vec<ValueRef> { vec![] }
-//}

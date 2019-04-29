@@ -1,15 +1,11 @@
-use std::sync::mpsc;
 use std::time::Duration;
 
-use crate::math;
-use crate::trigger::Timer;
-use crate::values::Update;
+use crate::input::{Input, Poll};
 
 use super::*;
 
 pub struct Manual<T> {
-    bounds: Option<Bounds<T>>,
-
+    input: Input<T>,
     current: T,
 }
 
@@ -19,36 +15,25 @@ impl<T> Value<T> for Manual<T>
         self.current
     }
 
-    fn update(&mut self, duration: &Duration) -> Update<T> {
-//        if let Ok(update) = self.update.1.try_recv() {
-//            self.current = update;
-//            return Update::Changed(self.current);
-//        } else {
-//            return Update::Idle;
-//        }
-        unimplemented!()
+    fn update(&mut self, _duration: &Duration) -> Update<T> {
+        if let Poll::Ready(update) = self.input.poll() {
+            self.current = update;
+            return Update::Changed(self.current);
+        } else {
+            return Update::Idle;
+        }
     }
 }
 
-pub struct ManualDecl {}
-
-impl<T> BoundValueDecl<T> for ManualDecl
-    where T: Copy + 'static {
-    fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
-        let current = bounds.min;
-
-        return Ok(Box::new(Manual {
-            bounds: Some(bounds),
-            current,
-        }));
-    }
+pub struct ManualDecl<T> {
+    input: Input<T>,
 }
 
-impl<T> UnboundValueDecl<T> for ManualDecl
+impl<T> UnboundValueDecl<T> for ManualDecl<T>
     where T: Copy + Default + 'static {
     fn new(self: Box<Self>) -> Result<Box<Value<T>>, Error> {
         return Ok(Box::new(Manual {
-            bounds: None,
+            input: self.input,
             current: T::default(),
         }));
     }

@@ -6,13 +6,13 @@ use std::time::Duration;
 use failure::Error;
 
 struct SwitchRenderer<'a> {
-    source: Box<Renderer + 'a>,
-    target: Box<Renderer + 'a>,
+    source: Box<Render + 'a>,
+    target: Box<Render + 'a>,
 
     blend: f64,
 }
 
-impl<'a> Renderer for SwitchRenderer<'a> {
+impl<'a> Render for SwitchRenderer<'a> {
     fn get(&self, index: usize) -> MainColor {
         let source = self.source.get(index);
         let target = self.target.get(index);
@@ -27,13 +27,13 @@ impl<'a> Renderer for SwitchRenderer<'a> {
 pub struct SwitchNodeDecl<Source: Node> {
     // TODO: Make sources an iterator?
 
-    pub sources: Vec<Source>,
+    pub sources: Vec<Handle<Source>>,
     pub position: Box<BoundValueDecl<usize>>,
     pub easing: Option<Easing>,
 }
 
 pub struct SwitchNode<Source: Node> {
-    sources: Vec<Source>,
+    sources: Vec<Handle<Source>>,
 
     position: Box<Value<usize>>,
 
@@ -46,12 +46,12 @@ pub struct SwitchNode<Source: Node> {
 }
 
 impl <Source: Node> NodeDecl for SwitchNodeDecl<Source> {
-    type Node = SwitchNode<Source>;
+    type Target = SwitchNode<Source>;
 
-    fn new(self, size: usize) -> Result<Self::Node, Error> {
-        let position = self.position.new((0, self.sources.len()).into())?;
+    fn new(self, _size: usize) -> Result<Self::Target, Error> {
+        let position = self.position.new((0, self.sources.len() - 1).into())?;
 
-        return Ok(Self::Node {
+        return Ok(Self::Target {
             sources: self.sources,
             position,
             source: 0,
@@ -64,15 +64,8 @@ impl <Source: Node> NodeDecl for SwitchNodeDecl<Source> {
 }
 
 impl <Source: Node> Node for SwitchNode<Source> {
-    const TYPE: &'static str = "switch";
-
     fn update(&mut self, duration: &Duration) {
-        for source in self.sources.iter_mut() {
-            source.update(duration);
-        }
-
         if let Update::Changed(position) = self.position.update(duration) {
-            let position = position as usize; // FIXME: Not sure
             if let Some(easing) = self.easing {
                 self.source = self.target;
                 self.target = position;
@@ -92,29 +85,15 @@ impl <Source: Node> Node for SwitchNode<Source> {
         }
     }
 
-    fn render<'a>(&'a self) -> Box<Renderer + 'a> {
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render + 'a> {
         if self.source == self.target {
-            return self.sources[self.source].render();
+            return renderer.render(&self.sources[self.source]);
         } else {
             return Box::new(SwitchRenderer {
-                source: self.sources[self.source].render(),
-                target: self.sources[self.target].render(),
+                source: renderer.render(&self.sources[self.source]),
+                target: renderer.render(&self.sources[self.target]),
                 blend: self.blend,
             });
         }
     }
 }
-
-//impl Inspection for SwitchNode {
-//    fn children(&self) -> Vec<NodeRef> {
-//        return self.sources.iter().map(|source| {
-//            NodeRef { name: "source", ptr: source.as_ref() }
-//        }).collect();
-//    }
-//
-//    fn values(&self) -> Vec<ValueRef> {
-//        vec![
-//            ValueRef { name: "position", ptr: ValuePtr::Int(&self.position) }
-//        ]
-//    }
-//}

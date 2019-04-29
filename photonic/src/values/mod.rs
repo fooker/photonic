@@ -1,20 +1,17 @@
-//pub mod float;
-//pub mod usize;
+use std::fmt;
+use std::time::Duration;
+
+use failure::ensure;
+use failure::Error;
+use num::{One, Zero};
 
 pub mod fixed;
 pub mod looper;
 pub mod random;
 pub mod sequence;
 pub mod manual;
+pub mod button;
 pub mod fader;
-
-use std::boxed::FnBox;
-use std::time::Duration;
-use std::ops::{Deref, Range};
-use failure::Error;
-use failure::ensure;
-use std::fmt;
-use num::{Num, Zero, One};
 
 pub enum Update<T> {
     Idle,
@@ -26,7 +23,7 @@ pub trait Value<T> {
     fn update(&mut self, duration: &Duration) -> Update<T>;
 }
 
-/// Inclusive on both ends
+/// Inclusive on both sides
 pub struct Bounds<T> {
     pub min: T,
     pub max: T,

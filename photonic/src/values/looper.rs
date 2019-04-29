@@ -1,11 +1,9 @@
-use std::sync::mpsc;
 use std::time::Duration;
 
 use failure::Error;
 use num::traits::Num;
 
-use crate::math;
-use crate::trigger::Timer;
+use crate::input::{Input, Poll};
 
 use super::*;
 
@@ -17,19 +15,17 @@ pub struct Looper<T>
 
     current: T,
 
-    auto_trigger: Timer, // TODO: Unify auto_trigger and event input?
-//    update: (mpsc::SyncSender<()>, mpsc::Receiver<()>),
+    trigger: Input<()>,
 }
 
 impl<T> Value<T> for Looper<T>
     where T: Copy + Num {
-
     fn get(&self) -> T {
         return self.current;
     }
 
-    fn update(&mut self, duration: &Duration) -> Update<T> {
-        if self.auto_trigger.update(duration) {
+    fn update(&mut self, _duration: &Duration) -> Update<T> {
+        if let Poll::Ready(()) = self.trigger.poll() {
             self.current = self.min + (self.current + self.step - self.min) % (self.max - self.min);
             return Update::Changed(self.current);
         } else {
@@ -41,7 +37,7 @@ impl<T> Value<T> for Looper<T>
 pub struct LooperDecl<T> {
     pub step: T,
 
-    pub auto_trigger: Timer,
+    pub trigger: Input<()>,
 }
 
 impl<T> BoundValueDecl<T> for LooperDecl<T>
@@ -60,8 +56,7 @@ impl<T> BoundValueDecl<T> for LooperDecl<T>
             max,
             step,
             current: min,
-            auto_trigger: self.auto_trigger,
-//            update: mpsc::sync_channel(0),
+            trigger: self.trigger,
         }));
     }
 }

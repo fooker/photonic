@@ -25,7 +25,7 @@ impl Default for Raindrop {
 
 struct Raindrops<'a>(&'a Vec<Raindrop>);
 
-impl<'a> Renderer for Raindrops<'a> {
+impl<'a> Render for Raindrops<'a> {
     fn get(&self, index: usize) -> RGBColor {
         self.0[index].color.convert()
     }
@@ -88,10 +88,10 @@ pub struct RaindropsNode {
 }
 
 impl NodeDecl for RaindropsNodeDecl {
-    type Node = RaindropsNode;
+    type Target = RaindropsNode;
 
-    fn new(self, size: usize) -> Result<Self::Node, Error> {
-        return Ok(Self::Node {
+    fn new(self, size: usize) -> Result<Self::Target, Error> {
+        return Ok(Self::Target {
             rate: self.rate.new(Bounds::norm())?,
             hue_min: self.hue.0.new((0.0, 360.0).into())?,
             hue_max: self.hue.1.new((0.0, 360.0).into())?,
@@ -108,12 +108,6 @@ impl NodeDecl for RaindropsNodeDecl {
 }
 
 impl Node for RaindropsNode {
-    const TYPE: &'static str = "raindrops";
-
-    fn render<'a>(&'a self) -> Box<Renderer + 'a> {
-        Box::new(Raindrops(&self.raindrops))
-    }
-
     fn update(&mut self, duration: &Duration) {
         self.rate.update(duration);
         self.hue_min.update(duration);
@@ -136,22 +130,8 @@ impl Node for RaindropsNode {
             }
         }
     }
-}
 
-//impl Inspection for RaindropsNode {
-//    fn children(&self) -> Vec<NodeRef> { vec![] }
-//
-//    fn values(&self) -> Vec<ValueRef> {
-//        vec![
-////            ValueRef { name: "rate", ptr: self.rate },
-////            ValueRef { name: "hue_min", ptr: self.hue_min },
-////            ValueRef { name: "hue_max", ptr: self.hue_max },
-////            ValueRef { name: "saturation_min", ptr: self.saturation_min },
-////            ValueRef { name: "saturation_max", ptr: self.saturation_max },
-////            ValueRef { name: "lightness_min", ptr: self.lightness_min },
-////            ValueRef { name: "lightness_max", ptr: self.lightness_max },
-////            ValueRef { name: "decay_min", ptr: self.decay_min },
-////            ValueRef { name: "decay_max", ptr: self.decay_max },
-//        ]
-//    }
-//}
+    fn render<'a>(&'a self, _renderer: &Renderer) -> Box<Render + 'a> {
+        return Box::new(Raindrops(&self.raindrops));
+    }
+}

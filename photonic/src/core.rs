@@ -1,20 +1,24 @@
-use crate::color::RGBColor;
-use crate::math::{self, Lerp};
-use std::ops::{Deref, DerefMut};
+use std::marker::PhantomData;
 use std::time::Duration;
+
 use failure::Error;
-use crate::utils::{FrameTimer, FrameStats};
+
+use crate::color::RGBColor;
+use crate::utils::{FrameStats, FrameTimer};
 
 pub type MainColor = RGBColor;
 
 pub struct Scene {
     size: usize,
+
+    nodes: Vec<Box<Node>>,
 }
 
 impl Scene {
     pub fn new(size: usize) -> Self {
         return Self {
             size,
+            nodes: Vec::new(),
         };
     }
 
@@ -22,35 +26,71 @@ impl Scene {
         return self.size;
     }
 
-    pub fn node<Decl: NodeDecl>(&mut self, name: &str, decl: Decl) -> Result<Decl::Node, Error> {
-        let node = decl.new(self.size)?;
-        return Ok(node);
+    pub fn node<D: NodeDecl>(&mut self, _name: &str, decl: D) -> Result<Handle<D::Target>, Error>
+        where D::Target: 'static {
+        let node = Box::new(decl.new(self.size())?);
+
+        self.nodes.push(node);
+
+        return Ok(Handle {
+            index: self.nodes.len() - 1,
+            _data: PhantomData,
+        });
     }
 
-    pub fn output<Decl: OutputDecl>(&mut self, decl: Decl) -> Result<Decl::Output, Error> {
-        let output = decl.new(self.size)?;
-        return Ok(output);
+    pub fn output<D: OutputDecl, N: Node>(self, node: Handle<N>, decl: D) -> Result<Loop<N, D::Output>, Error> {
+        let output = decl.new(self.size())?;
+
+        return Ok(Loop {
+            scene: self,
+            callbacks: Vec::new(),
+            node,
+            output,
+        });
     }
 }
 
-pub trait Renderer {
+pub struct Handle<N: Node> {
+    index: usize,
+    _data: PhantomData<N>,
+}
+
+//pub trait Dynamic {
+//    fn update(&mut self, duration: &Duration);
+//}
+
+pub struct Renderer<'a> {
+    scene: &'a Scene,
+}
+
+impl<'a> Renderer<'a> {
+    pub fn render<'b: 'a, N: Node + 'b>(&'b self, handle: &'a Handle<N>) -> Box<Render + 'b> {
+        self.scene.nodes[handle.index].render(self)
+    }
+}
+
+pub trait Render {
     fn get(&self, index: usize) -> MainColor;
 }
 
 pub trait NodeDecl {
-    type Node: Node;
+    type Target: Node;
 
-    fn new(self, size: usize) -> Result<Self::Node, Error>
-        where Self::Node: std::marker::Sized;
+    fn new(self, size: usize) -> Result<Self::Target, Error>
+        where Self::Target: std::marker::Sized;
 }
 
 pub trait Node {
-    const TYPE: &'static str;
-
     fn update(&mut self, duration: &Duration);
 
-    fn render<'a>(&'a self) -> Box<Renderer + 'a>;
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render + 'a>;
 }
+
+//impl<T> Dynamic for T where T: Node {
+//    fn update(&mut self, duration: &Duration) {
+//        Node::update(self, duration)
+//    }
+//}
 
 pub trait OutputDecl {
     type Output: Output;
@@ -60,20 +100,22 @@ pub trait OutputDecl {
 }
 
 pub trait Output {
-    fn render(&mut self, renderer: &Renderer);
+    fn render(&mut self, renderer: &Render);
 }
 
 pub struct Loop<Node: self::Node, Output: self::Output> {
-    node: Node,
+    scene: Scene,
+
+    callbacks: Vec<Box<FnMut(&Duration)>>,
+
+    node: Handle<Node>,
     output: Output,
 }
 
 impl<Node: self::Node, Output: self::Output> Loop<Node, Output> {
-    pub fn new(node: Node, output: Output) -> Self {
-        return Self {
-            node,
-            output,
-        };
+    pub fn register<F>(&mut self, callback: F)
+        where F: FnMut(&Duration) + 'static {
+        self.callbacks.push(Box::new(callback));
     }
 
     pub fn run(mut self, fps: usize) -> Result<!, Error> {
@@ -84,11 +126,22 @@ impl<Node: self::Node, Output: self::Output> Loop<Node, Output> {
         loop {
             let duration = timer.next();
 
-            // Update node tree
-            self.node.update(&duration);
+            // Trigger callbacks
+            for callback in self.callbacks.iter_mut() {
+                callback(&duration);
+            }
+
+            // Update nodes
+            for node in self.scene.nodes.iter_mut() {
+                node.update(&duration);
+            }
 
             // Render node tree to output
-            self.output.render(self.node.render().as_ref());
+            let renderer = Renderer {
+                scene: &self.scene,
+            };
+            let render = renderer.render(&self.node);
+            self.output.render(render.as_ref());
 
             if let Some(stats) = stats.update(duration, fps) {
                 eprintln!("Stats: min={:3.2}, max={:3.2}, avg={:3.2}", stats.min_fps(), stats.max_fps(), stats.avg_fps())
