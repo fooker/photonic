@@ -1,8 +1,10 @@
-use crate::values::*;
+use std::time::Duration;
+
+use failure::Error;
+
 use crate::color::*;
 use crate::core::*;
-use std::time::Duration;
-use failure::Error;
+use crate::values::*;
 
 struct LarsonRenderer {
     hue: f64,

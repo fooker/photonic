@@ -1,9 +1,9 @@
+use std::fmt::Display;
 use std::time::Duration;
 
 use crate::input::{Input, Poll};
 
 use super::*;
-use std::fmt::Display;
 
 pub struct BoundManual<T> {
     bounds: Bounds<T>,

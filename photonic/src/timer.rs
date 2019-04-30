@@ -1,7 +1,7 @@
+use std::cell::RefCell;
 use std::time::Duration;
 
 use crate::input::{Input, Sink};
-use std::cell::RefCell;
 
 pub struct Timer {
     tickers: RefCell<Vec<Ticker>>,
@@ -42,7 +42,7 @@ struct Ticker {
 }
 
 impl Ticker {
-    pub (self) fn update(&mut self, duration: &Duration) {
+    pub(self) fn update(&mut self, duration: &Duration) {
         if self.remaining < *duration {
             self.remaining += self.duration - *duration;
             self.sink.send(());
@@ -51,15 +51,3 @@ impl Ticker {
         }
     }
 }
-
-//impl Input<()> for Timer {
-//    fn poll(&mut self) -> Poll<()> {
-//        if self.remaining < *duration {
-//            self.remaining += self.duration - *duration;
-//            return Poll::Ready(());
-//        } else {
-//            self.remaining -= *duration;
-//            return Poll::Pending;
-//        }
-//    }
-//}

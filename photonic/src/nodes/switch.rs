@@ -1,9 +1,11 @@
+use std::time::Duration;
+
+use failure::Error;
+
 use crate::animation::*;
 use crate::core::*;
 use crate::math::Lerp;
 use crate::values::*;
-use std::time::Duration;
-use failure::Error;
 
 struct SwitchRenderer<'a> {
     source: Box<Render + 'a>,
@@ -29,7 +31,7 @@ pub struct SwitchNodeDecl<Source: Node> {
 
     pub sources: Vec<Handle<Source>>,
     pub position: Box<BoundValueDecl<usize>>,
-    pub easing: Option<Easing>,
+    pub easing: Option<Easing<f64>>,
 }
 
 pub struct SwitchNode<Source: Node> {
@@ -41,11 +43,11 @@ pub struct SwitchNode<Source: Node> {
     target: usize,
     blend: f64,
 
-    easing: Option<Easing>,
-    transition: Animation,
+    easing: Option<Easing<f64>>,
+    transition: Animation<f64>,
 }
 
-impl <Source: Node> NodeDecl for SwitchNodeDecl<Source> {
+impl<Source: Node> NodeDecl for SwitchNodeDecl<Source> {
     type Target = SwitchNode<Source>;
 
     fn new(self, _size: usize) -> Result<Self::Target, Error> {
@@ -58,26 +60,26 @@ impl <Source: Node> NodeDecl for SwitchNodeDecl<Source> {
             target: 0,
             blend: 0.0,
             easing: self.easing,
-            transition: Animation::Idle,
+            transition: Animation::idle(),
         });
     }
 }
 
-impl <Source: Node> Node for SwitchNode<Source> {
+impl<Source: Node> Node for SwitchNode<Source> {
     fn update(&mut self, duration: &Duration) {
         if let Update::Changed(position) = self.position.update(duration) {
             if let Some(easing) = self.easing {
                 self.source = self.target;
                 self.target = position;
                 self.blend = 0.0;
-                self.transition = Animation::start(easing, 0.0, 1.0);
+                self.transition.start(easing, 0.0, 1.0);
             } else {
                 self.source = position;
                 self.target = position;
             }
         }
 
-        if let Some(value) = self.transition.update(duration) {
+        if let Transition::Running(value) = self.transition.update(duration) {
             self.blend = value;
         } else {
             self.source = self.target;

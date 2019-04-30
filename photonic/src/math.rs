@@ -1,5 +1,5 @@
 pub trait Lerp {
-    fn lerp(a: Self, b: Self, v: f64) -> Self;
+    fn lerp(a: Self, b: Self, i: f64) -> Self;
 }
 
 impl Lerp for f64 {
@@ -15,6 +15,22 @@ impl Lerp for f64 {
         }
 
         return f1 + (f2 - f1) * i;
+    }
+}
+
+impl Lerp for f32 {
+    fn lerp(f1: Self, f2: Self, i: f64) -> Self {
+        assert!(0.0 <= i && i <= 1.0);
+
+        if i == 0.0 {
+            return f1;
+        }
+
+        if i == 1.0 {
+            return f2;
+        }
+
+        return f1 + (f2 - f1) * i as f32;
     }
 }
 
@@ -65,9 +81,9 @@ pub fn wrap(f: f64, s: usize) -> f64 {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
     use assert_approx_eq::assert_approx_eq;
+
+    use super::*;
 
     #[test]
     fn test_wrap() {

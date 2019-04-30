@@ -3,7 +3,7 @@ use std::str::FromStr;
 use std::thread;
 
 use failure::Error;
-use rumqtt::{MqttClient, MqttOptions, Notification, ReconnectOptions, QoS};
+use rumqtt::{MqttClient, MqttOptions, Notification, QoS, ReconnectOptions};
 
 use photonic::input::Input;
 
@@ -77,7 +77,8 @@ impl MqttHandleBuilder {
         let (mut client, notifications) = MqttClient::start(opts)?;
 
         for endpoint in self.endpoints.keys() {
-            client.subscribe(endpoint.to_owned(), QoS::AtLeastOnce);
+            client.subscribe(endpoint.to_owned(), QoS::AtLeastOnce)
+                .expect("Failed to subscribe");
         }
 
         let mut endpoints = self.endpoints;

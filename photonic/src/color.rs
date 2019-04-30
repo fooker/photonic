@@ -1,27 +1,29 @@
-use crate::math;
-
 pub use scarlet::color::Color;
 pub use scarlet::color::RGBColor;
-pub use scarlet::colors::HSVColor;
 pub use scarlet::colors::HSLColor;
+pub use scarlet::colors::HSVColor;
+
+use crate::math;
 
 pub trait Black {
     fn black() -> Self;
 }
 
 impl math::Lerp for RGBColor {
-    fn lerp(c1: Self, c2: Self, f: f64) -> Self {
+    fn lerp(c1: Self, c2: Self, i: f64) -> Self {
         use scarlet::colorpoint::ColorPoint;
 
-        if f <= 0.0 {
+        assert!(0.0 <= i && i <= 1.0);
+
+        if i == 0.0 {
             return c1;
         }
 
-        if f >= 1.0 {
+        if i == 1.0 {
             return c2;
         }
 
-        return ColorPoint::weighted_midpoint(c2, c1, f);
+        return ColorPoint::weighted_midpoint(c2, c1, i);
     }
 }
 

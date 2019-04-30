@@ -1,6 +1,8 @@
-use crate::core::*;
-use std::io::{Write,stdout};
+use std::io::{stdout, Write};
+
 use failure::Error;
+
+use crate::core::*;
 
 pub struct ConsoleOutputDecl {
     pub whaterfall: bool,
@@ -43,6 +45,5 @@ impl Output for ConsoleOutput {
         let mut out = out.lock();
         out.write_all(&buf).unwrap();
         out.flush().unwrap();
-
     }
 }

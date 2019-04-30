@@ -1,33 +1,31 @@
 use std::time::Duration;
 
-use crate::animation::{Animation, Easing};
-use crate::input::{Input, Poll};
+use num::Float;
+
+use crate::animation::{Animation, Easing, Transition};
+use crate::math::Lerp;
 
 use super::*;
 
-// TODO: Generalize this to Num or Float?
+pub struct Fader<F: Float + Lerp> {
+    input: Box<Value<F>>,
+    current: F,
 
-pub struct Fader {
-    bounds: Bounds<f64>,
-
-    input: Box<Value<f64>>,
-    current: f64,
-
-    easing: Easing,
-    transition: Animation,
+    easing: Easing<f64>,
+    transition: Animation<F>,
 }
 
-impl Value<f64> for Fader {
-    fn get(&self) -> f64 {
+impl<F: Float + Lerp> Value<F> for Fader<F> {
+    fn get(&self) -> F {
         self.current
     }
 
-    fn update(&mut self, duration: &Duration) -> Update<f64> {
+    fn update(&mut self, duration: &Duration) -> Update<F> {
         if let Update::Changed(next) = self.input.update(duration) {
-            self.transition = Animation::start(self.easing, self.current, next);
+            self.transition.start(self.easing, self.current, next);
         }
 
-        if let Some(value) = self.transition.update(duration) {
+        if let Transition::Running(value) = self.transition.update(duration) {
             self.current = value;
             return Update::Changed(self.current);
         } else {
@@ -36,23 +34,23 @@ impl Value<f64> for Fader {
     }
 }
 
-pub struct FaderDecl {
-    pub input: Box<BoundValueDecl<f64>>,
-    pub easing: Easing,
+pub struct FaderDecl<F: Float + Lerp> {
+    pub input: Box<BoundValueDecl<F>>,
+    pub easing: Easing<f64>,
 }
 
-impl BoundValueDecl<f64> for FaderDecl {
-    fn new(self: Box<Self>, bounds: Bounds<f64>) -> Result<Box<Value<f64>>, Error> {
+impl<F: Float + Lerp> BoundValueDecl<F> for FaderDecl<F>
+    where F: 'static {
+    fn new(self: Box<Self>, bounds: Bounds<F>) -> Result<Box<Value<F>>, Error> {
         let input = self.input.new(bounds)?;
 
         let current = input.get();
 
         return Ok(Box::new(Fader {
-            bounds,
             input,
             current,
             easing: self.easing,
-            transition: Animation::Idle,
+            transition: Animation::idle(),
         }));
     }
 }

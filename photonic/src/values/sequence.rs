@@ -1,3 +1,4 @@
+use std::fmt::Display;
 use std::time::Duration;
 
 use failure::Error;
@@ -5,7 +6,6 @@ use failure::Error;
 use crate::input::{Input, Poll};
 
 use super::*;
-use std::fmt::Display;
 
 pub struct Sequence<T> {
     values: Vec<T>,

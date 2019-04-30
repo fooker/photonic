@@ -45,7 +45,7 @@ pub struct Button<T> {
 }
 
 impl<T> Value<T> for Button<T>
-where T: Copy {
+    where T: Copy {
     fn get(&self) -> T {
         return match self.state {
             State::Released => self.value_released,

@@ -55,10 +55,6 @@ pub struct Handle<N: Node> {
     _data: PhantomData<N>,
 }
 
-//pub trait Dynamic {
-//    fn update(&mut self, duration: &Duration);
-//}
-
 pub struct Renderer<'a> {
     scene: &'a Scene,
 }
@@ -85,12 +81,6 @@ pub trait Node {
 
     fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render + 'a>;
 }
-
-//impl<T> Dynamic for T where T: Node {
-//    fn update(&mut self, duration: &Duration) {
-//        Node::update(self, duration)
-//    }
-//}
 
 pub trait OutputDecl {
     type Output: Output;

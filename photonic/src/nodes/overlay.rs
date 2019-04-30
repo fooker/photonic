@@ -1,9 +1,10 @@
 use std::time::Duration;
 
+use failure::Error;
+
 use crate::core::*;
 use crate::math::Lerp;
 use crate::values::*;
-use failure::Error;
 
 struct OverlayRenderer<'a> {
     base: Box<Render + 'a>,

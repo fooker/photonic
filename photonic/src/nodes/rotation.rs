@@ -1,9 +1,11 @@
+use std::time::Duration;
+
+use failure::Error;
+
 use crate::core::*;
 use crate::math;
 use crate::math::Lerp;
 use crate::values::*;
-use std::time::Duration;
-use failure::Error;
 
 struct RotationRenderer<'a> {
     source: Box<Render + 'a>,
@@ -38,7 +40,7 @@ pub struct RotationNode<Source: Node> {
     offset: f64,
 }
 
-impl <Source: Node> NodeDecl for RotationNodeDecl<Source> {
+impl<Source: Node> NodeDecl for RotationNodeDecl<Source> {
     type Target = RotationNode<Source>;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
@@ -53,7 +55,7 @@ impl <Source: Node> NodeDecl for RotationNodeDecl<Source> {
     }
 }
 
-impl <Source: Node> Node for RotationNode<Source> {
+impl<Source: Node> Node for RotationNode<Source> {
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);
         self.offset += self.speed.get() * duration.as_secs_f64();
