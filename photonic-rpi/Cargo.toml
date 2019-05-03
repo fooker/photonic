@@ -1,0 +1,10 @@
+[package]
+name = "photonic-rpi"
+version = "0.1.0"
+authors = ["Dustin Frisch <fooker@lab.sh>"]
+edition = "2018"
+
+[dependencies]
+photonic = {path="../photonic"}
+failure = "0.1"
+rs_ws281x = "0.2.3"

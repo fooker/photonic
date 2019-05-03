@@ -25,12 +25,12 @@ impl OutputDecl for ConsoleOutputDecl {
 }
 
 impl Output for ConsoleOutput {
-    fn render(&mut self, renderer: &Render) {
+    fn render(&mut self, render: &Render) {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
         for i in 0..self.size {
-            let (r, g, b) = renderer.get(i).int_rgb_tup();
+            let (r, g, b) = render.get(i).int_rgb_tup();
             write!(&mut buf, "\x1b[48;2;{:03};{:03};{:03}m ", r, g, b).unwrap();
         }
 

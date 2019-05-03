@@ -1,6 +1,8 @@
 /target
 **/*.rs.bk
 
+/.cargo
+
 /.idea
 /photonic.iml
 

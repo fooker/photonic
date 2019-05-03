@@ -2,5 +2,6 @@
 members = [
     "photonic",
     "photonic-mqtt",
+    "photonic-rpi",
     "example",
 ]

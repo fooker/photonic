@@ -90,7 +90,7 @@ pub trait OutputDecl {
 }
 
 pub trait Output {
-    fn render(&mut self, renderer: &Render);
+    fn render(&mut self, render: &Render);
 }
 
 pub struct Loop<Node: self::Node, Output: self::Output> {
