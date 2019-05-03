@@ -5,7 +5,7 @@ use std::thread;
 use failure::Error;
 use rumqtt::{MqttClient, MqttOptions, Notification, QoS, ReconnectOptions};
 
-use photonic::input::Input;
+use photonic_core::input::Input;
 
 pub struct MqttHandleBuilder {
     id: String,

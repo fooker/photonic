@@ -2,7 +2,7 @@ use std::io::{stdout, Write};
 
 use failure::Error;
 
-use crate::core::*;
+use photonic_core::core::*;
 
 pub struct ConsoleOutputDecl {
     pub whaterfall: bool,

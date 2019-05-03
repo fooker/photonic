@@ -3,8 +3,8 @@ use std::time::Duration;
 
 use failure::Error;
 
-use crate::input::{Input, Poll};
-use crate::values::{Bounds, BoundValueDecl, UnboundValueDecl, Update, Value};
+use photonic_core::input::{Input, Poll};
+use photonic_core::value::*;
 
 #[derive(Clone, Copy, Debug)]
 enum State {

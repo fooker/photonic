@@ -1,16 +1,11 @@
 [package]
-name = "photonic"
+name = "photonic-effects"
 version = "0.1.0"
 authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
 
 [dependencies]
-regex = "0.2"
-scarlet = "1"
+photonic-core = {path="../photonic-core"}
 failure = "0.1"
-rand = "*"
+rand = "0.6"
 num = "0.2"
-ezing = "0.2"
-
-[dev-dependencies]
-assert_approx_eq = "1"

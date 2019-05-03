@@ -1,6 +1,6 @@
-use crate::buffer::*;
-use crate::color::HSVColor;
-use crate::core::*;
+use photonic_core::buffer::*;
+use photonic_core::color::HSVColor;
+use photonic_core::core::*;
 
 pub struct ColorwheelNode(Buffer<MainColor>);
 

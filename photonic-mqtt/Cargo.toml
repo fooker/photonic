@@ -5,6 +5,6 @@ authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
 
 [dependencies]
-photonic = {path="../photonic"}
+photonic-core = {path="../photonic-core"}
 failure = "0.1"
 rumqtt = "0.30"

@@ -1,17 +1,8 @@
-use std::fmt;
-use std::time::Duration;
-
 use failure::ensure;
 use failure::Error;
 use num::{One, Zero};
-
-pub mod fixed;
-pub mod looper;
-pub mod random;
-pub mod sequence;
-pub mod manual;
-pub mod button;
-pub mod fader;
+use std::fmt;
+use std::time::Duration;
 
 pub enum Update<T> {
     Idle,
@@ -88,4 +79,49 @@ impl<T> Into<(T, T)> for Bounds<T> {
 
 pub trait BoundValueDecl<T> {
     fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error>;
+}
+
+struct FixedValue<T>(T);
+
+impl<T> Value<T> for FixedValue<T>
+    where T: Copy {
+    fn get(&self) -> T {
+        return self.0;
+    }
+
+    fn update(&mut self, _duration: &Duration) -> Update<T> {
+        return Update::Idle;
+    }
+}
+
+struct FixedValueDecl<T>(T);
+
+impl<T> UnboundValueDecl<T> for FixedValueDecl<T>
+    where T: Copy + 'static {
+    fn new(self: Box<Self>) -> Result<Box<Value<T>>, Error> {
+        return Ok(Box::new(FixedValue(self.0)));
+    }
+}
+
+impl<T> From<T> for Box<UnboundValueDecl<T>>
+    where T: Copy + 'static {
+    fn from(value: T) -> Self {
+        return Box::new(FixedValueDecl(value));
+    }
+}
+
+impl<T> BoundValueDecl<T> for FixedValueDecl<T>
+    where T: Copy + PartialOrd + fmt::Display + 'static {
+    fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
+        let value = bounds.ensure(self.0)?;
+
+        return Ok(Box::new(FixedValue(value)));
+    }
+}
+
+impl<T> From<T> for Box<BoundValueDecl<T>>
+    where T: Copy + PartialOrd + fmt::Display + 'static {
+    fn from(value: T) -> Self {
+        return Box::new(FixedValueDecl(value));
+    }
 }

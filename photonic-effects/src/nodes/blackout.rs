@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use failure::Error;
 
-use crate::color::Black;
-use crate::core::*;
-use crate::math::Lerp;
-use crate::values::*;
+use photonic_core::color::Black;
+use photonic_core::core::*;
+use photonic_core::math::Lerp;
+use photonic_core::value::*;
 
 struct PartialBlackoutRenderer<'a> {
     source: Box<Render + 'a>,

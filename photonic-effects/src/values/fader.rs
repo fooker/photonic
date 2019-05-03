@@ -1,11 +1,11 @@
 use std::time::Duration;
 
+use failure::Error;
 use num::Float;
 
-use crate::animation::{Animation, Easing, Transition};
-use crate::math::Lerp;
-
-use super::*;
+use photonic_core::animation::{Animation, Easing, Transition};
+use photonic_core::math::Lerp;
+use photonic_core::value::*;
 
 pub struct Fader<F: Float + Lerp> {
     input: Box<Value<F>>,

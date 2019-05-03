@@ -1,22 +1,23 @@
 #![feature(never_type)]
+#![feature(type_alias_enum_variants)]
 
 use std::time::Duration;
 
 use failure::Error;
 
-use photonic::animation;
-use photonic::animation::Easing;
-use photonic::core::Scene;
-use photonic::nodes::larson::LarsonNodeDecl;
-use photonic::nodes::overlay::OverlayNodeDecl;
-use photonic::nodes::raindrops::RaindropsNodeDecl;
-use photonic::nodes::switch::SwitchNodeDecl;
-use photonic::outputs::console::ConsoleOutputDecl;
-use photonic::timer::Timer;
-use photonic::values::looper::LooperDecl;
+use photonic_console::ConsoleOutputDecl;
+use photonic_core::animation;
+use photonic_core::animation::Easing;
+use photonic_core::core::Scene;
+use photonic_core::timer::Timer;
+use photonic_effects::nodes::larson::LarsonNodeDecl;
+use photonic_effects::nodes::overlay::OverlayNodeDecl;
+use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
+use photonic_effects::nodes::switch::SwitchNodeDecl;
+use photonic_effects::values::button::ButtonDecl;
+use photonic_effects::values::fader::FaderDecl;
+use photonic_effects::values::looper::LooperDecl;
 use photonic_mqtt::MqttHandleBuilder;
-use photonic::values::button::ButtonDecl;
-use photonic::values::fader::FaderDecl;
 
 const SIZE: usize = 42;
 const FPS: usize = 60;
@@ -25,7 +26,7 @@ fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
     let mut timer = Timer::new();
-    let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883)
+    let mut mqtt = MqttHandleBuilder::new("photonic", "10.0.23.172", 1883)
         .with_realm("photonic");
 
     let raindrops_violet = scene.node("raindrops:violet", RaindropsNodeDecl {
@@ -86,7 +87,7 @@ fn main() -> Result<!, Error> {
     })?;
 
     let mut main = scene.output(overlay_bell, ConsoleOutputDecl {
-        whaterfall: true,
+        whaterfall: true
     })?;
 
     mqtt.start()?;

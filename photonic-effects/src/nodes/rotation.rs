@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use failure::Error;
 
-use crate::core::*;
-use crate::math;
-use crate::math::Lerp;
-use crate::values::*;
+use photonic_core::core::*;
+use photonic_core::math;
+use photonic_core::math::Lerp;
+use photonic_core::value::*;
 
 struct RotationRenderer<'a> {
     source: Box<Render + 'a>,

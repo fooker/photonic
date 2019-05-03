@@ -3,9 +3,8 @@ use std::time::Duration;
 use failure::Error;
 use num::traits::Num;
 
-use crate::input::{Input, Poll};
-
-use super::*;
+use photonic_core::input::{Input, Poll};
+use photonic_core::value::*;
 
 pub struct Looper<T>
     where T: Num {

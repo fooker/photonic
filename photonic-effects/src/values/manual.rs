@@ -1,9 +1,10 @@
 use std::fmt::Display;
 use std::time::Duration;
 
-use crate::input::{Input, Poll};
+use failure::Error;
 
-use super::*;
+use photonic_core::input::{Input, Poll};
+use photonic_core::value::*;
 
 pub struct BoundManual<T> {
     bounds: Bounds<T>,

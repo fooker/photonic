@@ -1,6 +1,6 @@
 use failure::Error;
 
-use photonic::core::{Output, OutputDecl, Render};
+use photonic_core::core::{Output, OutputDecl, Render};
 
 pub type Kind = rs_ws281x::StripType;
 

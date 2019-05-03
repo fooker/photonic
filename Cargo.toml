@@ -1,6 +1,8 @@
 [workspace]
 members = [
-    "photonic",
+    "photonic-core",
+    "photonic-console",
+    "photonic-effects",
     "photonic-mqtt",
     "photonic-rpi",
     "example",

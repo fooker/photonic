@@ -1,5 +1,5 @@
 [package]
-name = "photonic-rpi"
+name = "photonic-console"
 version = "0.1.0"
 authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
@@ -7,4 +7,3 @@ edition = "2018"
 [dependencies]
 photonic-core = {path="../photonic-core"}
 failure = "0.1"
-rs_ws281x = "0.2.3"

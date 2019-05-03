@@ -4,9 +4,8 @@ use failure::Error;
 use rand::distributions::uniform::SampleUniform;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 
-use crate::input::{Input, Poll};
-
-use super::*;
+use photonic_core::input::{Input, Poll};
+use photonic_core::value::*;
 
 pub struct Random<T> {
     bounds: Bounds<T>,

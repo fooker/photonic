@@ -2,9 +2,9 @@ use std::time::Duration;
 
 use failure::Error;
 
-use crate::color::*;
-use crate::core::*;
-use crate::values::*;
+use photonic_core::color::*;
+use photonic_core::core::*;
+use photonic_core::value::*;
 
 struct LarsonRenderer {
     hue: f64,
