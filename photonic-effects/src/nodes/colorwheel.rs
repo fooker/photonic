@@ -1,28 +1,26 @@
+use failure::Error;
+
 use photonic_core::buffer::*;
 use photonic_core::color::HSVColor;
 use photonic_core::core::*;
 
-pub struct ColorwheelNode(Buffer<MainColor>);
+pub struct ColorwheelNodeDecl {
+    pub offset: f64,
+}
 
-impl ColorwheelNode {
-    pub fn new_delta(offset: f64, delta: f64) -> Result<Self, String> {
-        let size = (360.0 / delta) as usize;
+impl NodeDecl for ColorwheelNodeDecl {
+    type Target = Buffer<MainColor>;
 
-        return Ok(Self(Self::create_buffer(size, offset, delta)));
-    }
-
-    pub fn new_full(size: usize, offset: f64) -> Result<Self, String> {
+    fn new(self, size: usize) -> Result<Self::Target, Error> {
         let delta = 360.0 / size as f64;
 
-        return Ok(Self(Self::create_buffer(size, offset, delta)));
-    }
+        let buffer = Buffer::from_generator(size,
+                                            |i| HSVColor {
+                                                h: self.offset + i as f64 * delta,
+                                                s: 1.0,
+                                                v: 1.0,
+                                            });
 
-    fn create_buffer(size: usize, offset: f64, delta: f64) -> Buffer<MainColor> {
-        return Buffer::from_generator(size,
-                                      |i| HSVColor {
-                                          h: offset + i as f64 * delta,
-                                          s: 1.0,
-                                          v: 1.0,
-                                      });
+        return Ok(buffer);
     }
 }

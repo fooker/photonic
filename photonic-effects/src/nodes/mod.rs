@@ -1,7 +1,10 @@
 pub mod rotation;
 pub mod blackout;
 pub mod colorwheel;
+pub mod solid;
 pub mod raindrops;
 pub mod larson;
 pub mod overlay;
 pub mod switch;
+pub mod distortion;
+pub mod plasma;

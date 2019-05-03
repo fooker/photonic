@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::color::*;
 use crate::core::*;
 
@@ -47,6 +49,15 @@ impl<C> Buffer<C>
 
     pub fn set(&mut self, index: usize, value: C) {
         self.data[index] = value
+    }
+}
+
+impl<C> Node for Buffer<C>
+    where C: Color + Copy {
+    fn update(&mut self, _duration: &Duration) {}
+
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render + 'a> {
+        return Box::new(self);
     }
 }
 

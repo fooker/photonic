@@ -26,7 +26,7 @@ fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
     let mut timer = Timer::new();
-    let mut mqtt = MqttHandleBuilder::new("photonic", "10.0.23.172", 1883)
+    let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883)
         .with_realm("photonic");
 
     let raindrops_violet = scene.node("raindrops:violet", RaindropsNodeDecl {

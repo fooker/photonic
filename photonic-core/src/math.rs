@@ -78,6 +78,10 @@ pub fn wrap(f: f64, s: usize) -> f64 {
     return (s + (f % s)) % s;
 }
 
+pub fn remap(v: f64, s: (f64, f64), t: (f64, f64)) -> f64 {
+    return (v - s.0) / (s.1 - s.0) * (t.1 - t.0) + t.0;
+}
+
 
 #[cfg(test)]
 mod test {
@@ -118,5 +122,20 @@ mod test {
         assert_approx_eq!(wrap(-13.6, 13), 12.4);
         assert_approx_eq!(wrap(-14.0, 13), 12.0);
         assert_approx_eq!(wrap(-23.0, 13), 3.0);
+    }
+
+    #[test]
+    fn test_remap() {
+        assert_approx_eq!(remap(0.0, (0.0, 1.0), (0.0, 1.0)), 0.0);
+        assert_approx_eq!(remap(1.0, (0.0, 1.0), (0.0, 1.0)), 1.0);
+        assert_approx_eq!(remap(0.5, (0.0, 1.0), (0.0, 1.0)), 0.5);
+
+        assert_approx_eq!(remap(0.0, (0.0, 0.1), (0.0, 1.0)), 0.0);
+        assert_approx_eq!(remap(0.1, (0.0, 0.1), (0.0, 1.0)), 1.0);
+        assert_approx_eq!(remap(1.0, (0.0, 0.1), (0.0, 1.0)), 10.0);
+
+        assert_approx_eq!(remap( 0.0, (-1.0, 1.0), (0.0, 10.0)), 5.0);
+        assert_approx_eq!(remap( 1.0, (-1.0, 1.0), (0.0, 10.0)), 10.0);
+        assert_approx_eq!(remap(-1.0, (-1.0, 1.0), (0.0, 10.0)), 0.0);
     }
 }
