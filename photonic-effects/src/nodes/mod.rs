@@ -8,3 +8,4 @@ pub mod overlay;
 pub mod switch;
 pub mod distortion;
 pub mod plasma;
+pub mod alert;
