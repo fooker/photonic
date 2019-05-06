@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use failure::Error;
-use noise::{NoiseFn, Perlin};
+use noise::{NoiseFn, Perlin, Seedable};
 
 use photonic_core::color::*;
 use photonic_core::core::*;
@@ -11,31 +11,31 @@ use photonic_core::value::*;
 struct Plasma<'a> {
     noise: &'a Perlin,
 
-    h: (f64, f64),
-    s: (f64, f64),
-    v: (f64, f64),
+    h: ((f64, f64), f64),
+    s: ((f64, f64), f64),
+    v: ((f64, f64), f64),
 
-    t: f64,
+    time: f64,
 }
 
 impl<'a> Render for Plasma<'a> {
     fn get(&self, index: usize) -> MainColor {
-        let point = [index as f64, self.t];
-
-        let x = self.noise.get(point);
+        let h = self.noise.get([index as f64 / self.h.1, self.time / self.h.1]);
+        let s = self.noise.get([index as f64 / self.s.1, self.time / self.s.1]);
+        let v = self.noise.get([index as f64 / self.v.1, self.time / self.v.1]);
 
         return HSVColor {
-            h: math::remap(x, (-1.0, 1.0), self.h),
-            s: math::remap(x, (-1.0, 1.0), self.s),
-            v: math::remap(x, (-1.0, 1.0), self.v),
+            h: math::remap(h, (-1.0, 1.0), self.h.0),
+            s: math::remap(s, (-1.0, 1.0), self.s.0),
+            v: math::remap(v, (-1.0, 1.0), self.v.0),
         }.convert();
     }
 }
 
 pub struct PlasmaNodeDecl {
-    pub hue: (Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>),
-    pub saturation: (Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>),
-    pub value: (Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>),
+    pub h: ((Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>), Box<UnboundValueDecl<f64>>),
+    pub s: ((Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>), Box<UnboundValueDecl<f64>>),
+    pub v: ((Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>), Box<UnboundValueDecl<f64>>),
 
     pub speed: Box<UnboundValueDecl<f64>>,
 }
@@ -43,9 +43,9 @@ pub struct PlasmaNodeDecl {
 pub struct PlasmaNode {
     perlin: Perlin,
 
-    h: (Box<Value<f64>>, Box<Value<f64>>),
-    s: (Box<Value<f64>>, Box<Value<f64>>),
-    v: (Box<Value<f64>>, Box<Value<f64>>),
+    h: ((Box<Value<f64>>, Box<Value<f64>>), Box<Value<f64>>),
+    s: ((Box<Value<f64>>, Box<Value<f64>>), Box<Value<f64>>),
+    v: ((Box<Value<f64>>, Box<Value<f64>>), Box<Value<f64>>),
 
     speed: Box<Value<f64>>,
 
@@ -57,11 +57,18 @@ impl NodeDecl for PlasmaNodeDecl {
 
     fn new(self, _size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
-            perlin: Perlin::new(),
+            perlin: Perlin::new()
+                .set_seed(1),
 
-            h: (self.hue.0.new((0.0, 360.0).into())?, self.hue.1.new((0.0, 360.0).into())?),
-            s: (self.saturation.0.new(Bounds::norm())?, self.saturation.1.new(Bounds::norm())?),
-            v: (self.value.0.new(Bounds::norm())?, self.value.1.new(Bounds::norm())?),
+            h: (((self.h.0).0.new((0.0, 360.0).into())?,
+                 (self.h.0).1.new((0.0, 360.0).into())?),
+                self.h.1.new()?),
+            s: (((self.s.0).0.new(Bounds::norm())?,
+                 (self.s.0).1.new(Bounds::norm())?),
+                self.s.1.new()?),
+            v: (((self.v.0).0.new(Bounds::norm())?,
+                 (self.v.0).1.new(Bounds::norm())?),
+                self.v.1.new()?),
 
             speed: self.speed.new()?,
 
@@ -72,12 +79,15 @@ impl NodeDecl for PlasmaNodeDecl {
 
 impl Node for PlasmaNode {
     fn update(&mut self, duration: &Duration) {
-        self.h.0.update(duration);
-        self.h.1.update(duration);
-        self.s.0.update(duration);
-        self.s.1.update(duration);
-        self.v.0.update(duration);
-        self.v.1.update(duration);
+        (self.h.0).0.update(duration);
+        (self.h.0).1.update(duration);
+        (self.h.1).update(duration);
+        (self.s.0).0.update(duration);
+        (self.s.0).1.update(duration);
+        (self.s.1).update(duration);
+        (self.v.0).0.update(duration);
+        (self.v.0).1.update(duration);
+        (self.v.1).update(duration);
 
         self.speed.update(duration);
 
@@ -87,10 +97,10 @@ impl Node for PlasmaNode {
     fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render + 'a> {
         return Box::new(Plasma {
             noise: &self.perlin,
-            h: (self.h.0.get(), self.h.1.get()),
-            s: (self.h.0.get(), self.h.1.get()),
-            v: (self.h.0.get(), self.h.1.get()),
-            t: self.time,
+            h: (((self.h.0).0.get(), (self.h.0).1.get()), self.h.1.get()),
+            s: (((self.s.0).0.get(), (self.s.0).1.get()), self.s.1.get()),
+            v: (((self.v.0).0.get(), (self.v.0).1.get()), self.v.1.get()),
+            time: self.time,
         });
     }
 }
