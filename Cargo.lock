@@ -380,6 +380,7 @@ dependencies = [
  "photonic-core 0.1.0",
  "photonic-effects 0.1.0",
  "photonic-mqtt 0.1.0",
+ "photonic-net 0.1.0",
  "photonic-rpi 0.1.0",
 ]
 
@@ -921,6 +922,14 @@ dependencies = [
  "failure 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "photonic-core 0.1.0",
  "rumqtt 0.30.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "photonic-net"
+version = "0.1.0"
+dependencies = [
+ "failure 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "photonic-core 0.1.0",
 ]
 
 [[package]]

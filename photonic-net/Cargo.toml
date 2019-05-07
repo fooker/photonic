@@ -1,0 +1,9 @@
+[package]
+name = "photonic-net"
+version = "0.1.0"
+authors = ["Dustin Frisch <fooker@lab.sh>"]
+edition = "2018"
+
+[dependencies]
+photonic-core = {path="../photonic-core"}
+failure = "0.1"

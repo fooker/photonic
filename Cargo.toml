@@ -3,6 +3,7 @@ members = [
     "photonic-core",
     "photonic-console",
     "photonic-effects",
+    "photonic-net",
     "photonic-mqtt",
     "photonic-rpi",
     "example",

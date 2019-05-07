@@ -5,14 +5,14 @@ use crate::core::*;
 
 pub struct Buffer<C>
     where C: Color + Copy {
-    data: Vec<C>,
+    data: Box<[C]>,
 }
 
 impl<C> Buffer<C>
     where C: Color + Copy + Default {
     pub fn new(size: usize) -> Self {
         Self {
-            data: vec![C::default(); size],
+            data: vec![C::default(); size].into_boxed_slice(),
         }
     }
 }
@@ -21,7 +21,7 @@ impl<C> Buffer<C>
     where C: Color + Copy + Black {
     pub fn black(size: usize) -> Self {
         Self {
-            data: vec![C::black(); size],
+            data: vec![C::black(); size].into_boxed_slice(),
         }
     }
 }
@@ -49,6 +49,14 @@ impl<C> Buffer<C>
 
     pub fn set(&mut self, index: usize, value: C) {
         self.data[index] = value
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item=&C> {
+        self.data.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> impl Iterator<Item=&mut C> {
+        self.data.iter_mut()
     }
 }
 
