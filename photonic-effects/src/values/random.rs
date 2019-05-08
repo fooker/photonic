@@ -40,12 +40,15 @@ pub struct RandomDecl {
 impl<T> BoundValueDecl<T> for RandomDecl
     where T: Copy + SampleUniform + 'static {
     fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
-        let current = bounds.min; // TODO: Start with a random value?
+        let mut random = SmallRng::from_entropy();
+
+        // Generate a random initial value
+        let current = random.gen_range(bounds.min, bounds.max);
 
         return Ok(Box::new(Random {
             bounds,
             current,
-            random: SmallRng::from_entropy(),
+            random,
             trigger: self.trigger,
         }));
     }
