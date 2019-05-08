@@ -7,26 +7,29 @@ use photonic_core::core::*;
 use photonic_core::math::Lerp;
 use photonic_core::value::*;
 
-struct SwitchRenderer<'a> {
-    source: Box<Render + 'a>,
-    target: Box<Render + 'a>,
+struct SwitchRenderer<'a, E> {
+    source: Box<Render<Element=E> + 'a>,
+    target: Box<Render<Element=E> + 'a>,
 
     blend: f64,
 }
 
-impl<'a> Render for SwitchRenderer<'a> {
-    fn get(&self, index: usize) -> MainColor {
+impl<'a, E> Render for SwitchRenderer<'a, E>
+    where E: Lerp {
+    type Element = E;
+
+    fn get(&self, index: usize) -> Self::Element {
         let source = self.source.get(index);
         let target = self.target.get(index);
 
         // TODO: Blending modes
-        return MainColor::lerp(source,
-                               target,
-                               self.blend);
+        return E::lerp(source,
+                       target,
+                       self.blend);
     }
 }
 
-pub struct SwitchNodeDecl<Source: Node> {
+pub struct SwitchNodeDecl<Source> {
     // TODO: Make sources an iterator?
 
     pub sources: Vec<Handle<Source>>,
@@ -34,7 +37,7 @@ pub struct SwitchNodeDecl<Source: Node> {
     pub easing: Option<Easing<f64>>,
 }
 
-pub struct SwitchNode<Source: Node> {
+pub struct SwitchNode<Source> {
     sources: Vec<Handle<Source>>,
 
     position: Box<Value<usize>>,
@@ -47,7 +50,10 @@ pub struct SwitchNode<Source: Node> {
     transition: Animation<f64>,
 }
 
-impl<Source: Node> NodeDecl for SwitchNodeDecl<Source> {
+impl<Source, E> NodeDecl for SwitchNodeDecl<Source>
+    where Source: Node<Element=E>,
+          E: Lerp + 'static {
+    type Element = E;
     type Target = SwitchNode<Source>;
 
     fn new(self, _size: usize) -> Result<Self::Target, Error> {
@@ -65,7 +71,7 @@ impl<Source: Node> NodeDecl for SwitchNodeDecl<Source> {
     }
 }
 
-impl<Source: Node> Node for SwitchNode<Source> {
+impl<Source> Dynamic for SwitchNode<Source> {
     fn update(&mut self, duration: &Duration) {
         if let Update::Changed(position) = self.position.update(duration) {
             if let Some(easing) = self.easing {
@@ -86,8 +92,14 @@ impl<Source: Node> Node for SwitchNode<Source> {
             self.blend = 0.0;
         }
     }
+}
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render + 'a> {
+impl<Source, E> Node for SwitchNode<Source>
+    where Source: Node<Element=E>,
+          E: Lerp + 'static {
+    type Element = E;
+
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
         if self.source == self.target {
             return renderer.render(&self.sources[self.source]);
         } else {

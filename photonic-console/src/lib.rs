@@ -2,7 +2,9 @@ use std::io::{stdout, Write};
 
 use failure::Error;
 
+use palette::Component;
 use photonic_core::core::*;
+use photonic_core::color::RGBColor;
 
 pub struct ConsoleOutputDecl {
     pub whaterfall: bool,
@@ -14,6 +16,7 @@ pub struct ConsoleOutput {
 }
 
 impl OutputDecl for ConsoleOutputDecl {
+    type Element = RGBColor;
     type Output = ConsoleOutput;
 
     fn new(self, size: usize) -> Result<Self::Output, Error> {
@@ -25,13 +28,16 @@ impl OutputDecl for ConsoleOutputDecl {
 }
 
 impl Output for ConsoleOutput {
-    fn render(&mut self, render: &Render) {
+    type Element = RGBColor;
+
+    fn render<E: Into<Self::Element>>(&mut self, render: &Render<Element=E>) {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
         for i in 0..self.size {
-            let (r, g, b) = render.get(i).int_rgb_tup();
-            write!(&mut buf, "\x1b[48;2;{:03};{:03};{:03}m ", r, g, b).unwrap();
+            let rgb: RGBColor = render.get(i).into();
+            let (r, g, b) = rgb.into_components();
+            write!(&mut buf, "\x1b[48;2;{:03};{:03};{:03}m ", r.convert::<u8>(), g.convert::<u8>(), b.convert::<u8>()).unwrap();
         }
 
         write!(&mut buf, "\x1b[0m").unwrap();

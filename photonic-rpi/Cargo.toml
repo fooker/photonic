@@ -6,5 +6,6 @@ edition = "2018"
 
 [dependencies]
 photonic-core = {path="../photonic-core"}
+palette = "0.4"
 failure = "0.1"
 rs_ws281x = "0.2.3"

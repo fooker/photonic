@@ -26,8 +26,10 @@ impl Default for Raindrop {
 struct Raindrops<'a>(&'a Vec<Raindrop>);
 
 impl<'a> Render for Raindrops<'a> {
-    fn get(&self, index: usize) -> RGBColor {
-        self.0[index].color.convert()
+    type Element = HSLColor;
+
+    fn get(&self, index: usize) -> Self::Element {
+        self.0[index].color
     }
 }
 
@@ -88,6 +90,7 @@ pub struct RaindropsNode {
 }
 
 impl NodeDecl for RaindropsNodeDecl {
+    type Element = HSLColor;
     type Target = RaindropsNode;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
@@ -107,7 +110,7 @@ impl NodeDecl for RaindropsNodeDecl {
     }
 }
 
-impl Node for RaindropsNode {
+impl Dynamic for RaindropsNode {
     fn update(&mut self, duration: &Duration) {
         self.rate.update(duration);
         self.hue_min.update(duration);
@@ -121,17 +124,21 @@ impl Node for RaindropsNode {
 
         for raindrop in self.raindrops.iter_mut() {
             if self.random.rate(self.rate.get(), duration) {
-                raindrop.color.h = self.random.range(self.hue_min.get(), self.hue_max.get());
-                raindrop.color.s = self.random.range(self.saturation_min.get(), self.saturation_max.get());
-                raindrop.color.l = self.random.range(self.lightness_min.get(), self.lightness_max.get());
+                raindrop.color = HSLColor::new(self.random.range(self.hue_min.get(), self.hue_max.get()),
+                                               self.random.range(self.saturation_min.get(), self.saturation_max.get()),
+                                               self.random.range(self.lightness_min.get(), self.lightness_max.get()));
                 raindrop.decay = self.random.range(self.decay_min.get(), self.decay_max.get());
             } else {
-                raindrop.color.l = f64::max(0.0, raindrop.color.l * 1.0 - raindrop.decay * duration.as_secs_f64());
+                raindrop.color.lightness = f64::max(0.0, raindrop.color.lightness * 1.0 - raindrop.decay * duration.as_secs_f64());
             }
         }
     }
+}
 
-    fn render<'a>(&'a self, _renderer: &Renderer) -> Box<Render + 'a> {
+impl Node for RaindropsNode {
+    type Element = HSLColor;
+
+    fn render<'a>(&'a self, _renderer: &Renderer) -> Box<Render<Element=Self::Element> + 'a> {
         return Box::new(Raindrops(&self.raindrops));
     }
 }

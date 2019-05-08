@@ -5,22 +5,23 @@ use std::time::Duration;
 use failure::Error;
 
 use photonic_core::buffer::Buffer;
-use photonic_core::color::{Black, Color, RGBColor};
-use photonic_core::core::{Node, NodeDecl, Render, Renderer};
+use photonic_core::color::{Black, RGBColor};
+use photonic_core::core::*;
+use palette::Component;
 
 pub trait Format {
-    type Color: Copy + Color;
+    type Element: Copy;
     const ELEMENT_SIZE: usize;
 
-    fn load(b: &[u8]) -> Self::Color;
+    fn load(b: &[u8]) -> Self::Element;
 }
 
 impl Format for RGBColor {
-    type Color = RGBColor;
+    type Element = RGBColor;
     const ELEMENT_SIZE: usize = 3;
 
-    fn load(b: &[u8]) -> Self::Color {
-        return RGBColor::from((b[0], b[1], b[2]));
+    fn load(b: &[u8]) -> Self::Element {
+        return RGBColor::from_components((b[0].convert(), b[1].convert(), b[2].convert()));
     }
 }
 
@@ -29,7 +30,7 @@ pub struct ReceiverNode<F>
     socket: UdpSocket,
     buffer: Box<[u8]>,
 
-    output: Buffer<F::Color>,
+    output: Buffer<F::Element>,
 
     format: PhantomData<F>,
 }
@@ -44,10 +45,10 @@ pub struct ReceiverNodeDecl<A, F>
 impl<A, F> ReceiverNodeDecl<A, F>
     where A: ToSocketAddrs,
           F: Format,
-          F::Color: Black {
+          F::Element: Black {
     pub fn bind(address: A) -> Self {
         return Self {
-            address: address,
+            address,
             format: PhantomData,
         };
     }
@@ -56,12 +57,13 @@ impl<A, F> ReceiverNodeDecl<A, F>
 impl<A, F> NodeDecl for ReceiverNodeDecl<A, F>
     where A: ToSocketAddrs,
           F: Format,
-          F::Color: Black {
+          F::Element: Black {
+    type Element = F::Element;
     type Target = ReceiverNode<F>;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
         let socket = UdpSocket::bind(self.address)?;
-        socket.set_nonblocking(true);
+        socket.set_nonblocking(true).unwrap();
 
         return Ok(ReceiverNode {
             socket,
@@ -72,7 +74,7 @@ impl<A, F> NodeDecl for ReceiverNodeDecl<A, F>
     }
 }
 
-impl<F> Node for ReceiverNode<F>
+impl<F> Dynamic for ReceiverNode<F>
     where F: Format {
     fn update(&mut self, _duration: &Duration) {
         // Read all packets available without blocking but only use last one
@@ -88,8 +90,13 @@ impl<F> Node for ReceiverNode<F>
                       self.buffer.chunks(F::ELEMENT_SIZE))
             .for_each(|(o, b)| *o = F::load(b));
     }
+}
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render + 'a> {
+impl<F> Node for ReceiverNode<F>
+    where F: Format {
+    type Element = F::Element;
+    
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
         return Box::new(&self.output);
     }
 }

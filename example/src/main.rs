@@ -17,9 +17,12 @@ use photonic_effects::nodes::switch::SwitchNodeDecl;
 use photonic_effects::values::button::ButtonDecl;
 use photonic_effects::values::fader::FaderDecl;
 use photonic_effects::values::looper::LooperDecl;
+use photonic_effects::nodes::plasma::PlasmaNodeDecl;
+use photonic_effects::nodes::alert::AlertNodeDecl;
 use photonic_mqtt::MqttHandleBuilder;
+use photonic_net::UdpReciverNodeDecl;
 
-const SIZE: usize = 42;
+const SIZE: usize = 120;
 const FPS: usize = 60;
 
 fn main() -> Result<!, Error> {
@@ -80,13 +83,28 @@ fn main() -> Result<!, Error> {
         easing: Easing::with(animation::linear, Duration::from_secs(2)),
     });
 
-    let overlay_bell = scene.node("bell:overlay", OverlayNodeDecl {
+    let effect = scene.node("bell:overlay", OverlayNodeDecl {
         base: switch_raindrops,
         overlay: overlay_bell,
         blend: overlay_bell_button,
     })?;
 
-    let mut main = scene.output(overlay_bell, ConsoleOutputDecl {
+//    let effect = scene.node("effect", PlasmaNodeDecl {
+//        h: ((0.0.into(), 360.0.into()), 50.0.into()),
+//        s: ((0.8.into(), 1.0.into()), 20.0.into()),
+//        v: ((1.0.into(), 1.0.into()), 1.0.into()),
+//        speed: 25.0.into(),
+//    })?;
+//
+//    let effect = scene.node("effect", AlertNodeDecl {
+//        hue: 0.0.into(),
+//        block_size: 8.into(),
+//        speed: 1.0.into(),
+//    })?;
+//
+//    let effect = scene.node("effect", UdpReciverNodeDecl::<_, RGBColor>::bind("127.0.0.1:7331"))?;
+
+    let mut main = scene.output(effect, ConsoleOutputDecl {
         whaterfall: true
     })?;
 

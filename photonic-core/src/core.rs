@@ -3,22 +3,19 @@ use std::time::Duration;
 
 use failure::Error;
 
-use crate::color::RGBColor;
 use crate::utils::{FrameStats, FrameTimer};
-
-pub type MainColor = RGBColor;
 
 pub struct Scene {
     size: usize,
 
-    nodes: Vec<Box<Node>>,
+    dynamics: Vec<Box<Dynamic>>,
 }
 
 impl Scene {
     pub fn new(size: usize) -> Self {
         return Self {
             size,
-            nodes: Vec::new(),
+            dynamics: Vec::new(),
         };
     }
 
@@ -26,19 +23,22 @@ impl Scene {
         return self.size;
     }
 
-    pub fn node<D: NodeDecl>(&mut self, _name: &str, decl: D) -> Result<Handle<D::Target>, Error>
-        where D::Target: 'static {
+    pub fn node<Node: NodeDecl<Element=E>, E>(&mut self, _name: &str, decl: Node) -> Result<Handle<Node::Target>, Error>
+        where Node::Target: 'static {
         let node = Box::new(decl.new(self.size())?);
 
-        self.nodes.push(node);
+        self.dynamics.push(node);
 
         return Ok(Handle {
-            index: self.nodes.len() - 1,
-            _data: PhantomData,
+            index: self.dynamics.len() - 1,
+            phantom: PhantomData,
         });
     }
 
-    pub fn output<D: OutputDecl, N: Node>(self, node: Handle<N>, decl: D) -> Result<Loop<N, D::Output>, Error> {
+    pub fn output<Node, Output, EN, EO>(self, node: Handle<Node>, decl: Output) -> Result<Loop<Node, Output::Output>, Error>
+        where Node: self::Node<Element=EN>,
+              Output: OutputDecl<Element=EO>,
+              EN: Into<EO> {
         let output = decl.new(self.size())?;
 
         return Ok(Loop {
@@ -50,9 +50,17 @@ impl Scene {
     }
 }
 
-pub struct Handle<N: Node> {
+pub struct Handle<T> {
     index: usize,
-    _data: PhantomData<N>,
+    phantom: PhantomData<T>,
+}
+
+impl<D> Handle<D>
+    where D: Dynamic {
+    fn resolve(&self, scene: &Scene) -> &D {
+        let d = scene.dynamics[self.index].as_ref();
+        return unsafe { &*(d as *const Dynamic as *const D) };
+    }
 }
 
 pub struct Renderer<'a> {
@@ -60,40 +68,51 @@ pub struct Renderer<'a> {
 }
 
 impl<'a> Renderer<'a> {
-    pub fn render<'b: 'a, N: Node + 'b>(&'b self, handle: &'a Handle<N>) -> Box<Render + 'b> {
-        self.scene.nodes[handle.index].render(self)
+    pub fn render<'b, N, E>(&'b self, handle: &'a Handle<N>) -> Box<Render<Element=E> + 'b>
+        where 'b: 'a,
+              N: Node<Element=E> + 'b {
+        handle.resolve(&self.scene).render(self)
     }
 }
 
 pub trait Render {
-    fn get(&self, index: usize) -> MainColor;
+    type Element;
+    fn get(&self, index: usize) -> Self::Element;
 }
 
 pub trait NodeDecl {
-    type Target: Node;
+    type Element;
+    type Target: Node<Element=Self::Element>;
 
     fn new(self, size: usize) -> Result<Self::Target, Error>
         where Self::Target: std::marker::Sized;
 }
 
-pub trait Node {
-    fn update(&mut self, duration: &Duration);
+pub trait Node: Dynamic {
+    type Element;
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render + 'a>;
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a>;
+}
+
+pub trait Dynamic {
+    fn update(&mut self, duration: &Duration);
 }
 
 pub trait OutputDecl {
-    type Output: Output;
+    type Element;
+    type Output: Output<Element=Self::Element>;
 
     fn new(self, size: usize) -> Result<Self::Output, Error>
         where Self::Output: std::marker::Sized;
 }
 
 pub trait Output {
-    fn render(&mut self, render: &Render);
+    type Element;
+
+    fn render<E: Into<Self::Element>>(&mut self, render: &Render<Element=E>);
 }
 
-pub struct Loop<Node: self::Node, Output: self::Output> {
+pub struct Loop<Node, Output> {
     scene: Scene,
 
     callbacks: Vec<Box<FnMut(&Duration)>>,
@@ -102,7 +121,10 @@ pub struct Loop<Node: self::Node, Output: self::Output> {
     output: Output,
 }
 
-impl<Node: self::Node, Output: self::Output> Loop<Node, Output> {
+impl<Node, Output, EN, EO> Loop<Node, Output>
+    where Node: self::Node<Element=EN>,
+          Output: self::Output<Element=EO>,
+          EN: Into<EO> {
     pub fn register<F>(&mut self, callback: F)
         where F: FnMut(&Duration) + 'static {
         self.callbacks.push(Box::new(callback));
@@ -122,8 +144,8 @@ impl<Node: self::Node, Output: self::Output> Loop<Node, Output> {
             }
 
             // Update nodes
-            for node in self.scene.nodes.iter_mut() {
-                node.update(&duration);
+            for dynamic in self.scene.dynamics.iter_mut() {
+                dynamic.update(&duration);
             }
 
             // Render node tree to output

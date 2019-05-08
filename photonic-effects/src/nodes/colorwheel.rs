@@ -6,20 +6,22 @@ use photonic_core::core::*;
 
 pub struct ColorwheelNodeDecl {
     pub offset: f64,
+    pub scale: f64,
 }
 
 impl NodeDecl for ColorwheelNodeDecl {
-    type Target = Buffer<MainColor>;
+    type Element = HSVColor;
+    type Target = Buffer<Self::Element>;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
-        let delta = 360.0 / size as f64;
+        let delta = 360.0 / size as f64 * self.scale;
 
         let buffer = Buffer::from_generator(size,
-                                            |i| HSVColor {
-                                                h: self.offset + i as f64 * delta,
-                                                s: 1.0,
-                                                v: 1.0,
-                                            });
+                                            |i| HSVColor::new(
+                                                self.offset + i as f64 * delta,
+                                                1.0,
+                                                1.0,
+                                            ));
 
         return Ok(buffer);
     }

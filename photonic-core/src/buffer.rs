@@ -3,38 +3,32 @@ use std::time::Duration;
 use crate::color::*;
 use crate::core::*;
 
-pub struct Buffer<C>
-    where C: Color + Copy {
-    data: Box<[C]>,
+pub struct Buffer<E> {
+    data: Box<[E]>,
 }
 
-impl<C> Buffer<C>
-    where C: Color + Copy + Default {
+impl<E> Buffer<E>
+    where E: Default {
     pub fn new(size: usize) -> Self {
-        Self {
-            data: vec![C::default(); size].into_boxed_slice(),
-        }
+        Self::from_generator(size, |_| E::default())
     }
 }
 
-impl<C> Buffer<C>
-    where C: Color + Copy + Black {
+impl<E> Buffer<E>
+    where E: Black {
     pub fn black(size: usize) -> Self {
-        Self {
-            data: vec![C::black(); size].into_boxed_slice(),
-        }
+        Self::from_generator(size, |_| E::black())
     }
 }
 
-impl<C> Buffer<C>
-    where C: Color + Copy {
+impl<E> Buffer<E> {
     pub fn from_generator<F, R>(size: usize, generator: F) -> Self
         where F: FnMut(usize) -> R,
-              R: Color {
+              R: Into<E> {
         Self {
             data: (0..size)
                 .map(generator)
-                .map(|v| v.convert())
+                .map(|v| v.into())
                 .collect(),
         }
     }
@@ -43,44 +37,49 @@ impl<C> Buffer<C>
         self.data.len()
     }
 
-    pub fn get(&self, index: usize) -> C {
-        return self.data[index];
+    pub fn get(&self, index: usize) -> &E {
+        return &self.data[index];
     }
 
-    pub fn set(&mut self, index: usize, value: C) {
+    pub fn set(&mut self, index: usize, value: E) {
         self.data[index] = value
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=&C> {
+    pub fn iter(&self) -> impl Iterator<Item=&E> {
         self.data.iter()
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item=&mut C> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item=&mut E> {
         self.data.iter_mut()
     }
 }
 
-impl<C> Node for Buffer<C>
-    where C: Color + Copy {
+impl<E> Dynamic for Buffer<E> {
     fn update(&mut self, _duration: &Duration) {}
+}
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render + 'a> {
+impl<E> Node for Buffer<E>
+    where E: Clone {
+    type Element = E;
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=E> + 'a> {
         return Box::new(self);
     }
 }
 
-impl<C> Render for Buffer<C>
-    where C: Color + Copy {
-    fn get(&self, index: usize) -> MainColor {
-        // FIXME: Do not convert for same color type (maybe use into instead?)
-        Buffer::get(self, index).convert()
+// TODO: Return reference instead of .clone()
+
+impl<E> Render for Buffer<E>
+    where E: Clone {
+    type Element = E;
+    fn get(&self, index: usize) -> Self::Element {
+        Buffer::get(self, index).clone()
     }
 }
 
-impl<'a, C> Render for &'a Buffer<C>
-    where C: Color + Copy {
-    fn get(&self, index: usize) -> MainColor {
-        // FIXME: Do not convert for same color type (maybe use into instead?)
-        Buffer::get(self, index).convert()
+impl<'a, E> Render for &'a Buffer<E>
+    where E: Clone {
+    type Element = E;
+    fn get(&self, index: usize) -> Self::Element {
+        Buffer::get(self, index).clone()
     }
 }

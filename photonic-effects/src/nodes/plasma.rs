@@ -19,16 +19,18 @@ struct Plasma<'a> {
 }
 
 impl<'a> Render for Plasma<'a> {
-    fn get(&self, index: usize) -> MainColor {
+    type Element = HSVColor;
+
+    fn get(&self, index: usize) -> Self::Element {
         let h = self.noise.get([index as f64 / self.h.1, self.time / self.h.1]);
         let s = self.noise.get([index as f64 / self.s.1, self.time / self.s.1]);
         let v = self.noise.get([index as f64 / self.v.1, self.time / self.v.1]);
 
-        return HSVColor {
-            h: math::remap(h, (-1.0, 1.0), self.h.0),
-            s: math::remap(s, (-1.0, 1.0), self.s.0),
-            v: math::remap(v, (-1.0, 1.0), self.v.0),
-        }.convert();
+        return HSVColor::new(
+            math::remap(h, (-1.0, 1.0), self.h.0),
+            math::remap(s, (-1.0, 1.0), self.s.0),
+            math::remap(v, (-1.0, 1.0), self.v.0),
+        );
     }
 }
 
@@ -53,6 +55,7 @@ pub struct PlasmaNode {
 }
 
 impl NodeDecl for PlasmaNodeDecl {
+    type Element = HSVColor;
     type Target = PlasmaNode;
 
     fn new(self, _size: usize) -> Result<Self::Target, Error> {
@@ -77,7 +80,7 @@ impl NodeDecl for PlasmaNodeDecl {
     }
 }
 
-impl Node for PlasmaNode {
+impl Dynamic for PlasmaNode {
     fn update(&mut self, duration: &Duration) {
         (self.h.0).0.update(duration);
         (self.h.0).1.update(duration);
@@ -93,8 +96,12 @@ impl Node for PlasmaNode {
 
         self.time += duration.as_secs_f64() * self.speed.get();
     }
+}
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render + 'a> {
+impl Node for PlasmaNode {
+    type Element = HSVColor;
+
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
         return Box::new(Plasma {
             noise: &self.perlin,
             h: (((self.h.0).0.get(), (self.h.0).1.get()), self.h.1.get()),

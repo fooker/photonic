@@ -1,9 +1,10 @@
-pub use scarlet::color::Color;
-pub use scarlet::color::RGBColor;
-pub use scarlet::colors::HSLColor;
-pub use scarlet::colors::HSVColor;
-
 use crate::math;
+
+pub type RGBColor = palette::LinSrgb<f64>;
+pub type HSVColor = palette::Hsv<palette::encoding::Srgb, f64>;
+pub type HSLColor = palette::Hsl<palette::encoding::Srgb, f64>;
+
+use palette::Mix;
 
 pub trait Black {
     fn black() -> Self;
@@ -11,48 +12,60 @@ pub trait Black {
 
 impl math::Lerp for RGBColor {
     fn lerp(c1: Self, c2: Self, i: f64) -> Self {
-        use scarlet::colorpoint::ColorPoint;
-
-        assert!(0.0 <= i && i <= 1.0);
-
-        if i == 0.0 {
+        if i <= 0.0 {
             return c1;
         }
 
-        if i == 1.0 {
+        if i >= 1.0 {
             return c2;
         }
 
-        return ColorPoint::weighted_midpoint(c2, c1, i);
+        return Mix::mix(&c1, &c2, i);
+    }
+}
+
+impl math::Lerp for HSVColor {
+    fn lerp(c1: Self, c2: Self, i: f64) -> Self {
+        if i <= 0.0 {
+            return c1;
+        }
+
+        if i >= 1.0 {
+            return c2;
+        }
+
+        return Mix::mix(&c1, &c2, i);
+    }
+}
+
+impl math::Lerp for HSLColor {
+    fn lerp(c1: Self, c2: Self, i: f64) -> Self {
+        if i <= 0.0 {
+            return c1;
+        }
+
+        if i >= 1.0 {
+            return c2;
+        }
+
+        return Mix::mix(&c1, &c2, i);
     }
 }
 
 impl Black for RGBColor {
     fn black() -> Self {
-        RGBColor {
-            r: 0.0,
-            g: 0.0,
-            b: 0.0,
-        }
+        RGBColor::new(0.0, 0.0, 0.0)
     }
 }
 
 impl Black for HSVColor {
     fn black() -> Self {
-        HSVColor {
-            h: 0.0,
-            s: 0.0,
-            v: 0.0,
-        }
+        HSVColor::new(0.0, 0.0, 0.0)
     }
 }
 
 impl Black for HSLColor {
     fn black() -> Self {
-        HSLColor {
-            h: 0.0,
-            s: 0.0,
-            l: 0.0,
-        }
+        HSLColor::new(0.0, 0.0, 0.0)
     }
 }

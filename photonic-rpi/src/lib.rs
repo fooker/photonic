@@ -1,6 +1,8 @@
 use failure::Error;
 
+use palette::Component;
 use photonic_core::core::{Output, OutputDecl, Render};
+use photonic_core::color::RGBColor;
 
 pub type Kind = rs_ws281x::StripType;
 
@@ -16,6 +18,7 @@ pub struct Strip {
 }
 
 impl OutputDecl for StripDecl {
+    type Element = RGBColor;
     type Output = Strip;
 
     fn new(self, size: usize) -> Result<Self::Output, Error> {
@@ -38,12 +41,15 @@ impl OutputDecl for StripDecl {
 }
 
 impl Output for Strip {
-    fn render(&mut self, render: &Render) {
+    type Element = RGBColor;
+
+    fn render<E: Into<Self::Element>>(&mut self, render: &Render<Element=E>) {
         let leds = self.controller.leds_mut(0);
 
         for i in 0..self.size {
-            let (r, g, b) = render.get(i).int_rgb_tup();
-            leds[i] = [r, g, b, 0];
+            let rgb: RGBColor = render.get(i).into();
+            let (r, g, b) = rgb.into_components();
+            leds[i] = [r.convert(), g.convert(), b.convert(), 0];
         }
 
         self.controller.render()

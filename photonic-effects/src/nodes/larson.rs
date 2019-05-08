@@ -13,16 +13,14 @@ struct LarsonRenderer {
 }
 
 impl Render for LarsonRenderer {
-    fn get(&self, index: usize) -> MainColor {
+    type Element = HSVColor;
+
+    fn get(&self, index: usize) -> Self::Element {
         // Calculate value as the linear distance between the pixel and the current
         // position scaled from 0.0 for ±width/2 to 1.0 for center
         let value = f64::max(0.0, ((self.width / 2.0) - f64::abs((index as f64) - self.position)) / (self.width / 2.0));
 
-        return HSVColor {
-            h: self.hue,
-            s: 1.0,
-            v: value,
-        }.convert();
+        return HSVColor::new(self.hue, 1.0, value);
     }
 }
 
@@ -59,6 +57,7 @@ pub struct LarsonNode {
 }
 
 impl NodeDecl for LarsonNodeDecl {
+    type Element = HSVColor;
     type Target = LarsonNode;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
@@ -73,7 +72,7 @@ impl NodeDecl for LarsonNodeDecl {
     }
 }
 
-impl Node for LarsonNode {
+impl Dynamic for LarsonNode {
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);
         self.width.update(duration);
@@ -97,8 +96,12 @@ impl Node for LarsonNode {
             }
         }
     }
+}
 
-    fn render<'a>(&'a self, _renderer: &Renderer) -> Box<Render + 'a> {
+impl Node for LarsonNode {
+    type Element = HSVColor;
+
+    fn render<'a>(&'a self, _renderer: &Renderer) -> Box<Render<Element=Self::Element> + 'a> {
         Box::new(LarsonRenderer {
             hue: self.hue.get(),
             width: self.width.get(),

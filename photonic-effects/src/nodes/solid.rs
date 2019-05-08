@@ -2,41 +2,54 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::color::Color;
 use photonic_core::core::*;
 
-struct SolidRenderer(MainColor);
+// TODO: Use references instead of cloning
 
-impl Render for SolidRenderer {
-    fn get(&self, _index: usize) -> MainColor {
-        return self.0;
+struct SolidRenderer<'a, E>(&'a E)
+    where E: Clone;
+
+impl<'a, E> Render for SolidRenderer<'a, E>
+    where E: Clone {
+    type Element = E;
+
+    fn get(&self, _index: usize) -> Self::Element {
+        return self.0.clone();
     }
 }
 
-pub struct SolidNodeDecl<C>
-    where C: Color {
-    pub color: C,
+pub struct SolidNodeDecl<E>
+    where E: Clone {
+    pub solid: E,
 }
 
-impl<C> NodeDecl for SolidNodeDecl<C>
-    where C: Color {
-    type Target = SolidNode;
+impl<E> NodeDecl for SolidNodeDecl<E>
+    where E: Clone {
+    type Element = E;
+    type Target = SolidNode<Self::Element>;
 
     fn new(self, _size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
-            color: self.color.convert(),
+            solid: self.solid,
         });
     }
 }
 
-pub struct SolidNode{
-    color: MainColor,
+pub struct SolidNode<E>
+    where E: Clone {
+    solid: E,
 }
 
-impl Node for SolidNode {
+impl<E> Dynamic for SolidNode<E>
+    where E: Clone {
     fn update(&mut self, _duration: &Duration) {}
+}
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer<'a>) -> Box<Render> {
-        return Box::new(SolidRenderer(self.color));
+impl<E> Node for SolidNode<E>
+    where E: Clone {
+    type Element = E;
+
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
+        return Box::new(SolidRenderer(&self.solid));
     }
 }

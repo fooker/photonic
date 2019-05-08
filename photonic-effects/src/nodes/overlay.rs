@@ -6,40 +6,49 @@ use photonic_core::core::*;
 use photonic_core::math::Lerp;
 use photonic_core::value::*;
 
-struct OverlayRenderer<'a> {
-    base: Box<Render + 'a>,
-    overlay: Box<Render + 'a>,
+struct OverlayRenderer<'a, EB, EO> {
+    base: Box<Render<Element=EB> + 'a>,
+    overlay: Box<Render<Element=EO> + 'a>,
 
     blend: f64,
 }
 
-impl<'a> Render for OverlayRenderer<'a> {
-    fn get(&self, index: usize) -> MainColor {
+impl<'a, EB, EO> Render for OverlayRenderer<'a, EB, EO>
+    where EB: Lerp + 'static,
+          EO: Into<EB> {
+    type Element = EB;
+
+    fn get(&self, index: usize) -> Self::Element {
         let base = self.base.get(index);
-        let overlay = self.overlay.get(index);
+        let overlay = self.overlay.get(index).into();
 
         // TODO: Blending modes
-        return MainColor::lerp(base,
-                               overlay,
-                               self.blend);
+        return EB::lerp(base,
+                        overlay,
+                        self.blend);
     }
 }
 
-pub struct OverlayNodeDecl<Base: Node, Overlay: Node> {
+pub struct OverlayNodeDecl<Base, Overlay> {
     pub base: Handle<Base>,
     pub overlay: Handle<Overlay>,
 
     pub blend: Box<BoundValueDecl<f64>>,
 }
 
-pub struct OverlayNode<Base: Node, Overlay: Node> {
+pub struct OverlayNode<Base, Overlay> {
     base: Handle<Base>,
     overlay: Handle<Overlay>,
 
     blend: Box<Value<f64>>,
 }
 
-impl<Base: Node, Overlay: Node> NodeDecl for OverlayNodeDecl<Base, Overlay> {
+impl<Base, Overlay, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay>
+    where Base: Node<Element=EB>,
+          Overlay: Node<Element=EO>,
+          EB: Lerp + 'static,
+          EO: Into<EB> + 'static {
+    type Element = EB;
     type Target = OverlayNode<Base, Overlay>;
 
     fn new(self, _size: usize) -> Result<Self::Target, Error> {
@@ -51,12 +60,20 @@ impl<Base: Node, Overlay: Node> NodeDecl for OverlayNodeDecl<Base, Overlay> {
     }
 }
 
-impl<Base: Node, Overlay: Node> Node for OverlayNode<Base, Overlay> {
+impl<Base, Overlay> Dynamic for OverlayNode<Base, Overlay> {
     fn update(&mut self, duration: &Duration) {
         self.blend.update(duration);
     }
+}
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render + 'a> {
+impl<Base, Overlay, EB, EO> Node for OverlayNode<Base, Overlay>
+    where Base: Node<Element=EB>,
+          Overlay: Node<Element=EO>,
+          EB: Lerp + 'static,
+          EO: Into<EB> + 'static {
+    type Element = EB;
+
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
         let blend = self.blend.get();
         if blend > 0f64 {
             return Box::new(OverlayRenderer {

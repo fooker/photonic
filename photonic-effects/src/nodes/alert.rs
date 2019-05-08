@@ -14,14 +14,16 @@ struct Alert {
 }
 
 impl Render for Alert {
-    fn get(&self, index: usize) -> MainColor {
+    type Element = HSVColor;
+
+    fn get(&self, index: usize) -> Self::Element {
         let x = (index / self.block_size) % 2 == 0;
 
-        return HSVColor {
-            h: self.hue,
-            s: 1.0,
-            v: if x { self.value } else { 1.0 - self.value },
-        }.convert();
+        return HSVColor::new(
+            self.hue,
+            1.0,
+            if x { self.value } else { 1.0 - self.value },
+        );
     }
 }
 
@@ -40,6 +42,7 @@ pub struct AlertNode {
 }
 
 impl NodeDecl for AlertNodeDecl {
+    type Element = HSVColor;
     type Target = AlertNode;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
@@ -53,15 +56,19 @@ impl NodeDecl for AlertNodeDecl {
     }
 }
 
-impl Node for AlertNode {
+impl Dynamic for AlertNode {
     fn update(&mut self, duration: &Duration) {
         self.block_size.update(duration);
         self.speed.update(duration);
 
         self.time += duration.as_secs_f64() * self.speed.get();
     }
+}
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render + 'a> {
+impl Node for AlertNode {
+    type Element = HSVColor;
+
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
         return Box::new(Alert {
             hue: self.hue.get(),
             block_size: self.block_size.get(),
