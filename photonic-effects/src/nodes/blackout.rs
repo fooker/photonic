@@ -7,45 +7,28 @@ use photonic_core::core::*;
 use photonic_core::math::Lerp;
 use photonic_core::value::*;
 
-struct PartialBlackoutRenderer<'a, E>
-    where E: Lerp + Black {
-    source: Box<Render<Element=E> + 'a>,
+pub struct BlackoutRenderer<Source> {
+    source: Source,
 
     range: (usize, usize),
     value: f64,
 }
 
-impl<'a, E> Render for PartialBlackoutRenderer<'a, E>
-    where E: Lerp + Black {
-    type Element = E;
+impl<Source> Render for BlackoutRenderer<Source>
+    where Source: Render,
+          Source::Element: Lerp + Black {
+    type Element = Source::Element;
 
     fn get(&self, index: usize) -> Self::Element {
         let value = self.source.get(index);
 
         if self.range.0 < index && index < self.range.1 {
-            return E::lerp(value,
-                           E::black(),
-                           self.value);
+            return Self::Element::lerp(value,
+                                       Self::Element::black(),
+                                       self.value);
         } else {
             return value;
         }
-    }
-}
-
-struct FullBlackoutRenderer<'a, E>
-    where E: Lerp + Black {
-    source: Box<Render<Element=E> + 'a>,
-
-    value: f64,
-}
-
-impl<'a, E> Render for FullBlackoutRenderer<'a, E>
-    where E: Lerp + Black {
-    type Element = E;
-    fn get(&self, index: usize) -> E {
-        return E::lerp(self.source.get(index),
-                       E::black(),
-                       self.value);
     }
 }
 
@@ -60,20 +43,20 @@ pub struct BlackoutNode<Source> {
 
     value: Box<Value<f64>>,
 
-    range: Option<(usize, usize)>,
+    range: (usize, usize),
 }
 
 impl<Source, E> NodeDecl for BlackoutNodeDecl<Source>
     where Source: Node<Element=E>,
-          E: Lerp + Black + 'static {
+          E: Lerp + Black {
     type Element = E;
     type Target = BlackoutNode<Source>;
 
-    fn new(self, _size: usize) -> Result<Self::Target, Error> {
+    fn new(self, size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             source: self.source,
             value: self.value.new(Bounds::norm())?,
-            range: self.range,
+            range: self.range.unwrap_or((0, size)),
         });
     }
 }
@@ -84,26 +67,21 @@ impl<Source> Dynamic for BlackoutNode<Source> {
     }
 }
 
+impl<'a, Source> RenderType<'a> for BlackoutNode<Source>
+    where Source: RenderType<'a>,
+          Source::Element: Lerp + Black {
+    type Element = Source::Element;
+    type Render = BlackoutRenderer<Source::Render>;
+}
+
 impl<Source, E> Node for BlackoutNode<Source>
     where Source: Node<Element=E>,
-          E: Lerp + Black + 'static {
-    type Element = E;
-
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        let source = renderer.render(&self.source);
-        let value = self.value.get();
-
-        if let Some(range) = self.range {
-            return Box::new(PartialBlackoutRenderer {
-                source,
-                value,
-                range,
-            });
-        } else {
-            return Box::new(FullBlackoutRenderer {
-                source,
-                value,
-            });
-        }
+          E: Lerp + Black {
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+        return BlackoutRenderer {
+            source: renderer.render(&self.source),
+            value: self.value.get(),
+            range: self.range,
+        };
     }
 }

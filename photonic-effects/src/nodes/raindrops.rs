@@ -23,9 +23,9 @@ impl Default for Raindrop {
     }
 }
 
-struct Raindrops<'a>(&'a Vec<Raindrop>);
+pub struct RaindropsRenderer<'a>(&'a Vec<Raindrop>);
 
-impl<'a> Render for Raindrops<'a> {
+impl<'a> Render for RaindropsRenderer<'a> {
     type Element = HSLColor;
 
     fn get(&self, index: usize) -> Self::Element {
@@ -135,10 +135,13 @@ impl Dynamic for RaindropsNode {
     }
 }
 
-impl Node for RaindropsNode {
+impl <'a> RenderType<'a> for RaindropsNode {
     type Element = HSLColor;
+    type Render = RaindropsRenderer<'a>;
+}
 
-    fn render<'a>(&'a self, _renderer: &Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        return Box::new(Raindrops(&self.raindrops));
+impl Node for RaindropsNode {
+    fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
+        return RaindropsRenderer(&self.raindrops);
     }
 }

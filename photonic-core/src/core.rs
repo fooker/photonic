@@ -68,7 +68,7 @@ pub struct Renderer<'a> {
 }
 
 impl<'a> Renderer<'a> {
-    pub fn render<'b, N, E>(&'b self, handle: &'a Handle<N>) -> Box<Render<Element=E> + 'b>
+    pub fn render<'b, N, E>(&'b self, handle: &'a Handle<N>) -> <N as RenderType<'a>>::Render
         where 'b: 'a,
               N: Node<Element=E> + 'b {
         handle.resolve(&self.scene).render(self)
@@ -77,6 +77,7 @@ impl<'a> Renderer<'a> {
 
 pub trait Render {
     type Element;
+
     fn get(&self, index: usize) -> Self::Element;
 }
 
@@ -88,10 +89,13 @@ pub trait NodeDecl {
         where Self::Target: std::marker::Sized;
 }
 
-pub trait Node: Dynamic {
+pub trait RenderType<'a> {
     type Element;
+    type Render: Render<Element=Self::Element> + 'a;
+}
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a>;
+pub trait Node: Dynamic + for<'a> RenderType<'a> {
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render;
 }
 
 pub trait Dynamic {
@@ -153,7 +157,7 @@ impl<Node, Output, EN, EO> Loop<Node, Output>
                 scene: &self.scene,
             };
             let render = renderer.render(&self.node);
-            self.output.render(render.as_ref());
+            self.output.render(&render);
 
             if let Some(stats) = stats.update(duration, fps) {
                 eprintln!("Stats: min={:3.2}, max={:3.2}, avg={:3.2}", stats.min_fps(), stats.max_fps(), stats.avg_fps())

@@ -7,13 +7,13 @@ use photonic_core::core::*;
 use photonic_core::math;
 use photonic_core::value::*;
 
-struct Alert {
+pub struct AlertRenderer {
     hue: f64,
     block_size: usize,
     value: f64,
 }
 
-impl Render for Alert {
+impl Render for AlertRenderer {
     type Element = HSVColor;
 
     fn get(&self, index: usize) -> Self::Element {
@@ -65,15 +65,18 @@ impl Dynamic for AlertNode {
     }
 }
 
-impl Node for AlertNode {
+impl <'a> RenderType<'a> for AlertNode {
     type Element = HSVColor;
+    type Render = AlertRenderer;
+}
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        return Box::new(Alert {
+impl Node for AlertNode {
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+        return AlertRenderer {
             hue: self.hue.get(),
             block_size: self.block_size.get(),
             value: math::remap(math::clamp(f64::sin(self.time * std::f64::consts::PI), (-1.0, 1.0)),
                                (-1.0, 1.0), (0.0, 1.0)),
-        });
+        };
     }
 }

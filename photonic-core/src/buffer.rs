@@ -58,28 +58,31 @@ impl<E> Dynamic for Buffer<E> {
     fn update(&mut self, _duration: &Duration) {}
 }
 
-impl<E> Node for Buffer<E>
-    where E: Clone {
+impl<'a, E> RenderType<'a> for Buffer<E>
+    where E: Copy + 'a {
     type Element = E;
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=E> + 'a> {
-        return Box::new(self);
+    type Render = &'a Self;
+}
+
+impl<E> Node for Buffer<E>
+    where E: Copy + 'static {
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+        return self;
     }
 }
 
-// TODO: Return reference instead of .clone()
-
-impl<E> Render for Buffer<E>
-    where E: Clone {
+impl<'a, E> Render for Buffer<E>
+    where E: Copy {
     type Element = E;
     fn get(&self, index: usize) -> Self::Element {
-        Buffer::get(self, index).clone()
+        return *Buffer::get(self, index);
     }
 }
 
 impl<'a, E> Render for &'a Buffer<E>
-    where E: Clone {
+    where E: Copy {
     type Element = E;
     fn get(&self, index: usize) -> Self::Element {
-        Buffer::get(self, index).clone()
+        return *Buffer::get(self, index);
     }
 }

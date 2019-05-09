@@ -56,8 +56,8 @@ impl<A, F> ReceiverNodeDecl<A, F>
 
 impl<A, F> NodeDecl for ReceiverNodeDecl<A, F>
     where A: ToSocketAddrs,
-          F: Format,
-          F::Element: Black {
+          F: Format + 'static,
+          F::Element: Black + 'static {
     type Element = F::Element;
     type Target = ReceiverNode<F>;
 
@@ -92,11 +92,15 @@ impl<F> Dynamic for ReceiverNode<F>
     }
 }
 
-impl<F> Node for ReceiverNode<F>
-    where F: Format {
+impl<'a, F> RenderType<'a> for ReceiverNode<F>
+    where F: Format + 'static {
     type Element = F::Element;
-    
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        return Box::new(&self.output);
+    type Render = &'a Buffer<F::Element>;
+}
+
+impl<F> Node for ReceiverNode<F>
+    where F: Format + 'static {
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+        return &self.output;
     }
 }

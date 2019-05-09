@@ -8,7 +8,7 @@ use photonic_core::core::*;
 use photonic_core::math;
 use photonic_core::value::*;
 
-struct Plasma<'a> {
+pub struct PlasmaRenderer<'a> {
     noise: &'a Perlin,
 
     h: ((f64, f64), f64),
@@ -18,7 +18,7 @@ struct Plasma<'a> {
     time: f64,
 }
 
-impl<'a> Render for Plasma<'a> {
+impl<'a> Render for PlasmaRenderer<'a> {
     type Element = HSVColor;
 
     fn get(&self, index: usize) -> Self::Element {
@@ -98,16 +98,19 @@ impl Dynamic for PlasmaNode {
     }
 }
 
-impl Node for PlasmaNode {
+impl <'a> RenderType<'a> for PlasmaNode {
     type Element = HSVColor;
+    type Render = PlasmaRenderer<'a>;
+}
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        return Box::new(Plasma {
+impl Node for PlasmaNode {
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+        return PlasmaRenderer {
             noise: &self.perlin,
             h: (((self.h.0).0.get(), (self.h.0).1.get()), self.h.1.get()),
             s: (((self.s.0).0.get(), (self.s.0).1.get()), self.s.1.get()),
             v: (((self.v.0).0.get(), (self.v.0).1.get()), self.v.1.get()),
             time: self.time,
-        });
+        };
     }
 }

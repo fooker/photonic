@@ -4,17 +4,14 @@ use failure::Error;
 
 use photonic_core::core::*;
 
-// TODO: Use references instead of cloning
-
-struct SolidRenderer<'a, E>(&'a E)
-    where E: Clone;
+pub struct SolidRenderer<'a, E>(&'a E);
 
 impl<'a, E> Render for SolidRenderer<'a, E>
-    where E: Clone {
+    where E: Copy {
     type Element = E;
 
     fn get(&self, _index: usize) -> Self::Element {
-        return self.0.clone();
+        return *self.0;
     }
 }
 
@@ -24,7 +21,7 @@ pub struct SolidNodeDecl<E>
 }
 
 impl<E> NodeDecl for SolidNodeDecl<E>
-    where E: Clone {
+    where E: Copy + 'static {
     type Element = E;
     type Target = SolidNode<Self::Element>;
 
@@ -35,21 +32,23 @@ impl<E> NodeDecl for SolidNodeDecl<E>
     }
 }
 
-pub struct SolidNode<E>
-    where E: Clone {
+pub struct SolidNode<E> {
     solid: E,
 }
 
-impl<E> Dynamic for SolidNode<E>
-    where E: Clone {
+impl<E> Dynamic for SolidNode<E> {
     fn update(&mut self, _duration: &Duration) {}
 }
 
-impl<E> Node for SolidNode<E>
-    where E: Clone {
+impl<'a, E> RenderType<'a> for SolidNode<E>
+    where E: Copy + 'static {
     type Element = E;
+    type Render = SolidRenderer<'a, E>;
+}
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        return Box::new(SolidRenderer(&self.solid));
+impl<E> Node for SolidNode<E>
+    where E: Copy + 'static {
+    fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+        return SolidRenderer(&self.solid);
     }
 }

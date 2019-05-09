@@ -7,24 +7,25 @@ use photonic_core::math;
 use photonic_core::math::Lerp;
 use photonic_core::value::*;
 
-struct RotationRenderer<'a, E> {
-    source: Box<Render<Element=E> + 'a>,
+pub struct RotationRenderer<Source> {
+    source: Source,
     size: usize,
     offset: f64,
 }
 
-impl<'a, E> Render for RotationRenderer<'a, E>
-    where E: Lerp {
-    type Element = E;
+impl<Source> Render for RotationRenderer<Source>
+    where Source: Render,
+          Source::Element: Lerp {
+    type Element = Source::Element;
 
-    fn get(&self, index: usize) -> E {
+    fn get(&self, index: usize) -> Self::Element {
         let index = math::wrap((index as f64) - self.offset, self.size);
         let index = (index.trunc() as usize, index.fract());
 
         let c1 = self.source.get((index.0 + 0) % self.size);
         let c2 = self.source.get((index.0 + 1) % self.size);
 
-        return E::lerp(c1, c2, index.1);
+        return Self::Element::lerp(c1, c2, index.1);
     }
 }
 
@@ -45,7 +46,7 @@ pub struct RotationNode<Source> {
 
 impl<Source, E> NodeDecl for RotationNodeDecl<Source>
     where Source: Node<Element=E>,
-          E: Lerp + 'static {
+          E: Lerp {
     type Element = E;
     type Target = RotationNode<Source>;
 
@@ -68,15 +69,21 @@ impl<Source> Dynamic for RotationNode<Source> {
     }
 }
 
+impl<'a, Source> RenderType<'a> for RotationNode<Source>
+    where Source: RenderType<'a>,
+          Source::Element: Lerp {
+    type Element = Source::Element;
+    type Render = RotationRenderer<Source::Render>;
+}
+
 impl<Source, E> Node for RotationNode<Source>
     where Source: Node<Element=E>,
-          E: Lerp + 'static {
-    type Element = E;
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        Box::new(RotationRenderer {
+          E: Lerp {
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+        return RotationRenderer {
             source: renderer.render(&self.source),
             size: self.size,
             offset: self.offset,
-        })
+        };
     }
 }

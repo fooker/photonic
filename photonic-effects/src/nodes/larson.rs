@@ -6,7 +6,7 @@ use photonic_core::color::*;
 use photonic_core::core::*;
 use photonic_core::value::*;
 
-struct LarsonRenderer {
+pub struct LarsonRenderer {
     hue: f64,
     width: f64,
     position: f64,
@@ -98,14 +98,17 @@ impl Dynamic for LarsonNode {
     }
 }
 
-impl Node for LarsonNode {
+impl RenderType<'_> for LarsonNode {
     type Element = HSVColor;
+    type Render = LarsonRenderer;
+}
 
-    fn render<'a>(&'a self, _renderer: &Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        Box::new(LarsonRenderer {
+impl Node for LarsonNode {
+    fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
+        return LarsonRenderer {
             hue: self.hue.get(),
             width: self.width.get(),
             position: self.position,
-        })
+        };
     }
 }

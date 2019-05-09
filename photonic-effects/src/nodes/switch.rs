@@ -7,25 +7,26 @@ use photonic_core::core::*;
 use photonic_core::math::Lerp;
 use photonic_core::value::*;
 
-struct SwitchRenderer<'a, E> {
-    source: Box<Render<Element=E> + 'a>,
-    target: Box<Render<Element=E> + 'a>,
+pub struct SwitchRenderer<Source> {
+    source: Source,
+    target: Source,
 
     blend: f64,
 }
 
-impl<'a, E> Render for SwitchRenderer<'a, E>
-    where E: Lerp {
-    type Element = E;
+impl<Source> Render for SwitchRenderer<Source>
+    where Source: Render,
+          Source::Element: Lerp {
+    type Element = Source::Element;
 
     fn get(&self, index: usize) -> Self::Element {
         let source = self.source.get(index);
         let target = self.target.get(index);
 
         // TODO: Blending modes
-        return E::lerp(source,
-                       target,
-                       self.blend);
+        return Self::Element::lerp(source,
+                                   target,
+                                   self.blend);
     }
 }
 
@@ -52,7 +53,7 @@ pub struct SwitchNode<Source> {
 
 impl<Source, E> NodeDecl for SwitchNodeDecl<Source>
     where Source: Node<Element=E>,
-          E: Lerp + 'static {
+          E: Lerp {
     type Element = E;
     type Target = SwitchNode<Source>;
 
@@ -94,20 +95,21 @@ impl<Source> Dynamic for SwitchNode<Source> {
     }
 }
 
+impl<'a, Source> RenderType<'a> for SwitchNode<Source>
+    where Source: RenderType<'a>,
+          Source::Element: Lerp {
+    type Element = Source::Element;
+    type Render = SwitchRenderer<Source::Render>;
+}
+
 impl<Source, E> Node for SwitchNode<Source>
     where Source: Node<Element=E>,
-          E: Lerp + 'static {
-    type Element = E;
-
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        if self.source == self.target {
-            return renderer.render(&self.sources[self.source]);
-        } else {
-            return Box::new(SwitchRenderer {
-                source: renderer.render(&self.sources[self.source]),
-                target: renderer.render(&self.sources[self.target]),
-                blend: self.blend,
-            });
-        }
+          E: Lerp {
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+        return SwitchRenderer {
+            source: renderer.render(&self.sources[self.source]),
+            target: renderer.render(&self.sources[self.target]),
+            blend: self.blend,
+        };
     }
 }

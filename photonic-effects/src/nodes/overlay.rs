@@ -6,26 +6,28 @@ use photonic_core::core::*;
 use photonic_core::math::Lerp;
 use photonic_core::value::*;
 
-struct OverlayRenderer<'a, EB, EO> {
-    base: Box<Render<Element=EB> + 'a>,
-    overlay: Box<Render<Element=EO> + 'a>,
+pub struct OverlayRenderer<Base, Overlay> {
+    base: Base,
+    overlay: Overlay,
 
     blend: f64,
 }
 
-impl<'a, EB, EO> Render for OverlayRenderer<'a, EB, EO>
-    where EB: Lerp + 'static,
-          EO: Into<EB> {
-    type Element = EB;
+impl<Base, Overlay> Render for OverlayRenderer<Base, Overlay>
+    where Base: Render,
+          Overlay: Render,
+          Base::Element: Lerp,
+          Overlay::Element: Into<Base::Element> {
+    type Element = Base::Element;
 
     fn get(&self, index: usize) -> Self::Element {
         let base = self.base.get(index);
         let overlay = self.overlay.get(index).into();
 
         // TODO: Blending modes
-        return EB::lerp(base,
-                        overlay,
-                        self.blend);
+        return Self::Element::lerp(base,
+                                   overlay,
+                                   self.blend);
     }
 }
 
@@ -46,8 +48,8 @@ pub struct OverlayNode<Base, Overlay> {
 impl<Base, Overlay, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay>
     where Base: Node<Element=EB>,
           Overlay: Node<Element=EO>,
-          EB: Lerp + 'static,
-          EO: Into<EB> + 'static {
+          EB: Lerp,
+          EO: Into<EB> {
     type Element = EB;
     type Target = OverlayNode<Base, Overlay>;
 
@@ -66,23 +68,25 @@ impl<Base, Overlay> Dynamic for OverlayNode<Base, Overlay> {
     }
 }
 
+impl<'a, Base, Overlay> RenderType<'a> for OverlayNode<Base, Overlay>
+    where Base: RenderType<'a>,
+          Overlay: RenderType<'a>,
+          Base::Element: Lerp,
+          Overlay::Element: Into<Base::Element> {
+    type Element = Base::Element;
+    type Render = OverlayRenderer<Base::Render, Overlay::Render>;
+}
+
 impl<Base, Overlay, EB, EO> Node for OverlayNode<Base, Overlay>
     where Base: Node<Element=EB>,
           Overlay: Node<Element=EO>,
-          EB: Lerp + 'static,
-          EO: Into<EB> + 'static {
-    type Element = EB;
-
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> Box<Render<Element=Self::Element> + 'a> {
-        let blend = self.blend.get();
-        if blend > 0f64 {
-            return Box::new(OverlayRenderer {
-                base: renderer.render(&self.base),
-                overlay: renderer.render(&self.overlay),
-                blend,
-            });
-        } else {
-            return renderer.render(&self.base);
-        }
+          EB: Lerp,
+          EO: Into<EB> {
+    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+        return OverlayRenderer {
+            base: renderer.render(&self.base),
+            overlay: renderer.render(&self.overlay),
+            blend: self.blend.get(),
+        };
     }
 }
