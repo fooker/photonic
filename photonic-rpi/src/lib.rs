@@ -1,3 +1,5 @@
+#![cfg(target = "arm-unknown-linux-gnueabihf")]
+
 use failure::Error;
 
 use palette::Component;

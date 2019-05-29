@@ -1,6 +1,4 @@
 #![feature(never_type)]
-#![feature(type_alias_enum_variants)]
-#![feature(impl_trait_in_bindings)]
 
 use std::time::Duration;
 

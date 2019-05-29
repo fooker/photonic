@@ -1,5 +1,4 @@
 #![feature(never_type)]
-#![feature(type_alias_enum_variants)]
 
 use std::time::Duration;
 

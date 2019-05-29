@@ -8,4 +8,6 @@ edition = "2018"
 photonic-core = {path="../photonic-core"}
 palette = "0.4"
 failure = "0.1"
+
+[target.'cfg(target = "arm-unknown-linux-gnueabihf")'.dependencies]
 rs_ws281x = "0.2.3"
