@@ -14,7 +14,7 @@ pub struct BoundManual<T> {
 }
 
 impl<T> Value<T> for BoundManual<T>
-    where T: Copy + PartialOrd + Display {
+    where T: Copy + Bounded + Display {
     fn get(&self) -> T {
         self.current
     }
@@ -65,7 +65,7 @@ impl<T> From<Input<T>> for ManualDecl<T> {
 }
 
 impl<T> BoundValueDecl<T> for ManualDecl<T>
-    where T: Copy + PartialOrd + Display + 'static {
+    where T: Copy + Bounded + Display + 'static {
     fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
         let current = bounds.min;
 

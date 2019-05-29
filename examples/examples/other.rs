@@ -8,17 +8,20 @@ use failure::Error;
 use photonic_console::ConsoleOutputDecl;
 use photonic_core::animation;
 use photonic_core::animation::Easing;
+use photonic_core::color::HSLColor;
 use photonic_core::core::Scene;
 use photonic_core::timer::Timer;
+use photonic_core::value::AsFixedValue;
+use photonic_effects::nodes::alert::AlertNodeDecl;
 use photonic_effects::nodes::larson::LarsonNodeDecl;
 use photonic_effects::nodes::overlay::OverlayNodeDecl;
+use photonic_effects::nodes::plasma::PlasmaNodeDecl;
 use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
 use photonic_effects::nodes::switch::SwitchNodeDecl;
 use photonic_effects::values::button::ButtonDecl;
 use photonic_effects::values::fader::FaderDecl;
 use photonic_effects::values::looper::LooperDecl;
-use photonic_effects::nodes::plasma::PlasmaNodeDecl;
-use photonic_effects::nodes::alert::AlertNodeDecl;
+use photonic_effects::values::sequence::SequenceDecl;
 use photonic_mqtt::MqttHandleBuilder;
 use photonic_net::UdpReciverNodeDecl;
 
@@ -32,45 +35,32 @@ fn main() -> Result<!, Error> {
     let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883)
         .with_realm("photonic");
 
-    let raindrops_violet = scene.node("raindrops:violet", RaindropsNodeDecl {
-        rate: 0.3.into(),
-        hue: (245.31.into(), 333.47.into()),
-        lightness: (0.5.into(), 0.7.into()),
-        saturation: (0.5.into(), 0.5.into()),
-        decay: (0.96.into(), 0.98.into()),
-    })?;
-
-    let raindrops_orange = scene.node("raindrops:violet", RaindropsNodeDecl {
-        rate: 0.3.into(),
-        hue: (0.00.into(), 17.50.into()),
-        lightness: (0.45.into(), 0.55.into()),
-        saturation: (0.5.into(), 0.5.into()),
-        decay: (0.96.into(), 0.98.into()),
-    })?;
-
-    let raindrops_iceblue = scene.node("raindrops:violet", RaindropsNodeDecl {
-        rate: 0.3.into(),
-        hue: (187.50.into(), 223.92.into()),
-        lightness: (0.25.into(), 0.5.into()),
-        saturation: (0.5.into(), 0.5.into()),
-        decay: (0.96.into(), 0.98.into()),
-    })?;
-
-    let switch_raindrops_timer = Box::new(LooperDecl {
-        step: 1,
+    let raindrops_color = Box::new(SequenceDecl {
+        values: vec![
+            (HSLColor::new(245.31, 0.5, 0.5),
+             HSLColor::new(333.47, 0.7, 0.5)),
+            (HSLColor::new(0.0, 0.45, 0.5),
+             HSLColor::new(17.5, 0.55, 0.5)),
+            (HSLColor::new(187.5, 0.25, 0.5),
+             HSLColor::new(223.92, 0.5, 0.5)),
+        ],
         trigger: timer.ticker(Duration::from_secs(5)),
     });
+    let raindrops_color = Box::new(FaderDecl {
+        input: raindrops_color,
+        easing: Easing::with(animation::linear, Duration::from_secs(4)),
+    });
 
-    let switch_raindrops = scene.node("raindrops", SwitchNodeDecl {
-        sources: vec![raindrops_violet, raindrops_orange, raindrops_iceblue],
-        position: switch_raindrops_timer,
-        easing: Easing::some(animation::linear, Duration::from_secs(4)),
+    let raindrops = scene.node("raindrops:violet", RaindropsNodeDecl {
+        rate: 0.3_f64.fixed(),
+        color: raindrops_color,
+        decay: (0.96, 0.98).fixed(),
     })?;
 
     let overlay_bell = scene.node("bell", LarsonNodeDecl {
-        hue: 0.0.into(),
-        speed: 50.0.into(),
-        width: 25.0.into(),
+        hue: 0.0.fixed(),
+        speed: 50.0.fixed(),
+        width: 25.0.fixed(),
     })?;
 
     let overlay_bell_button = Box::new(ButtonDecl {
@@ -84,7 +74,7 @@ fn main() -> Result<!, Error> {
     });
 
     let effect = scene.node("bell:overlay", OverlayNodeDecl {
-        base: switch_raindrops,
+        base: raindrops,
         overlay: overlay_bell,
         blend: overlay_bell_button,
     })?;

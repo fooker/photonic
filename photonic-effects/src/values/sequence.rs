@@ -1,4 +1,3 @@
-use std::fmt::Display;
 use std::time::Duration;
 
 use failure::Error;
@@ -35,12 +34,12 @@ pub struct SequenceDecl<T> {
     pub trigger: Input<()>,
 }
 
-impl<T> BoundValueDecl<T> for SequenceDecl<T>
-    where T: Copy + PartialOrd + Display + 'static {
-    fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
+impl<T, V> BoundValueDecl<V> for SequenceDecl<T>
+    where V: From<T> + Bounded + Copy + 'static {
+    fn new(self: Box<Self>, bounds: Bounds<V>) -> Result<Box<Value<V>>, Error> {
         let values = self.values.into_iter()
-            .map(|v| bounds.ensure(v))
-            .collect::<Result<Vec<T>, Error>>()?;
+            .map(|v| bounds.ensure(v.into()))
+            .collect::<Result<Vec<V>, Error>>()?;
 
         return Ok(Box::new(Sequence {
             values,
@@ -50,11 +49,15 @@ impl<T> BoundValueDecl<T> for SequenceDecl<T>
     }
 }
 
-impl<T> UnboundValueDecl<T> for SequenceDecl<T>
-    where T: Copy + 'static {
-    fn new(self: Box<Self>) -> Result<Box<Value<T>>, Error> {
+impl<T, V> UnboundValueDecl<V> for SequenceDecl<T>
+    where V: From<T> + Copy + 'static {
+    fn new(self: Box<Self>) -> Result<Box<Value<V>>, Error> {
+        let values = self.values.into_iter()
+            .map(|v| v.into())
+            .collect();
+
         return Ok(Box::new(Sequence {
-            values: self.values.clone(),
+            values,
             position: 0,
             trigger: self.trigger,
         }));

@@ -1,0 +1,66 @@
+#![feature(never_type)]
+#![feature(type_alias_enum_variants)]
+
+use std::time::Duration;
+
+use failure::Error;
+
+use photonic_console::ConsoleOutputDecl;
+use photonic_core::animation;
+use photonic_core::animation::Easing;
+use photonic_core::core::Scene;
+use photonic_core::timer::Timer;
+use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
+use photonic_effects::nodes::switch::SwitchNodeDecl;
+use photonic_effects::values::looper::LooperDecl;
+use photonic_core::color::HSLColor;
+use photonic_core::value::AsFixedValue;
+
+const SIZE: usize = 120;
+const FPS: usize = 60;
+
+fn main() -> Result<!, Error> {
+    let mut scene = Scene::new(SIZE);
+
+    let mut timer = Timer::new();
+
+    let raindrops_violet = scene.node("raindrops:violet", RaindropsNodeDecl {
+        rate: 0.3_f64.fixed(),
+        color: (HSLColor::new(245.31, 0.5, 0.5),
+                HSLColor::new(333.47, 0.7, 0.5)).fixed(),
+        decay: (0.96, 0.98).fixed(),
+    })?;
+
+    let raindrops_orange = scene.node("raindrops:violet", RaindropsNodeDecl {
+        rate: 0.3_f64.fixed(),
+        color: (HSLColor::new(0.0, 0.45, 0.5),
+                HSLColor::new(17.5, 0.55, 0.5)).fixed(),
+        decay: (0.96, 0.98).fixed(),
+    })?;
+
+    let raindrops_iceblue = scene.node("raindrops:violet", RaindropsNodeDecl {
+        rate: 0.3_f64.fixed(),
+        color: (HSLColor::new(187.5, 0.25, 0.5),
+                HSLColor::new(223.92, 0.5, 0.5)).fixed(),
+        decay: (0.96, 0.98).fixed(),
+    })?;
+
+    let switch_raindrops_timer = Box::new(LooperDecl {
+        step: 1,
+        trigger: timer.ticker(Duration::from_secs(5)),
+    });
+
+    let switch_raindrops = scene.node("raindrops", SwitchNodeDecl {
+        sources: vec![raindrops_violet, raindrops_orange, raindrops_iceblue],
+        position: switch_raindrops_timer,
+        easing: Easing::some(animation::linear, Duration::from_secs(4)),
+    })?;
+
+    let mut main = scene.output(switch_raindrops, ConsoleOutputDecl {
+        whaterfall: true
+    })?;
+
+    main.register(move |d| timer.update(d));
+
+    main.run(FPS)?;
+}

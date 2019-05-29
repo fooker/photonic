@@ -79,7 +79,7 @@ pub struct ButtonDecl<T> {
 }
 
 impl<T> BoundValueDecl<T> for ButtonDecl<T>
-    where T: Copy + PartialOrd + Display + 'static {
+    where T: Copy + Bounded + Display + 'static {
     fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
         return Ok(Box::new(Button {
             value_released: bounds.ensure(self.value.0)?,

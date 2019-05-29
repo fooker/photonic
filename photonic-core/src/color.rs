@@ -1,10 +1,10 @@
+use palette::Mix;
+
 use crate::math;
 
 pub type RGBColor = palette::LinSrgb<f64>;
 pub type HSVColor = palette::Hsv<palette::encoding::Srgb, f64>;
 pub type HSLColor = palette::Hsl<palette::encoding::Srgb, f64>;
-
-use palette::Mix;
 
 pub trait Black {
     fn black() -> Self;

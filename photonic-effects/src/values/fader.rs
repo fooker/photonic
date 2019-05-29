@@ -1,13 +1,12 @@
 use std::time::Duration;
 
 use failure::Error;
-use num::Float;
 
 use photonic_core::animation::{Animation, Easing, Transition};
 use photonic_core::math::Lerp;
 use photonic_core::value::*;
 
-pub struct Fader<F: Float + Lerp> {
+pub struct Fader<F: Lerp> {
     input: Box<Value<F>>,
     current: F,
 
@@ -15,7 +14,8 @@ pub struct Fader<F: Float + Lerp> {
     transition: Animation<F>,
 }
 
-impl<F: Float + Lerp> Value<F> for Fader<F> {
+impl<F> Value<F> for Fader<F>
+    where F: Lerp + Copy {
     fn get(&self) -> F {
         self.current
     }
@@ -34,15 +34,33 @@ impl<F: Float + Lerp> Value<F> for Fader<F> {
     }
 }
 
-pub struct FaderDecl<F: Float + Lerp> {
-    pub input: Box<BoundValueDecl<F>>,
+pub struct FaderDecl<I> {
+    pub input: Box<I>,
     pub easing: Easing<f64>,
 }
 
-impl<F: Float + Lerp> BoundValueDecl<F> for FaderDecl<F>
-    where F: 'static {
+impl<I, F> BoundValueDecl<F> for FaderDecl<I>
+    where F: Lerp + Bounded + Copy + 'static,
+          I: BoundValueDecl<F> {
     fn new(self: Box<Self>, bounds: Bounds<F>) -> Result<Box<Value<F>>, Error> {
         let input = self.input.new(bounds)?;
+
+        let current = input.get();
+
+        return Ok(Box::new(Fader {
+            input,
+            current,
+            easing: self.easing,
+            transition: Animation::idle(),
+        }));
+    }
+}
+
+impl<I, F> UnboundValueDecl<F> for FaderDecl<I>
+    where F: Lerp + Copy + 'static,
+          I: UnboundValueDecl<F> {
+    fn new(self: Box<Self>) -> Result<Box<Value<F>>, Error> {
+        let input = self.input.new()?;
 
         let current = input.get();
 

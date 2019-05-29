@@ -6,6 +6,7 @@ use rand::prelude::{FromEntropy, Rng, SmallRng};
 use photonic_core::color::*;
 use photonic_core::core::*;
 use photonic_core::math;
+use photonic_core::math::Lerp;
 use photonic_core::value::*;
 
 #[derive(Clone)]
@@ -46,6 +47,13 @@ impl Random {
         return self.0.gen_bool(math::clamp(duration.as_secs_f64() * value, (0.0, 1.0)));
     }
 
+    pub fn color(&mut self,
+                 c1: HSLColor,
+                 c2: HSLColor) -> HSLColor {
+        let v = self.0.gen();
+        return Lerp::lerp(c1, c2, v);
+    }
+
     #[allow(clippy::float_cmp)]
     pub fn range(&mut self,
                  min: f64,
@@ -62,27 +70,15 @@ impl Random {
 pub struct RaindropsNodeDecl {
     pub rate: Box<BoundValueDecl<f64>>,
 
-    pub hue: (Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>),
-    pub saturation: (Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>),
-    pub lightness: (Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>),
-
-    pub decay: (Box<BoundValueDecl<f64>>, Box<BoundValueDecl<f64>>),
+    pub color: Box<UnboundValueDecl<Range<HSLColor>>>,
+    pub decay: Box<BoundValueDecl<Range<f64>>>,
 }
 
 pub struct RaindropsNode {
     rate: Box<Value<f64>>,
 
-    hue_min: Box<Value<f64>>,
-    hue_max: Box<Value<f64>>,
-
-    saturation_min: Box<Value<f64>>,
-    saturation_max: Box<Value<f64>>,
-
-    lightness_min: Box<Value<f64>>,
-    lightness_max: Box<Value<f64>>,
-
-    decay_min: Box<Value<f64>>,
-    decay_max: Box<Value<f64>>,
+    color: Box<Value<Range<HSLColor>>>,
+    decay: Box<Value<Range<f64>>>,
 
     raindrops: Vec<Raindrop>,
 
@@ -96,14 +92,8 @@ impl NodeDecl for RaindropsNodeDecl {
     fn new(self, size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             rate: self.rate.new(Bounds::norm())?,
-            hue_min: self.hue.0.new((0.0, 360.0).into())?,
-            hue_max: self.hue.1.new((0.0, 360.0).into())?,
-            saturation_min: self.saturation.0.new(Bounds::norm())?,
-            saturation_max: self.saturation.1.new(Bounds::norm())?,
-            lightness_min: self.lightness.0.new(Bounds::norm())?,
-            lightness_max: self.lightness.1.new(Bounds::norm())?,
-            decay_min: self.decay.0.new(Bounds::norm())?,
-            decay_max: self.decay.1.new(Bounds::norm())?,
+            color: self.color.new()?,
+            decay: self.decay.new(Bounds { min: (0.0, 0.0).into(), max: (1.0, 1.0).into() })?,
             raindrops: vec![Raindrop::default(); size],
             random: Random::new(),
         });
@@ -113,21 +103,13 @@ impl NodeDecl for RaindropsNodeDecl {
 impl Dynamic for RaindropsNode {
     fn update(&mut self, duration: &Duration) {
         self.rate.update(duration);
-        self.hue_min.update(duration);
-        self.hue_max.update(duration);
-        self.saturation_min.update(duration);
-        self.saturation_max.update(duration);
-        self.lightness_min.update(duration);
-        self.lightness_max.update(duration);
-        self.decay_min.update(duration);
-        self.decay_max.update(duration);
+        self.color.update(duration);
+        self.decay.update(duration);
 
         for raindrop in self.raindrops.iter_mut() {
             if self.random.rate(self.rate.get(), duration) {
-                raindrop.color = HSLColor::new(self.random.range(self.hue_min.get(), self.hue_max.get()),
-                                               self.random.range(self.saturation_min.get(), self.saturation_max.get()),
-                                               self.random.range(self.lightness_min.get(), self.lightness_max.get()));
-                raindrop.decay = self.random.range(self.decay_min.get(), self.decay_max.get());
+                raindrop.color = self.random.color(self.color.get().0, self.color.get().1);
+                raindrop.decay = self.random.range(self.decay.get().0, self.decay.get().1);
             } else {
                 raindrop.color.lightness = f64::max(0.0, raindrop.color.lightness * 1.0 - raindrop.decay * duration.as_secs_f64());
             }
@@ -135,7 +117,7 @@ impl Dynamic for RaindropsNode {
     }
 }
 
-impl <'a> RenderType<'a> for RaindropsNode {
+impl<'a> RenderType<'a> for RaindropsNode {
     type Element = HSLColor;
     type Render = RaindropsRenderer<'a>;
 }
