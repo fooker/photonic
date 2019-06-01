@@ -23,7 +23,7 @@ fn main() -> Result<!, Error> {
 
     let mut timer = Timer::new();
 
-    let raindrops_color = Box::new(SequenceDecl {
+    let raindrops_color = SequenceDecl {
         values: vec![
             (HSLColor::new(245.31, 0.5, 0.5),
              HSLColor::new(333.47, 0.7, 0.5)),
@@ -33,11 +33,11 @@ fn main() -> Result<!, Error> {
              HSLColor::new(223.92, 0.5, 0.5)),
         ],
         trigger: timer.ticker(Duration::from_secs(5)),
-    });
-    let raindrops_color = Box::new(FaderDecl {
+    };
+    let raindrops_color = FaderDecl {
         input: raindrops_color,
         easing: Easing::with(animation::linear, Duration::from_secs(4)),
-    });
+    };
 
     let raindrops = scene.node("raindrops:violet", RaindropsNodeDecl {
         rate: 0.3_f64.fixed(),

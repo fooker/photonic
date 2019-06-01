@@ -31,27 +31,28 @@ impl<Base, Overlay> Render for OverlayRenderer<Base, Overlay>
     }
 }
 
-pub struct OverlayNodeDecl<Base, Overlay> {
+pub struct OverlayNodeDecl<Base, Overlay, Blend> {
     pub base: Handle<Base>,
     pub overlay: Handle<Overlay>,
 
-    pub blend: Box<BoundValueDecl<f64>>,
+    pub blend: Blend,
 }
 
-pub struct OverlayNode<Base, Overlay> {
+pub struct OverlayNode<Base, Overlay, Blend> {
     base: Handle<Base>,
     overlay: Handle<Overlay>,
 
-    blend: Box<Value<f64>>,
+    blend: Blend,
 }
 
-impl<Base, Overlay, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay>
+impl<Base, Overlay, Blend, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay, Blend>
     where Base: Node<Element=EB>,
           Overlay: Node<Element=EO>,
+          Blend: BoundValueDecl<f64>,
           EB: Lerp,
           EO: Into<EB> {
     type Element = EB;
-    type Target = OverlayNode<Base, Overlay>;
+    type Target = OverlayNode<Base, Overlay, Blend::Value>;
 
     fn new(self, _size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
@@ -62,13 +63,14 @@ impl<Base, Overlay, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay>
     }
 }
 
-impl<Base, Overlay> Dynamic for OverlayNode<Base, Overlay> {
+impl<Base, Overlay, Blend> Dynamic for OverlayNode<Base, Overlay, Blend>
+    where Blend: Value<f64> {
     fn update(&mut self, duration: &Duration) {
         self.blend.update(duration);
     }
 }
 
-impl<'a, Base, Overlay> RenderType<'a> for OverlayNode<Base, Overlay>
+impl<'a, Base, Overlay, Blend> RenderType<'a> for OverlayNode<Base, Overlay, Blend>
     where Base: RenderType<'a>,
           Overlay: RenderType<'a>,
           Base::Element: Lerp,
@@ -77,9 +79,10 @@ impl<'a, Base, Overlay> RenderType<'a> for OverlayNode<Base, Overlay>
     type Render = OverlayRenderer<Base::Render, Overlay::Render>;
 }
 
-impl<Base, Overlay, EB, EO> Node for OverlayNode<Base, Overlay>
+impl<Base, Overlay, Blend, EB, EO> Node for OverlayNode<Base, Overlay, Blend>
     where Base: Node<Element=EB>,
           Overlay: Node<Element=EO>,
+          Blend: Value<f64>,
           EB: Lerp,
           EO: Into<EB> {
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {

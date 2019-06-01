@@ -6,16 +6,18 @@ use photonic_core::animation::{Animation, Easing, Transition};
 use photonic_core::math::Lerp;
 use photonic_core::value::*;
 
-pub struct Fader<F: Lerp> {
-    input: Box<Value<F>>,
+pub struct Fader<Input, F>
+    where F: Lerp {
+    input: Input,
     current: F,
 
     easing: Easing<f64>,
     transition: Animation<F>,
 }
 
-impl<F> Value<F> for Fader<F>
-    where F: Lerp + Copy {
+impl<Input, F> Value<F> for Fader<Input, F>
+    where F: Lerp + Copy,
+          Input: Value<F> {
     fn get(&self) -> F {
         self.current
     }
@@ -34,41 +36,43 @@ impl<F> Value<F> for Fader<F>
     }
 }
 
-pub struct FaderDecl<I> {
-    pub input: Box<I>,
+pub struct FaderDecl<Input> {
+    pub input: Input,
     pub easing: Easing<f64>,
 }
 
-impl<I, F> BoundValueDecl<F> for FaderDecl<I>
+impl<Input, F> BoundValueDecl<F> for FaderDecl<Input>
     where F: Lerp + Bounded + Copy + 'static,
-          I: BoundValueDecl<F> {
-    fn new(self: Box<Self>, bounds: Bounds<F>) -> Result<Box<Value<F>>, Error> {
+          Input: BoundValueDecl<F> {
+    type Value = Fader<Input::Value, F>;
+    fn new(self, bounds: Bounds<F>) -> Result<Self::Value, Error> {
         let input = self.input.new(bounds)?;
 
         let current = input.get();
 
-        return Ok(Box::new(Fader {
+        return Ok(Fader {
             input,
             current,
             easing: self.easing,
             transition: Animation::idle(),
-        }));
+        });
     }
 }
 
-impl<I, F> UnboundValueDecl<F> for FaderDecl<I>
+impl<Input, F> UnboundValueDecl<F> for FaderDecl<Input>
     where F: Lerp + Copy + 'static,
-          I: UnboundValueDecl<F> {
-    fn new(self: Box<Self>) -> Result<Box<Value<F>>, Error> {
+          Input: UnboundValueDecl<F> {
+    type Value = Fader<Input::Value, F>;
+    fn new(self) -> Result<Self::Value, Error> {
         let input = self.input.new()?;
 
         let current = input.get();
 
-        return Ok(Box::new(Fader {
+        return Ok(Fader {
             input,
             current,
             easing: self.easing,
             transition: Animation::idle(),
-        }));
+        });
     }
 }

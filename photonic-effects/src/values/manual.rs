@@ -66,23 +66,25 @@ impl<T> From<Input<T>> for ManualDecl<T> {
 
 impl<T> BoundValueDecl<T> for ManualDecl<T>
     where T: Copy + Bounded + Display + 'static {
-    fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
+    type Value = BoundManual<T>;
+    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error> {
         let current = bounds.min;
 
-        return Ok(Box::new(BoundManual {
+        return Ok(BoundManual {
             bounds,
             input: self.input,
             current,
-        }));
+        });
     }
 }
 
 impl<T> UnboundValueDecl<T> for ManualDecl<T>
     where T: Copy + Default + 'static {
-    fn new(self: Box<Self>) -> Result<Box<Value<T>>, Error> {
-        return Ok(Box::new(UnboundManual {
+    type Value = UnboundManual<T>;
+    fn new(self) -> Result<Self::Value, Error> {
+        return Ok(UnboundManual {
             input: self.input,
             current: T::default(),
-        }));
+        });
     }
 }

@@ -27,23 +27,26 @@ impl Render for AlertRenderer {
     }
 }
 
-pub struct AlertNodeDecl {
-    pub hue: Box<BoundValueDecl<f64>>,
-    pub block_size: Box<BoundValueDecl<usize>>,
-    pub speed: Box<UnboundValueDecl<f64>>,
+pub struct AlertNodeDecl<Hue, BlockSize, Speed> {
+    pub hue: Hue,
+    pub block_size: BlockSize,
+    pub speed: Speed,
 }
 
-pub struct AlertNode {
-    hue: Box<Value<f64>>,
-    block_size: Box<Value<usize>>,
-    speed: Box<Value<f64>>,
+pub struct AlertNode<Hue, BlockSize, Speed> {
+    hue: Hue,
+    block_size: BlockSize,
+    speed: Speed,
 
     time: f64,
 }
 
-impl NodeDecl for AlertNodeDecl {
+impl<Hue, BlockSize, Speed> NodeDecl for AlertNodeDecl<Hue, BlockSize, Speed>
+    where Hue: BoundValueDecl<f64>,
+          BlockSize: BoundValueDecl<usize>,
+          Speed: UnboundValueDecl<f64> {
     type Element = HSVColor;
-    type Target = AlertNode;
+    type Target = AlertNode<Hue::Value, BlockSize::Value, Speed::Value>;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
@@ -56,7 +59,10 @@ impl NodeDecl for AlertNodeDecl {
     }
 }
 
-impl Dynamic for AlertNode {
+impl<Hue, BlockSize, Speed> Dynamic for AlertNode<Hue, BlockSize, Speed>
+    where Hue: Value<f64>,
+          BlockSize: Value<usize>,
+          Speed: Value<f64> {
     fn update(&mut self, duration: &Duration) {
         self.block_size.update(duration);
         self.speed.update(duration);
@@ -65,12 +71,15 @@ impl Dynamic for AlertNode {
     }
 }
 
-impl <'a> RenderType<'a> for AlertNode {
+impl<'a, Hue, BlockSize, Speed> RenderType<'a> for AlertNode<Hue, BlockSize, Speed> {
     type Element = HSVColor;
     type Render = AlertRenderer;
 }
 
-impl Node for AlertNode {
+impl<Hue, BlockSize, Speed> Node for AlertNode<Hue, BlockSize, Speed>
+    where Hue: Value<f64>,
+          BlockSize: Value<usize>,
+          Speed: Value<f64> {
     fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return AlertRenderer {
             hue: self.hue.get(),

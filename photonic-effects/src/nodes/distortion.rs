@@ -28,26 +28,27 @@ impl<'a, Source, F> Render for DistortionRenderer<'a, Source, F>
     }
 }
 
-pub struct DistortionNodeDecl<Source, F> {
+pub struct DistortionNodeDecl<Source, Value, F> {
     pub source: Handle<Source>,
-    pub value: Box<BoundValueDecl<f64>>,
+    pub value: Value,
     pub distortion: F,
 }
 
-pub struct DistortionNode<Source, F> {
+pub struct DistortionNode<Source, Value, F> {
     source: Handle<Source>,
-    value: Box<Value<f64>>,
+    value: Value,
     distortion: F,
 
     time: f64,
 }
 
-impl<Source, F, E> NodeDecl for DistortionNodeDecl<Source, F>
+impl<Source, Value, F, E> NodeDecl for DistortionNodeDecl<Source, Value, F>
     where Source: Node<Element=E>,
+          Value: BoundValueDecl<f64>,
           E: Lerp,
           F: Fn(&E, f64) -> E + 'static {
     type Element = E;
-    type Target = DistortionNode<Source, F>;
+    type Target = DistortionNode<Source, Value::Value, F>;
 
     fn new(self, _size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
@@ -59,7 +60,8 @@ impl<Source, F, E> NodeDecl for DistortionNodeDecl<Source, F>
     }
 }
 
-impl<Source, F> Dynamic for DistortionNode<Source, F> {
+impl<Source, Value, F> Dynamic for DistortionNode<Source, Value, F>
+    where Value: self::Value<f64> {
     fn update(&mut self, duration: &Duration) {
         self.value.update(duration);
 
@@ -67,7 +69,7 @@ impl<Source, F> Dynamic for DistortionNode<Source, F> {
     }
 }
 
-impl<'a, Source, F> RenderType<'a> for DistortionNode<Source, F>
+impl<'a, Source, Value, F> RenderType<'a> for DistortionNode<Source, Value, F>
     where Source: RenderType<'a>,
           Source::Element: Lerp,
           F: Fn(&Source::Element, f64) -> Source::Element + 'a {
@@ -75,8 +77,9 @@ impl<'a, Source, F> RenderType<'a> for DistortionNode<Source, F>
     type Render = DistortionRenderer<'a, Source::Render, F>;
 }
 
-impl<Source, E, F> Node for DistortionNode<Source, F>
+impl<Source, Value, E, F> Node for DistortionNode<Source, Value, F>
     where Source: Node<Element=E>,
+          Value: self::Value<f64>,
           E: Lerp,
           F: Fn(&E, f64) -> E + 'static {
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {

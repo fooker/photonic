@@ -29,55 +29,55 @@ impl<Source> Render for RotationRenderer<Source>
     }
 }
 
-pub struct RotationNodeDecl<Source> {
+pub struct RotationNodeDecl<Source, Speed> {
     source: Handle<Source>,
-    speed: Box<UnboundValueDecl<f64>>,
+    speed: Speed,
 }
 
-pub struct RotationNode<Source> {
+pub struct RotationNode<Source, Speed> {
     size: usize,
 
     source: Handle<Source>,
-
-    speed: Box<Value<f64>>,
+    speed: Speed,
 
     offset: f64,
 }
 
-impl<Source, E> NodeDecl for RotationNodeDecl<Source>
+impl<Source, Speed, E> NodeDecl for RotationNodeDecl<Source, Speed>
     where Source: Node<Element=E>,
+          Speed: UnboundValueDecl<f64>,
           E: Lerp {
     type Element = E;
-    type Target = RotationNode<Source>;
+    type Target = RotationNode<Source, Speed::Value>;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
-        let speed = self.speed.new()?;
-
         return Ok(Self::Target {
             size,
             source: self.source,
-            speed,
+            speed: self.speed.new()?,
             offset: 0.0,
         });
     }
 }
 
-impl<Source> Dynamic for RotationNode<Source> {
+impl<Source, Speed> Dynamic for RotationNode<Source, Speed>
+    where Speed: Value<f64> {
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);
         self.offset += self.speed.get() * duration.as_secs_f64();
     }
 }
 
-impl<'a, Source> RenderType<'a> for RotationNode<Source>
+impl<'a, Source, Speed> RenderType<'a> for RotationNode<Source, Speed>
     where Source: RenderType<'a>,
           Source::Element: Lerp {
     type Element = Source::Element;
     type Render = RotationRenderer<Source::Render>;
 }
 
-impl<Source, E> Node for RotationNode<Source>
+impl<Source, Speed, E> Node for RotationNode<Source, Speed>
     where Source: Node<Element=E>,
+          Speed: Value<f64>,
           E: Lerp {
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return RotationRenderer {

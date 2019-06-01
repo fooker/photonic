@@ -36,30 +36,32 @@ pub struct SequenceDecl<T> {
 
 impl<T, V> BoundValueDecl<V> for SequenceDecl<T>
     where V: From<T> + Bounded + Copy + 'static {
-    fn new(self: Box<Self>, bounds: Bounds<V>) -> Result<Box<Value<V>>, Error> {
+    type Value = Sequence<V>;
+    fn new(self, bounds: Bounds<V>) -> Result<Self::Value, Error> {
         let values = self.values.into_iter()
             .map(|v| bounds.ensure(v.into()))
             .collect::<Result<Vec<V>, Error>>()?;
 
-        return Ok(Box::new(Sequence {
+        return Ok(Sequence {
             values,
             position: 0,
             trigger: self.trigger,
-        }));
+        });
     }
 }
 
 impl<T, V> UnboundValueDecl<V> for SequenceDecl<T>
     where V: From<T> + Copy + 'static {
-    fn new(self: Box<Self>) -> Result<Box<Value<V>>, Error> {
+    type Value = Sequence<V>;
+    fn new(self) -> Result<Self::Value, Error> {
         let values = self.values.into_iter()
             .map(|v| v.into())
             .collect();
 
-        return Ok(Box::new(Sequence {
+        return Ok(Sequence {
             values,
             position: 0,
             trigger: self.trigger,
-        }));
+        });
     }
 }

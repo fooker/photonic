@@ -39,26 +39,30 @@ impl Direction {
 }
 
 
-pub struct LarsonNodeDecl {
-    pub hue: Box<BoundValueDecl<f64>>,
-    pub speed: Box<UnboundValueDecl<f64>>,
-    pub width: Box<BoundValueDecl<f64>>,
+pub struct LarsonNodeDecl<Hue, Speed, Width> {
+    pub hue: Hue,
+    pub speed: Speed,
+    pub width: Width,
 }
 
-pub struct LarsonNode {
+pub struct LarsonNode<Hue, Speed, Width> {
     size: usize,
 
-    hue: Box<Value<f64>>,
-    speed: Box<Value<f64>>,
-    width: Box<Value<f64>>,
+    hue: Hue,
+    speed: Speed,
+    width: Width,
 
     position: f64,
     direction: Direction,
 }
 
-impl NodeDecl for LarsonNodeDecl {
+impl<Hue, Speed, Width> NodeDecl for LarsonNodeDecl<Hue, Speed, Width>
+    where Hue: BoundValueDecl<f64>,
+          Speed: UnboundValueDecl<f64>,
+          Width: BoundValueDecl<f64>
+{
     type Element = HSVColor;
-    type Target = LarsonNode;
+    type Target = LarsonNode<Hue::Value, Speed::Value, Width::Value>;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
@@ -72,7 +76,10 @@ impl NodeDecl for LarsonNodeDecl {
     }
 }
 
-impl Dynamic for LarsonNode {
+impl<Hue, Speed, Width> Dynamic for LarsonNode<Hue, Speed, Width>
+    where Hue: Value<f64>,
+          Speed: Value<f64>,
+          Width: Value<f64> {
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);
         self.width.update(duration);
@@ -98,12 +105,15 @@ impl Dynamic for LarsonNode {
     }
 }
 
-impl RenderType<'_> for LarsonNode {
+impl<Hue, Speed, Width> RenderType<'_> for LarsonNode<Hue, Speed, Width> {
     type Element = HSVColor;
     type Render = LarsonRenderer;
 }
 
-impl Node for LarsonNode {
+impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
+    where Hue: Value<f64>,
+          Speed: Value<f64>,
+          Width: Value<f64> {
     fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
         return LarsonRenderer {
             hue: self.hue.get(),

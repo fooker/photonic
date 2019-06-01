@@ -80,26 +80,28 @@ pub struct ButtonDecl<T> {
 
 impl<T> BoundValueDecl<T> for ButtonDecl<T>
     where T: Copy + Bounded + Display + 'static {
-    fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
-        return Ok(Box::new(Button {
+    type Value = Button<T>;
+    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error> {
+        return Ok(Button {
             value_released: bounds.ensure(self.value.0)?,
             value_pressed: bounds.ensure(self.value.1)?,
             hold_time: self.hold_time,
             state: State::Released,
             trigger: self.trigger,
-        }));
+        });
     }
 }
 
 impl<T> UnboundValueDecl<T> for ButtonDecl<T>
     where T: Copy + 'static {
-    fn new(self: Box<Self>) -> Result<Box<Value<T>>, Error> {
-        return Ok(Box::new(Button {
+    type Value = Button<T>;
+    fn new(self) -> Result<Self::Value, Error> {
+        return Ok(Button {
             value_released: self.value.0,
             value_pressed: self.value.1,
             hold_time: self.hold_time,
             state: State::Released,
             trigger: self.trigger,
-        }));
+        });
     }
 }

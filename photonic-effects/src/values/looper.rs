@@ -40,7 +40,8 @@ pub struct LooperDecl<T> {
 
 impl<T> BoundValueDecl<T> for LooperDecl<T>
     where T: Copy + PartialOrd + Num + 'static {
-    fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
+    type Value = Looper<T>;
+    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error> {
         let (min, max) = bounds.into();
 
         let step = if self.step >= T::zero() { self.step } else {
@@ -49,12 +50,12 @@ impl<T> BoundValueDecl<T> for LooperDecl<T>
 
         let max = max + T::one();
 
-        return Ok(Box::new(Looper {
+        return Ok(Looper {
             min,
             max,
             step,
             current: min,
             trigger: self.trigger,
-        }));
+        });
     }
 }

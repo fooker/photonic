@@ -67,27 +67,28 @@ impl Random {
     }
 }
 
-pub struct RaindropsNodeDecl {
-    pub rate: Box<BoundValueDecl<f64>>,
-
-    pub color: Box<UnboundValueDecl<Range<HSLColor>>>,
-    pub decay: Box<BoundValueDecl<Range<f64>>>,
+pub struct RaindropsNodeDecl<Rate, Color, Decay> {
+    pub rate: Rate,
+    pub color: Color,
+    pub decay: Decay,
 }
 
-pub struct RaindropsNode {
-    rate: Box<Value<f64>>,
-
-    color: Box<Value<Range<HSLColor>>>,
-    decay: Box<Value<Range<f64>>>,
+pub struct RaindropsNode<Rate, Color, Decay> {
+    rate: Rate,
+    color: Color,
+    decay: Decay,
 
     raindrops: Vec<Raindrop>,
 
     random: Random,
 }
 
-impl NodeDecl for RaindropsNodeDecl {
+impl<Rate, Color, Decay> NodeDecl for RaindropsNodeDecl<Rate, Color, Decay>
+    where Rate: BoundValueDecl<f64>,
+          Color: UnboundValueDecl<Range<HSLColor>>,
+          Decay: BoundValueDecl<Range<f64>> {
     type Element = HSLColor;
-    type Target = RaindropsNode;
+    type Target = RaindropsNode<Rate::Value, Color::Value, Decay::Value>;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
@@ -100,7 +101,10 @@ impl NodeDecl for RaindropsNodeDecl {
     }
 }
 
-impl Dynamic for RaindropsNode {
+impl<Rate, Color, Decay> Dynamic for RaindropsNode<Rate, Color, Decay>
+    where Rate: Value<f64>,
+          Color: Value<Range<HSLColor>>,
+          Decay: Value<Range<f64>> {
     fn update(&mut self, duration: &Duration) {
         self.rate.update(duration);
         self.color.update(duration);
@@ -117,12 +121,15 @@ impl Dynamic for RaindropsNode {
     }
 }
 
-impl<'a> RenderType<'a> for RaindropsNode {
+impl<'a, Rate, Color, Decay> RenderType<'a> for RaindropsNode<Rate, Color, Decay> {
     type Element = HSLColor;
     type Render = RaindropsRenderer<'a>;
 }
 
-impl Node for RaindropsNode {
+impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
+    where Rate: Value<f64>,
+          Color: Value<Range<HSLColor>>,
+          Decay: Value<Range<f64>> {
     fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
         return RaindropsRenderer(&self.raindrops);
     }

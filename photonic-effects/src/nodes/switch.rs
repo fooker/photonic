@@ -30,18 +30,18 @@ impl<Source> Render for SwitchRenderer<Source>
     }
 }
 
-pub struct SwitchNodeDecl<Source> {
+pub struct SwitchNodeDecl<Source, Position> {
     // TODO: Make sources an iterator?
 
     pub sources: Vec<Handle<Source>>,
-    pub position: Box<BoundValueDecl<usize>>,
+    pub position: Position,
     pub easing: Option<Easing<f64>>,
 }
 
-pub struct SwitchNode<Source> {
+pub struct SwitchNode<Source, Position> {
     sources: Vec<Handle<Source>>,
 
-    position: Box<Value<usize>>,
+    position: Position,
 
     source: usize,
     target: usize,
@@ -51,11 +51,12 @@ pub struct SwitchNode<Source> {
     transition: Animation<f64>,
 }
 
-impl<Source, E> NodeDecl for SwitchNodeDecl<Source>
+impl<Source, Position, E> NodeDecl for SwitchNodeDecl<Source, Position>
     where Source: Node<Element=E>,
+          Position: BoundValueDecl<usize>,
           E: Lerp {
     type Element = E;
-    type Target = SwitchNode<Source>;
+    type Target = SwitchNode<Source, Position::Value>;
 
     fn new(self, _size: usize) -> Result<Self::Target, Error> {
         let position = self.position.new((0, self.sources.len() - 1).into())?;
@@ -72,7 +73,8 @@ impl<Source, E> NodeDecl for SwitchNodeDecl<Source>
     }
 }
 
-impl<Source> Dynamic for SwitchNode<Source> {
+impl<Source, Position> Dynamic for SwitchNode<Source, Position>
+    where Position: Value<usize> {
     fn update(&mut self, duration: &Duration) {
         if let Update::Changed(position) = self.position.update(duration) {
             if let Some(easing) = self.easing {
@@ -95,15 +97,16 @@ impl<Source> Dynamic for SwitchNode<Source> {
     }
 }
 
-impl<'a, Source> RenderType<'a> for SwitchNode<Source>
+impl<'a, Source, Position> RenderType<'a> for SwitchNode<Source, Position>
     where Source: RenderType<'a>,
           Source::Element: Lerp {
     type Element = Source::Element;
     type Render = SwitchRenderer<Source::Render>;
 }
 
-impl<Source, E> Node for SwitchNode<Source>
+impl<Source, Position, E> Node for SwitchNode<Source, Position>
     where Source: Node<Element=E>,
+          Position: Value<usize>,
           E: Lerp {
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return SwitchRenderer {

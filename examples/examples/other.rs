@@ -11,18 +11,13 @@ use photonic_core::color::HSLColor;
 use photonic_core::core::Scene;
 use photonic_core::timer::Timer;
 use photonic_core::value::AsFixedValue;
-use photonic_effects::nodes::alert::AlertNodeDecl;
 use photonic_effects::nodes::larson::LarsonNodeDecl;
 use photonic_effects::nodes::overlay::OverlayNodeDecl;
-use photonic_effects::nodes::plasma::PlasmaNodeDecl;
 use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
-use photonic_effects::nodes::switch::SwitchNodeDecl;
 use photonic_effects::values::button::ButtonDecl;
 use photonic_effects::values::fader::FaderDecl;
-use photonic_effects::values::looper::LooperDecl;
 use photonic_effects::values::sequence::SequenceDecl;
 use photonic_mqtt::MqttHandleBuilder;
-use photonic_net::UdpReciverNodeDecl;
 
 const SIZE: usize = 120;
 const FPS: usize = 60;
@@ -34,7 +29,7 @@ fn main() -> Result<!, Error> {
     let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883)
         .with_realm("photonic");
 
-    let raindrops_color = Box::new(SequenceDecl {
+    let raindrops_color = SequenceDecl {
         values: vec![
             (HSLColor::new(245.31, 0.5, 0.5),
              HSLColor::new(333.47, 0.7, 0.5)),
@@ -44,11 +39,11 @@ fn main() -> Result<!, Error> {
              HSLColor::new(223.92, 0.5, 0.5)),
         ],
         trigger: timer.ticker(Duration::from_secs(5)),
-    });
-    let raindrops_color = Box::new(FaderDecl {
+    };
+    let raindrops_color = FaderDecl {
         input: raindrops_color,
         easing: Easing::with(animation::linear, Duration::from_secs(4)),
-    });
+    };
 
     let raindrops = scene.node("raindrops:violet", RaindropsNodeDecl {
         rate: 0.3_f64.fixed(),
@@ -62,15 +57,15 @@ fn main() -> Result<!, Error> {
         width: 25.0.fixed(),
     })?;
 
-    let overlay_bell_button = Box::new(ButtonDecl {
+    let overlay_bell_button = ButtonDecl {
         value: (0.0, 1.0),
         hold_time: Duration::from_secs(4),
         trigger: mqtt.trigger("bell"),
-    });
-    let overlay_bell_button = Box::new(FaderDecl {
+    };
+    let overlay_bell_button = FaderDecl {
         input: overlay_bell_button,
         easing: Easing::with(animation::linear, Duration::from_secs(2)),
-    });
+    };
 
     let effect = scene.node("bell:overlay", OverlayNodeDecl {
         base: raindrops,

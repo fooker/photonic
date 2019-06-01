@@ -32,25 +32,24 @@ impl<Source> Render for BlackoutRenderer<Source>
     }
 }
 
-pub struct BlackoutNodeDecl<Source> {
+pub struct BlackoutNodeDecl<Source, Value> {
     pub source: Handle<Source>,
-    pub value: Box<BoundValueDecl<f64>>,
+    pub value: Value,
     pub range: Option<(usize, usize)>,
 }
 
-pub struct BlackoutNode<Source> {
+pub struct BlackoutNode<Source, Value> {
     source: Handle<Source>,
-
-    value: Box<Value<f64>>,
-
+    value: Value,
     range: (usize, usize),
 }
 
-impl<Source, E> NodeDecl for BlackoutNodeDecl<Source>
+impl<Source, Value, E> NodeDecl for BlackoutNodeDecl<Source, Value>
     where Source: Node<Element=E>,
+          Value: BoundValueDecl<f64>,
           E: Lerp + Black {
     type Element = E;
-    type Target = BlackoutNode<Source>;
+    type Target = BlackoutNode<Source, Value::Value>;
 
     fn new(self, size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
@@ -61,21 +60,23 @@ impl<Source, E> NodeDecl for BlackoutNodeDecl<Source>
     }
 }
 
-impl<Source> Dynamic for BlackoutNode<Source> {
+impl<Source, Value> Dynamic for BlackoutNode<Source, Value>
+    where Value: self::Value<f64> {
     fn update(&mut self, duration: &Duration) {
         self.value.update(duration);
     }
 }
 
-impl<'a, Source> RenderType<'a> for BlackoutNode<Source>
+impl<'a, Source, Value> RenderType<'a> for BlackoutNode<Source, Value>
     where Source: RenderType<'a>,
           Source::Element: Lerp + Black {
     type Element = Source::Element;
     type Render = BlackoutRenderer<Source::Render>;
 }
 
-impl<Source, E> Node for BlackoutNode<Source>
+impl<Source, Value, E> Node for BlackoutNode<Source, Value>
     where Source: Node<Element=E>,
+          Value: self::Value<f64>,
           E: Lerp + Black {
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return BlackoutRenderer {

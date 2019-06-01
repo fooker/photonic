@@ -44,10 +44,10 @@ fn main() -> Result<!, Error> {
         decay: (0.96, 0.98).fixed(),
     })?;
 
-    let switch_raindrops_timer = Box::new(LooperDecl {
+    let switch_raindrops_timer = LooperDecl {
         step: 1,
         trigger: timer.ticker(Duration::from_secs(5)),
-    });
+    };
 
     let switch_raindrops = scene.node("raindrops", SwitchNodeDecl {
         sources: vec![raindrops_violet, raindrops_orange, raindrops_iceblue],

@@ -7,6 +7,7 @@ use failure::Error;
 use num::{One, Zero};
 
 use crate::math::Lerp;
+use core::borrow::Borrow;
 
 pub enum Update<T> {
     Idle,
@@ -25,7 +26,8 @@ pub struct Bounds<T> {
 }
 
 pub trait UnboundValueDecl<T> {
-    fn new(self: Box<Self>) -> Result<Box<Value<T>>, Error>;
+    type Value: Value<T>;
+    fn new(self) -> Result<Self::Value, Error>;
 }
 
 impl<T> Bounds<T>
@@ -92,10 +94,11 @@ impl<T> Bounded for T where T: PartialOrd + Display {
 }
 
 pub trait BoundValueDecl<T> {
-    fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error>;
+    type Value: Value<T>;
+    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error>;
 }
 
-struct FixedValue<T>(T);
+pub struct FixedValue<T>(T);
 
 impl<T> Value<T> for FixedValue<T>
     where T: Copy {
@@ -112,29 +115,31 @@ pub struct FixedValueDecl<T>(T);
 
 impl<T> UnboundValueDecl<T> for FixedValueDecl<T>
     where T: Copy + 'static {
-    fn new(self: Box<Self>) -> Result<Box<Value<T>>, Error> {
-        return Ok(Box::new(FixedValue(self.0)));
+    type Value = FixedValue<T>;
+    fn new(self) -> Result<Self::Value, Error> {
+        return Ok(FixedValue(self.0));
     }
 }
 
 impl<T> BoundValueDecl<T> for FixedValueDecl<T>
     where T: Copy + Bounded + 'static {
-    fn new(self: Box<Self>, bounds: Bounds<T>) -> Result<Box<Value<T>>, Error> {
+    type Value = FixedValue<T>;
+    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error> {
         let value = bounds.ensure(self.0)?;
 
-        return Ok(Box::new(FixedValue(value)));
+        return Ok(FixedValue(value));
     }
 }
 
 pub trait AsFixedValue<T> {
-    fn fixed(self) -> Box<FixedValueDecl<T>>;
+    fn fixed(self) -> FixedValueDecl<T>;
 }
 
 impl<T, V> AsFixedValue<T> for V
     where V: Copy + 'static,
           T: From<Self> {
-    fn fixed(self) -> Box<FixedValueDecl<T>> {
-        return Box::new(FixedValueDecl(self.into()));
+    fn fixed(self) -> FixedValueDecl<T> {
+        return FixedValueDecl(self.into());
     }
 }
 
@@ -166,6 +171,14 @@ impl<T> Bounded for Range<T>
     }
 }
 
+impl<T> Range<T>
+    where T: Lerp + Copy {
+    pub fn at(&self, i: f64) -> T {
+        return T::lerp(self.0, self.0, i);
+    }
+}
+
+
 impl<T> Lerp for Range<T>
     where T: Lerp {
     fn lerp(a: Self, b: Self, i: f64) -> Self {
@@ -173,5 +186,23 @@ impl<T> Lerp for Range<T>
             Lerp::lerp(a.0, b.0, i),
             Lerp::lerp(a.1, b.1, i),
         );
+    }
+}
+
+impl<V, T> BoundValueDecl<V> for Box<T>
+    where T: BoundValueDecl<V> {
+    type Value = T::Value;
+
+    fn new(self, bounds: Bounds<V>) -> Result<Self::Value, Error> {
+        return T::new(*self, bounds);
+    }
+}
+
+impl<V, T> UnboundValueDecl<V> for Box<T>
+    where T: UnboundValueDecl<V> {
+    type Value = T::Value;
+
+    fn new(self) -> Result<Self::Value, Error> {
+        return T::new(*self);
     }
 }
