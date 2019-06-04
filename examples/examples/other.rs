@@ -9,7 +9,7 @@ use photonic_core::animation;
 use photonic_core::animation::Easing;
 use photonic_core::color::HSLColor;
 use photonic_core::core::Scene;
-use photonic_core::timer::Timer;
+use photonic_core::timer::Ticker;
 use photonic_core::value::AsFixedValue;
 use photonic_effects::nodes::larson::LarsonNodeDecl;
 use photonic_effects::nodes::overlay::OverlayNodeDecl;
@@ -25,7 +25,6 @@ const FPS: usize = 60;
 fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
-    let mut timer = Timer::new();
     let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883)
         .with_realm("photonic");
 
@@ -38,7 +37,7 @@ fn main() -> Result<!, Error> {
             (HSLColor::new(187.5, 0.25, 0.5),
              HSLColor::new(223.92, 0.5, 0.5)),
         ],
-        trigger: timer.ticker(Duration::from_secs(5)),
+        trigger: Ticker::new(&mut scene, "raindrops:ticker", Duration::from_secs(5)),
     };
     let raindrops_color = FaderDecl {
         input: raindrops_color,
@@ -88,13 +87,11 @@ fn main() -> Result<!, Error> {
 //
 //    let effect = scene.node("effect", UdpReciverNodeDecl::<_, RGBColor>::bind("127.0.0.1:7331"))?;
 
-    let mut main = scene.output(effect, ConsoleOutputDecl {
+    let main = scene.output(effect, ConsoleOutputDecl {
         whaterfall: true
     })?;
 
     mqtt.start()?;
-
-    main.register(move |d| timer.update(d));
 
     main.run(FPS)?;
 }

@@ -8,7 +8,7 @@ use photonic_console::ConsoleOutputDecl;
 use photonic_core::animation;
 use photonic_core::animation::Easing;
 use photonic_core::core::Scene;
-use photonic_core::timer::Timer;
+use photonic_core::timer::Ticker;
 use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
 use photonic_effects::nodes::switch::SwitchNodeDecl;
 use photonic_effects::values::looper::LooperDecl;
@@ -20,8 +20,6 @@ const FPS: usize = 60;
 
 fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
-
-    let mut timer = Timer::new();
 
     let raindrops_violet = scene.node("raindrops:violet", RaindropsNodeDecl {
         rate: 0.3_f64.fixed(),
@@ -46,7 +44,7 @@ fn main() -> Result<!, Error> {
 
     let switch_raindrops_timer = LooperDecl {
         step: 1,
-        trigger: timer.ticker(Duration::from_secs(5)),
+        trigger: Ticker::new(&mut scene, "raindrops:ticker", Duration::from_secs(5)),
     };
 
     let switch_raindrops = scene.node("raindrops", SwitchNodeDecl {
@@ -55,11 +53,9 @@ fn main() -> Result<!, Error> {
         easing: Easing::some(animation::linear, Duration::from_secs(4)),
     })?;
 
-    let mut main = scene.output(switch_raindrops, ConsoleOutputDecl {
+    let main = scene.output(switch_raindrops, ConsoleOutputDecl {
         whaterfall: true
     })?;
-
-    main.register(move |d| timer.update(d));
 
     main.run(FPS)?;
 }

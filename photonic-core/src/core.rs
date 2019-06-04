@@ -23,16 +23,23 @@ impl Scene {
         return self.size;
     }
 
-    pub fn node<Node: NodeDecl<Element=E>, E>(&mut self, _name: &str, decl: Node) -> Result<Handle<Node::Target>, Error>
-        where Node::Target: 'static {
-        let node = Box::new(decl.new(self.size())?);
+    pub fn register<D>(&mut self, _name: &str, dynamic: D) -> Handle<D>
+        where D: Dynamic + 'static {
+        let dynamic = Box::new(dynamic);
 
-        self.dynamics.push(node);
+        self.dynamics.push(dynamic);
 
-        return Ok(Handle {
+        return Handle {
             index: self.dynamics.len() - 1,
             phantom: PhantomData,
-        });
+        };
+    }
+
+    pub fn node<Node: NodeDecl<Element=E>, E>(&mut self, name: &str, decl: Node) -> Result<Handle<Node::Target>, Error>
+        where Node::Target: 'static {
+        let node = decl.new(self.size())?;
+
+        return Ok(self.register(name, node));
     }
 
     pub fn output<Node, Output, EN, EO>(self, node: Handle<Node>, decl: Output) -> Result<Loop<Node, Output::Output>, Error>
@@ -43,7 +50,6 @@ impl Scene {
 
         return Ok(Loop {
             scene: self,
-            callbacks: Vec::new(),
             node,
             output,
         });
@@ -119,8 +125,6 @@ pub trait Output {
 pub struct Loop<Node, Output> {
     scene: Scene,
 
-    callbacks: Vec<Box<FnMut(&Duration)>>,
-
     node: Handle<Node>,
     output: Output,
 }
@@ -129,11 +133,6 @@ impl<Node, Output, EN, EO> Loop<Node, Output>
     where Node: self::Node<Element=EN>,
           Output: self::Output<Element=EO>,
           EN: Into<EO> {
-    pub fn register<F>(&mut self, callback: F)
-        where F: FnMut(&Duration) + 'static {
-        self.callbacks.push(Box::new(callback));
-    }
-
     pub fn run(mut self, fps: usize) -> Result<!, Error> {
         let mut timer = FrameTimer::new(fps);
 
@@ -142,12 +141,7 @@ impl<Node, Output, EN, EO> Loop<Node, Output>
         loop {
             let duration = timer.next();
 
-            // Trigger callbacks
-            for callback in self.callbacks.iter_mut() {
-                callback(&duration);
-            }
-
-            // Update nodes
+            // Update all dynamics
             for dynamic in self.scene.dynamics.iter_mut() {
                 dynamic.update(&duration);
             }

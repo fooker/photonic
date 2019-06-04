@@ -9,7 +9,7 @@ use photonic_core::animation;
 use photonic_core::animation::Easing;
 use photonic_core::color::HSLColor;
 use photonic_core::core::Scene;
-use photonic_core::timer::Timer;
+use photonic_core::timer::Ticker;
 use photonic_core::value::AsFixedValue;
 use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
 use photonic_effects::values::sequence::SequenceDecl;
@@ -21,8 +21,6 @@ const FPS: usize = 60;
 fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
-    let mut timer = Timer::new();
-
     let raindrops_color = SequenceDecl {
         values: vec![
             (HSLColor::new(245.31, 0.5, 0.5),
@@ -32,14 +30,14 @@ fn main() -> Result<!, Error> {
             (HSLColor::new(187.5, 0.25, 0.5),
              HSLColor::new(223.92, 0.5, 0.5)),
         ],
-        trigger: timer.ticker(Duration::from_secs(5)),
+        trigger: Ticker::new(&mut scene, "raindrops:ticker", Duration::from_secs(5)),
     };
     let raindrops_color = FaderDecl {
         input: raindrops_color,
         easing: Easing::with(animation::linear, Duration::from_secs(4)),
     };
 
-    let raindrops = scene.node("raindrops:violet", RaindropsNodeDecl {
+    let raindrops = scene.node("raindrops:node", RaindropsNodeDecl {
         rate: 0.3_f64.fixed(),
         color: raindrops_color,
         decay: (0.96, 0.98).fixed(),
@@ -48,8 +46,6 @@ fn main() -> Result<!, Error> {
     let mut main = scene.output(raindrops, ConsoleOutputDecl {
         whaterfall: true
     })?;
-
-    main.register(move |d| timer.update(d));
 
     main.run(FPS)?;
 }

@@ -7,7 +7,6 @@ use failure::Error;
 use num::{One, Zero};
 
 use crate::math::Lerp;
-use core::borrow::Borrow;
 
 pub enum Update<T> {
     Idle,
