@@ -11,4 +11,7 @@ photonic-net = {path="../photonic-net"}
 photonic-console = {path="../photonic-console"}
 photonic-effects = {path="../photonic-effects"}
 photonic-rpi = {path="../photonic-rpi"}
+photonic-exec = {path="../photonic-exec"}
 failure = "0.1"
+shared_memory = "0.8.2"
+byteorder = "1.3"
