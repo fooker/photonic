@@ -1,5 +1,3 @@
-#![feature(duration_float)]
-
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 use std::sync::atomic::{AtomicUsize, Ordering};

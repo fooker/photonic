@@ -30,7 +30,7 @@ impl OutputDecl for ConsoleOutputDecl {
 impl Output for ConsoleOutput {
     type Element = RGBColor;
 
-    fn render<E: Into<Self::Element>>(&mut self, render: &Render<Element=E>) {
+    fn render<E: Into<Self::Element>>(&mut self, render: &dyn Render<Element=E>) {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 

@@ -1,5 +1,3 @@
-#![feature(duration_float)]
-
 use shared_memory::{SharedMemRaw, SharedMemCast, WriteRaw};
 use byteorder::{ReadBytesExt, BigEndian, WriteBytesExt};
 use failure::_core::time::Duration;

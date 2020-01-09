@@ -1,4 +1,3 @@
-#![feature(duration_float)]
 #![feature(never_type)]
 
 pub mod core;

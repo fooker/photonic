@@ -8,7 +8,7 @@ use crate::utils::{FrameStats, FrameTimer};
 pub struct Scene {
     size: usize,
 
-    dynamics: Vec<Box<Dynamic>>,
+    dynamics: Vec<Box<dyn Dynamic>>,
 }
 
 impl Scene {
@@ -65,7 +65,7 @@ impl<D> Handle<D>
     where D: Dynamic {
     fn resolve(&self, scene: &Scene) -> &D {
         let d = scene.dynamics[self.index].as_ref();
-        return unsafe { &*(d as *const Dynamic as *const D) };
+        return unsafe { &*(d as *const dyn Dynamic as *const D) };
     }
 }
 
@@ -85,6 +85,15 @@ pub trait Render {
     type Element;
 
     fn get(&self, index: usize) -> Self::Element;
+}
+
+impl<E, F> Render for F
+    where F: Fn(usize) -> E {
+    type Element = E;
+
+    fn get(&self, index: usize) -> Self::Element {
+        return self(index);
+    }
 }
 
 pub trait NodeDecl {
@@ -119,7 +128,7 @@ pub trait OutputDecl {
 pub trait Output {
     type Element;
 
-    fn render<E: Into<Self::Element>>(&mut self, render: &Render<Element=E>);
+    fn render<E: Into<Self::Element>>(&mut self, render: &dyn Render<Element=E>);
 }
 
 pub struct Loop<Node, Output> {

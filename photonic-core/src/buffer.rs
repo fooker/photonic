@@ -79,6 +79,18 @@ impl<'a, E> Render for Buffer<E>
     }
 }
 
+impl<E> AsRef<[E]> for Buffer<E> {
+    fn as_ref(&self) -> &[E] {
+        return self.data.as_ref();
+    }
+}
+
+impl<E> AsMut<[E]> for Buffer<E> {
+    fn as_mut(&mut self) -> &mut [E] {
+        return self.data.as_mut();
+    }
+}
+
 impl<'a, E> Render for &'a Buffer<E>
     where E: Copy {
     type Element = E;

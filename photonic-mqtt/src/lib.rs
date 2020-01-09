@@ -14,7 +14,7 @@ pub struct MqttHandleBuilder {
 
     realm: Option<String>,
 
-    endpoints: HashMap<String, Box<FnMut(String) + Send>>,
+    endpoints: HashMap<String, Box<dyn FnMut(String) + Send>>,
 }
 
 impl MqttHandleBuilder {
