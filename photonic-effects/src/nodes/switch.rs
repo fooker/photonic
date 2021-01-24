@@ -30,18 +30,18 @@ impl<Source> Render for SwitchRenderer<Source>
     }
 }
 
-pub struct SwitchNodeDecl<Source, Position> {
+pub struct SwitchNodeDecl<Source, Fade> {
     // TODO: Make sources an iterator?
 
-    pub sources: Vec<Handle<Source>>,
-    pub position: Position,
+    pub sources: Vec<NodeRef<Source>>,
+    pub fade: Fade,
     pub easing: Option<Easing<f64>>,
 }
 
-pub struct SwitchNode<Source, Position> {
-    sources: Vec<Handle<Source>>,
+pub struct SwitchNode<Source, Fade> {
+    sources: Vec<NodeHandle<Source>>,
 
-    position: Position,
+    fade: Fade,
 
     source: usize,
     target: usize,
@@ -51,19 +51,24 @@ pub struct SwitchNode<Source, Position> {
     transition: Animation<f64>,
 }
 
-impl<Source, Position, E> NodeDecl for SwitchNodeDecl<Source, Position>
+impl<Source, Fade, E> NodeDecl for SwitchNodeDecl<Source, Fade>
     where Source: Node<Element=E>,
-          Position: BoundValueDecl<usize>,
+          Fade: BoundValueDecl<usize>,
           E: Lerp {
     type Element = E;
-    type Target = SwitchNode<Source, Position::Value>;
+    type Target = SwitchNode<Source, Fade::Value>;
 
-    fn new(self, _size: usize) -> Result<Self::Target, Error> {
-        let position = self.position.new((0, self.sources.len() - 1).into())?;
+    fn materialize(self, _size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+        let sources = self.sources.into_iter()
+            .enumerate()
+            .map(|(i, source)| builder.node(&format!("source-{}", i), source))
+            .collect::<Result<Vec<_>, Error>>()?;
+
+        let fade = builder.bound_value("fade", self.fade, (0, sources.len() - 1))?;
 
         return Ok(Self::Target {
-            sources: self.sources,
-            position,
+            sources,
+            fade,
             source: 0,
             target: 0,
             blend: 0.0,
@@ -73,18 +78,27 @@ impl<Source, Position, E> NodeDecl for SwitchNodeDecl<Source, Position>
     }
 }
 
-impl<Source, Position> Dynamic for SwitchNode<Source, Position>
-    where Position: Value<usize> {
+impl<'a, Source, Fade> RenderType<'a> for SwitchNode<Source, Fade>
+    where Source: RenderType<'a>,
+          Source::Element: Lerp {
+    type Element = Source::Element;
+    type Render = SwitchRenderer<Source::Render>;
+}
+
+impl<Source, Fade, E> Node for SwitchNode<Source, Fade>
+    where Source: Node<Element=E>,
+          Fade: Value<usize>,
+          E: Lerp {
     fn update(&mut self, duration: &Duration) {
-        if let Update::Changed(position) = self.position.update(duration) {
+        if let Update::Changed(fade) = self.fade.update(duration) {
             if let Some(easing) = self.easing {
                 self.source = self.target;
-                self.target = position;
+                self.target = fade;
                 self.blend = 0.0;
                 self.transition.start(easing, 0.0, 1.0);
             } else {
-                self.source = position;
-                self.target = position;
+                self.source = fade;
+                self.target = fade;
             }
         }
 
@@ -95,19 +109,7 @@ impl<Source, Position> Dynamic for SwitchNode<Source, Position>
             self.blend = 0.0;
         }
     }
-}
 
-impl<'a, Source, Position> RenderType<'a> for SwitchNode<Source, Position>
-    where Source: RenderType<'a>,
-          Source::Element: Lerp {
-    type Element = Source::Element;
-    type Render = SwitchRenderer<Source::Render>;
-}
-
-impl<Source, Position, E> Node for SwitchNode<Source, Position>
-    where Source: Node<Element=E>,
-          Position: Value<usize>,
-          E: Lerp {
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return SwitchRenderer {
             source: renderer.render(&self.sources[self.source]),

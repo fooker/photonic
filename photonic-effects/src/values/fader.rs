@@ -5,6 +5,7 @@ use failure::Error;
 use photonic_core::animation::{Animation, Easing, Transition};
 use photonic_core::math::Lerp;
 use photonic_core::value::*;
+use photonic_core::core::SceneBuilder;
 
 pub struct Fader<Input, F>
     where F: Lerp {
@@ -45,8 +46,8 @@ impl<Input, F> BoundValueDecl<F> for FaderDecl<Input>
     where F: Lerp + Bounded + Copy + 'static,
           Input: BoundValueDecl<F> {
     type Value = Fader<Input::Value, F>;
-    fn new(self, bounds: Bounds<F>) -> Result<Self::Value, Error> {
-        let input = self.input.new(bounds)?;
+    fn meterialize(self, bounds: Bounds<F>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+        let input = builder.bound_value("input", self.input, bounds)?;
 
         let current = input.get();
 
@@ -63,8 +64,8 @@ impl<Input, F> UnboundValueDecl<F> for FaderDecl<Input>
     where F: Lerp + Copy + 'static,
           Input: UnboundValueDecl<F> {
     type Value = Fader<Input::Value, F>;
-    fn new(self) -> Result<Self::Value, Error> {
-        let input = self.input.new()?;
+    fn meterialize(self, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+        let input = builder.unbound_value("input", self.input)?;
 
         let current = input.get();
 

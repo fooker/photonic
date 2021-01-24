@@ -28,28 +28,29 @@ fn main() -> Result<!, Error> {
         decay: (0.96, 0.98).fixed(),
     })?;
 
-    let raindrops_orange = scene.node("raindrops:violet", RaindropsNodeDecl {
+    let raindrops_orange = scene.node("raindrops:orange", RaindropsNodeDecl {
         rate: 0.3_f64.fixed(),
         color: (HSLColor::new(0.0, 0.45, 0.5),
                 HSLColor::new(17.5, 0.55, 0.5)).fixed(),
         decay: (0.96, 0.98).fixed(),
     })?;
 
-    let raindrops_iceblue = scene.node("raindrops:violet", RaindropsNodeDecl {
+    let raindrops_iceblue = scene.node("raindrops:iceblue", RaindropsNodeDecl {
         rate: 0.3_f64.fixed(),
         color: (HSLColor::new(187.5, 0.25, 0.5),
                 HSLColor::new(223.92, 0.5, 0.5)).fixed(),
         decay: (0.96, 0.98).fixed(),
     })?;
 
+    let ticker = Ticker::new(Duration::from_secs(5));
     let switch_raindrops_timer = LooperDecl {
         step: 1,
-        trigger: Ticker::new(&mut scene, "raindrops:ticker", Duration::from_secs(5)),
+        trigger: ticker.1,
     };
 
     let switch_raindrops = scene.node("raindrops", SwitchNodeDecl {
         sources: vec![raindrops_violet, raindrops_orange, raindrops_iceblue],
-        position: switch_raindrops_timer,
+        fade: switch_raindrops_timer,
         easing: Easing::some(animation::linear, Duration::from_secs(4)),
     })?;
 

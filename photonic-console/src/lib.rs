@@ -19,7 +19,7 @@ impl OutputDecl for ConsoleOutputDecl {
     type Element = RGBColor;
     type Output = ConsoleOutput;
 
-    fn new(self, size: usize) -> Result<Self::Output, Error> {
+    fn materialize(self, size: usize) -> Result<Self::Output, Error> {
         return Ok(Self::Output {
             size,
             whaterfall: self.whaterfall,

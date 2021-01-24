@@ -6,6 +6,7 @@ use rand::prelude::{FromEntropy, Rng, SmallRng};
 
 use photonic_core::input::{Input, Poll};
 use photonic_core::value::*;
+use photonic_core::core::SceneBuilder;
 
 pub struct Random<T> {
     bounds: Bounds<T>,
@@ -40,17 +41,19 @@ pub struct RandomDecl {
 impl<T> BoundValueDecl<T> for RandomDecl
     where T: Copy + SampleUniform + 'static {
     type Value = Random<T>;
-    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error> {
+    fn meterialize(self, bounds: Bounds<T>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
         let mut random = SmallRng::from_entropy();
 
         // Generate a random initial value
         let current = random.gen_range(bounds.min, bounds.max);
 
+        let trigger = builder.input("trigger", self.trigger)?;
+
         return Ok(Random {
             bounds,
             current,
             random,
-            trigger: self.trigger,
+            trigger,
         });
     }
 }

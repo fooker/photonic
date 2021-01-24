@@ -38,7 +38,6 @@ impl Direction {
     }
 }
 
-
 pub struct LarsonNodeDecl<Hue, Speed, Width> {
     pub hue: Hue,
     pub speed: Speed,
@@ -64,19 +63,24 @@ impl<Hue, Speed, Width> NodeDecl for LarsonNodeDecl<Hue, Speed, Width>
     type Element = HSVColor;
     type Target = LarsonNode<Hue::Value, Speed::Value, Width::Value>;
 
-    fn new(self, size: usize) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             size,
-            hue: self.hue.new((0.0, 360.0).into())?,
-            speed: self.speed.new()?,
-            width: self.width.new((0.0, size as f64).into())?,
+            hue: builder.bound_value("hue", self.hue,(0.0, 360.0))?,
+            speed: builder.unbound_value("speed", self.speed)?,
+            width: builder.bound_value("width", self.width, (0.0, size as f64))?,
             position: 0.0,
             direction: Direction::Right,
         });
     }
 }
 
-impl<Hue, Speed, Width> Dynamic for LarsonNode<Hue, Speed, Width>
+impl<Hue, Speed, Width> RenderType<'_> for LarsonNode<Hue, Speed, Width> {
+    type Element = HSVColor;
+    type Render = LarsonRenderer;
+}
+
+impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
     where Hue: Value<f64>,
           Speed: Value<f64>,
           Width: Value<f64> {
@@ -103,17 +107,7 @@ impl<Hue, Speed, Width> Dynamic for LarsonNode<Hue, Speed, Width>
             }
         }
     }
-}
 
-impl<Hue, Speed, Width> RenderType<'_> for LarsonNode<Hue, Speed, Width> {
-    type Element = HSVColor;
-    type Render = LarsonRenderer;
-}
-
-impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
-    where Hue: Value<f64>,
-          Speed: Value<f64>,
-          Width: Value<f64> {
     fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
         return LarsonRenderer {
             hue: self.hue.get(),

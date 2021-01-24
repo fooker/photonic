@@ -32,15 +32,15 @@ impl<Base, Overlay> Render for OverlayRenderer<Base, Overlay>
 }
 
 pub struct OverlayNodeDecl<Base, Overlay, Blend> {
-    pub base: Handle<Base>,
-    pub overlay: Handle<Overlay>,
+    pub base: NodeRef<Base>,
+    pub overlay: NodeRef<Overlay>,
 
     pub blend: Blend,
 }
 
 pub struct OverlayNode<Base, Overlay, Blend> {
-    base: Handle<Base>,
-    overlay: Handle<Overlay>,
+    base: NodeHandle<Base>,
+    overlay: NodeHandle<Overlay>,
 
     blend: Blend,
 }
@@ -54,19 +54,12 @@ impl<Base, Overlay, Blend, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay, B
     type Element = EB;
     type Target = OverlayNode<Base, Overlay, Blend::Value>;
 
-    fn new(self, _size: usize) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
-            base: self.base,
-            overlay: self.overlay,
-            blend: self.blend.new(Bounds::norm())?,
+            base: builder.node("base", self.base)?,
+            overlay: builder.node("overlay", self.overlay)?,
+            blend: builder.bound_value("blend", self.blend, Bounds::normal())?,
         });
-    }
-}
-
-impl<Base, Overlay, Blend> Dynamic for OverlayNode<Base, Overlay, Blend>
-    where Blend: Value<f64> {
-    fn update(&mut self, duration: &Duration) {
-        self.blend.update(duration);
     }
 }
 
@@ -85,6 +78,10 @@ impl<Base, Overlay, Blend, EB, EO> Node for OverlayNode<Base, Overlay, Blend>
           Blend: Value<f64>,
           EB: Lerp,
           EO: Into<EB> {
+    fn update(&mut self, duration: &Duration) {
+        self.blend.update(duration);
+    }
+
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return OverlayRenderer {
             base: renderer.render(&self.base),

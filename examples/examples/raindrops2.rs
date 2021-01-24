@@ -21,6 +21,7 @@ const FPS: usize = 60;
 fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
+    let ticker = Ticker::new(Duration::from_secs(5));
     let raindrops_color = SequenceDecl {
         values: vec![
             (HSLColor::new(245.31, 0.5, 0.5),
@@ -30,7 +31,7 @@ fn main() -> Result<!, Error> {
             (HSLColor::new(187.5, 0.25, 0.5),
              HSLColor::new(223.92, 0.5, 0.5)),
         ],
-        trigger: Ticker::new(&mut scene, "raindrops:ticker", Duration::from_secs(5)),
+        trigger: ticker.1,
     };
     let raindrops_color = FaderDecl {
         input: raindrops_color,

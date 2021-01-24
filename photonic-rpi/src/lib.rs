@@ -23,7 +23,7 @@ impl OutputDecl for StripDecl {
     type Element = RGBColor;
     type Output = Strip;
 
-    fn new(self, size: usize) -> Result<Self::Output, Error> {
+    fn materialize(self, size: usize) -> Result<Self::Output, Error> {
         let controller = rs_ws281x::ControllerBuilder::new()
             .freq(800_000)
             .channel(0, rs_ws281x::ChannelBuilder::new()

@@ -5,6 +5,7 @@ use failure::Error;
 
 use photonic_core::input::{Input, Poll};
 use photonic_core::value::*;
+use photonic_core::core::SceneBuilder;
 
 #[derive(Clone, Copy, Debug)]
 enum State {
@@ -81,13 +82,13 @@ pub struct ButtonDecl<T> {
 impl<T> BoundValueDecl<T> for ButtonDecl<T>
     where T: Copy + Bounded + Display + 'static {
     type Value = Button<T>;
-    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error> {
+    fn meterialize(self, bounds: Bounds<T>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
         return Ok(Button {
             value_released: bounds.ensure(self.value.0)?,
             value_pressed: bounds.ensure(self.value.1)?,
             hold_time: self.hold_time,
             state: State::Released,
-            trigger: self.trigger,
+            trigger: builder.input("trigger", self.trigger)?,
         });
     }
 }
@@ -95,13 +96,13 @@ impl<T> BoundValueDecl<T> for ButtonDecl<T>
 impl<T> UnboundValueDecl<T> for ButtonDecl<T>
     where T: Copy + 'static {
     type Value = Button<T>;
-    fn new(self) -> Result<Self::Value, Error> {
+    fn meterialize(self, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
         return Ok(Button {
             value_released: self.value.0,
             value_pressed: self.value.1,
             hold_time: self.hold_time,
             state: State::Released,
-            trigger: self.trigger,
+            trigger: builder.input("trigger", self.trigger)?,
         });
     }
 }

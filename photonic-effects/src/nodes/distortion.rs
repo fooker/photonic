@@ -29,13 +29,13 @@ impl<'a, Source, F> Render for DistortionRenderer<'a, Source, F>
 }
 
 pub struct DistortionNodeDecl<Source, Value, F> {
-    pub source: Handle<Source>,
+    pub source: NodeRef<Source>,
     pub value: Value,
     pub distortion: F,
 }
 
 pub struct DistortionNode<Source, Value, F> {
-    source: Handle<Source>,
+    source: NodeHandle<Source>,
     value: Value,
     distortion: F,
 
@@ -50,22 +50,13 @@ impl<Source, Value, F, E> NodeDecl for DistortionNodeDecl<Source, Value, F>
     type Element = E;
     type Target = DistortionNode<Source, Value::Value, F>;
 
-    fn new(self, _size: usize) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
-            source: self.source,
-            value: self.value.new(Bounds::norm())?,
+            source: builder.node("source", self.source)?,
+            value: builder.bound_value("value", self.value, Bounds::normal())?,
             distortion: self.distortion,
             time: 0.0,
         });
-    }
-}
-
-impl<Source, Value, F> Dynamic for DistortionNode<Source, Value, F>
-    where Value: self::Value<f64> {
-    fn update(&mut self, duration: &Duration) {
-        self.value.update(duration);
-
-        self.time += duration.as_secs_f64();
     }
 }
 
@@ -82,6 +73,12 @@ impl<Source, Value, E, F> Node for DistortionNode<Source, Value, F>
           Value: self::Value<f64>,
           E: Lerp,
           F: Fn(&E, f64) -> E + 'static {
+    fn update(&mut self, duration: &Duration) {
+        self.value.update(duration);
+
+        self.time += duration.as_secs_f64();
+    }
+
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return DistortionRenderer {
             source: renderer.render(&self.source),

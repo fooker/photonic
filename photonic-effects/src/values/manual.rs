@@ -5,11 +5,12 @@ use failure::Error;
 
 use photonic_core::input::{Input, Poll};
 use photonic_core::value::*;
+use photonic_core::core::SceneBuilder;
 
 pub struct BoundManual<T> {
     bounds: Bounds<T>,
 
-    input: Input<T>,
+    value: Input<T>,
     current: T,
 }
 
@@ -20,7 +21,7 @@ impl<T> Value<T> for BoundManual<T>
     }
 
     fn update(&mut self, _duration: &Duration) -> Update<T> {
-        if let Poll::Ready(update) = self.input.poll() {
+        if let Poll::Ready(update) = self.value.poll() {
             if let Ok(update) = self.bounds.ensure(update) {
                 self.current = update;
                 return Update::Changed(self.current);
@@ -34,7 +35,7 @@ impl<T> Value<T> for BoundManual<T>
 }
 
 pub struct UnboundManual<T> {
-    input: Input<T>,
+    value: Input<T>,
     current: T,
 }
 
@@ -45,7 +46,7 @@ impl<T> Value<T> for UnboundManual<T>
     }
 
     fn update(&mut self, _duration: &Duration) -> Update<T> {
-        if let Poll::Ready(update) = self.input.poll() {
+        if let Poll::Ready(update) = self.value.poll() {
             self.current = update;
             return Update::Changed(self.current);
         } else {
@@ -55,24 +56,27 @@ impl<T> Value<T> for UnboundManual<T>
 }
 
 pub struct ManualDecl<T> {
-    pub input: Input<T>,
+    pub value: Input<T>,
 }
 
 impl<T> From<Input<T>> for ManualDecl<T> {
-    fn from(input: Input<T>) -> Self {
-        return Self { input };
+    fn from(value: Input<T>) -> Self {
+        return Self { value };
     }
 }
 
 impl<T> BoundValueDecl<T> for ManualDecl<T>
     where T: Copy + Bounded + Display + 'static {
     type Value = BoundManual<T>;
-    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error> {
+
+    fn meterialize(self, bounds: Bounds<T>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+        let value = builder.input("value", self.value)?;
+
         let current = bounds.min;
 
         return Ok(BoundManual {
             bounds,
-            input: self.input,
+            value,
             current,
         });
     }
@@ -81,10 +85,15 @@ impl<T> BoundValueDecl<T> for ManualDecl<T>
 impl<T> UnboundValueDecl<T> for ManualDecl<T>
     where T: Copy + Default + 'static {
     type Value = UnboundManual<T>;
-    fn new(self) -> Result<Self::Value, Error> {
+
+    fn meterialize(self, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+        let value = builder.input("value", self.value)?;
+
+        let current = T::default();
+
         return Ok(UnboundManual {
-            input: self.input,
-            current: T::default(),
+            value,
+            current,
         });
     }
 }

@@ -48,7 +48,7 @@ impl NodeDecl for ExecNodeDecl {
     type Element = RGBColor;
     type Target = ExecNode;
 
-    fn new(self, size: usize) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, _builder: SceneBuilder) -> Result<Self::Target, Error> {
         let command = shlex::split(&self.command)
             .ok_or(format_err!("Invalid command: {}", &self.command))?;
         let (command, args) = command.split_first()
@@ -75,7 +75,12 @@ impl NodeDecl for ExecNodeDecl {
     }
 }
 
-impl Dynamic for ExecNode {
+impl<'a> RenderType<'a> for ExecNode {
+    type Element = RGBColor;
+    type Render = ExecRenderer<'a>;
+}
+
+impl Node for ExecNode {
     fn update(&mut self, duration: &Duration) {
         let stdin = self.child.stdin.as_mut()
             .expect("StdIn missing");
@@ -93,14 +98,7 @@ impl Dynamic for ExecNode {
         stdout.read_u8()
             .expect("Failed to write to child process");
     }
-}
 
-impl<'a> RenderType<'a> for ExecNode {
-    type Element = RGBColor;
-    type Render = ExecRenderer<'a>;
-}
-
-impl Node for ExecNode {
     fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
         return ExecRenderer {
             shm: &self.shm,

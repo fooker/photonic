@@ -34,3 +34,4 @@ impl<T> Sink<T> {
         self.value.store(Poll::Ready(next));
     }
 }
+

@@ -58,33 +58,19 @@ impl<Range, Scale, Speed, E> NodeDecl for PlasmaNodeDecl<Range, Scale, Speed, E>
     type Element = E;
     type Target = PlasmaNode<Range::Value, Scale::Value, Speed::Value, E>;
 
-    fn new(self, _size: usize) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             perlin: Perlin::new()
                 .set_seed(1),
 
-            range: self.range.new()?,
-            scale: self.scale.new()?,
-            speed: self.speed.new()?,
+            range: builder.unbound_value("range", self.range)?,
+            scale: builder.unbound_value("scale", self.scale)?,
+            speed: builder.unbound_value("speed", self.speed)?,
 
             time: 0.0,
 
             phantom: self.phantom,
         });
-    }
-}
-
-impl<Range, Scale, Speed, E> Dynamic for PlasmaNode<Range, Scale, Speed, E>
-    where Range: Value<self::Range<E>>,
-          Scale: Value<f64>,
-          Speed: Value<f64>,
-          E: Lerp + Copy + 'static {
-    fn update(&mut self, duration: &Duration) {
-        self.range.update(duration);
-        self.scale.update(duration);
-        self.speed.update(duration);
-
-        self.time += duration.as_secs_f64() * self.speed.get();
     }
 }
 
@@ -99,6 +85,14 @@ impl<Range, Scale, Speed, E> Node for PlasmaNode<Range, Scale, Speed, E>
           Scale: Value<f64>,
           Speed: Value<f64>,
           E: Lerp + Copy + 'static {
+    fn update(&mut self, duration: &Duration) {
+        self.range.update(duration);
+        self.scale.update(duration);
+        self.speed.update(duration);
+
+        self.time += duration.as_secs_f64() * self.speed.get();
+    }
+
     fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return PlasmaRenderer {
             noise: &self.perlin,

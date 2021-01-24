@@ -90,18 +90,23 @@ impl<Rate, Color, Decay> NodeDecl for RaindropsNodeDecl<Rate, Color, Decay>
     type Element = HSLColor;
     type Target = RaindropsNode<Rate::Value, Color::Value, Decay::Value>;
 
-    fn new(self, size: usize) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
-            rate: self.rate.new(Bounds::norm())?,
-            color: self.color.new()?,
-            decay: self.decay.new(Bounds { min: (0.0, 0.0).into(), max: (1.0, 1.0).into() })?,
+            rate: builder.bound_value("rate", self.rate, Bounds::normal())?,
+            color: builder.unbound_value("color", self.color)?,
+            decay: builder.bound_value("decay", self.decay, Bounds { min: Range(0.0, 0.0), max: Range(1.0, 1.0) })?,
             raindrops: vec![Raindrop::default(); size],
             random: Random::new(),
         });
     }
 }
 
-impl<Rate, Color, Decay> Dynamic for RaindropsNode<Rate, Color, Decay>
+impl<'a, Rate, Color, Decay> RenderType<'a> for RaindropsNode<Rate, Color, Decay> {
+    type Element = HSLColor;
+    type Render = RaindropsRenderer<'a>;
+}
+
+impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
     where Rate: Value<f64>,
           Color: Value<Range<HSLColor>>,
           Decay: Value<Range<f64>> {
@@ -119,17 +124,7 @@ impl<Rate, Color, Decay> Dynamic for RaindropsNode<Rate, Color, Decay>
             }
         }
     }
-}
 
-impl<'a, Rate, Color, Decay> RenderType<'a> for RaindropsNode<Rate, Color, Decay> {
-    type Element = HSLColor;
-    type Render = RaindropsRenderer<'a>;
-}
-
-impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
-    where Rate: Value<f64>,
-          Color: Value<Range<HSLColor>>,
-          Decay: Value<Range<f64>> {
     fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
         return RaindropsRenderer(&self.raindrops);
     }

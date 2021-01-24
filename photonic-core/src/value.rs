@@ -7,6 +7,7 @@ use failure::Error;
 use num::{One, Zero};
 
 use crate::math::Lerp;
+use crate::core::SceneBuilder;
 
 pub enum Update<T> {
     Idle,
@@ -26,12 +27,12 @@ pub struct Bounds<T> {
 
 pub trait UnboundValueDecl<T> {
     type Value: Value<T>;
-    fn new(self) -> Result<Self::Value, Error>;
+    fn meterialize(self, builder: &mut SceneBuilder) -> Result<Self::Value, Error>;
 }
 
 impl<T> Bounds<T>
     where T: Zero + One {
-    pub fn norm() -> Self {
+    pub fn normal() -> Self {
         return Self {
             min: T::zero(),
             max: T::one(),
@@ -94,7 +95,7 @@ impl<T> Bounded for T where T: PartialOrd + Display {
 
 pub trait BoundValueDecl<T> {
     type Value: Value<T>;
-    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error>;
+    fn meterialize(self, bounds: Bounds<T>, builder: &mut SceneBuilder) -> Result<Self::Value, Error>;
 }
 
 pub struct FixedValue<T>(T);
@@ -115,7 +116,7 @@ pub struct FixedValueDecl<T>(T);
 impl<T> UnboundValueDecl<T> for FixedValueDecl<T>
     where T: Copy + 'static {
     type Value = FixedValue<T>;
-    fn new(self) -> Result<Self::Value, Error> {
+    fn meterialize(self, _builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
         return Ok(FixedValue(self.0));
     }
 }
@@ -123,7 +124,7 @@ impl<T> UnboundValueDecl<T> for FixedValueDecl<T>
 impl<T> BoundValueDecl<T> for FixedValueDecl<T>
     where T: Copy + Bounded + 'static {
     type Value = FixedValue<T>;
-    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error> {
+    fn meterialize(self, bounds: Bounds<T>, _builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
         let value = bounds.ensure(self.0)?;
 
         return Ok(FixedValue(value));
@@ -192,8 +193,8 @@ impl<V, T> BoundValueDecl<V> for Box<T>
     where T: BoundValueDecl<V> {
     type Value = T::Value;
 
-    fn new(self, bounds: Bounds<V>) -> Result<Self::Value, Error> {
-        return T::new(*self, bounds);
+    fn meterialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+        return T::meterialize(*self, bounds, builder);
     }
 }
 
@@ -201,7 +202,7 @@ impl<V, T> UnboundValueDecl<V> for Box<T>
     where T: UnboundValueDecl<V> {
     type Value = T::Value;
 
-    fn new(self) -> Result<Self::Value, Error> {
-        return T::new(*self);
+    fn meterialize(self, builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+        return T::meterialize(*self, builder);
     }
 }

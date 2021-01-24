@@ -4,6 +4,7 @@ use failure::Error;
 
 use photonic_core::input::{Input, Poll};
 use photonic_core::value::*;
+use photonic_core::core::SceneBuilder;
 
 pub struct Sequence<T> {
     values: Vec<T>,
@@ -37,15 +38,17 @@ pub struct SequenceDecl<T> {
 impl<T, V> BoundValueDecl<V> for SequenceDecl<T>
     where V: From<T> + Bounded + Copy + 'static {
     type Value = Sequence<V>;
-    fn new(self, bounds: Bounds<V>) -> Result<Self::Value, Error> {
+    fn meterialize(self, bounds: Bounds<V>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
         let values = self.values.into_iter()
             .map(|v| bounds.ensure(v.into()))
             .collect::<Result<Vec<V>, Error>>()?;
 
+        let trigger = builder.input("trigger", self.trigger)?;
+
         return Ok(Sequence {
             values,
             position: 0,
-            trigger: self.trigger,
+            trigger,
         });
     }
 }
@@ -53,15 +56,17 @@ impl<T, V> BoundValueDecl<V> for SequenceDecl<T>
 impl<T, V> UnboundValueDecl<V> for SequenceDecl<T>
     where V: From<T> + Copy + 'static {
     type Value = Sequence<V>;
-    fn new(self) -> Result<Self::Value, Error> {
+    fn meterialize(self, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
         let values = self.values.into_iter()
             .map(|v| v.into())
             .collect();
 
+        let trigger = builder.input("trigger", self.trigger)?;
+
         return Ok(Sequence {
             values,
             position: 0,
-            trigger: self.trigger,
+            trigger,
         });
     }
 }

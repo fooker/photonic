@@ -5,6 +5,7 @@ use num::traits::Num;
 
 use photonic_core::input::{Input, Poll};
 use photonic_core::value::*;
+use photonic_core::core::SceneBuilder;
 
 pub struct Looper<T>
     where T: Num {
@@ -41,7 +42,7 @@ pub struct LooperDecl<T> {
 impl<T> BoundValueDecl<T> for LooperDecl<T>
     where T: Copy + PartialOrd + Num + 'static {
     type Value = Looper<T>;
-    fn new(self, bounds: Bounds<T>) -> Result<Self::Value, Error> {
+    fn meterialize(self, bounds: Bounds<T>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
         let (min, max) = bounds.into();
 
         let step = if self.step >= T::zero() { self.step } else {
@@ -55,7 +56,7 @@ impl<T> BoundValueDecl<T> for LooperDecl<T>
             max,
             step,
             current: min,
-            trigger: self.trigger,
+            trigger: builder.input("trigger", self.trigger)?,
         });
     }
 }

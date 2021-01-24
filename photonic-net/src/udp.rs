@@ -61,7 +61,7 @@ impl<A, F> NodeDecl for ReceiverNodeDecl<A, F>
     type Element = F::Element;
     type Target = ReceiverNode<F>;
 
-    fn new(self, size: usize) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, _builder: SceneBuilder) -> Result<Self::Target, Error> {
         let socket = UdpSocket::bind(self.address)?;
         socket.set_nonblocking(true).unwrap();
 
@@ -74,8 +74,14 @@ impl<A, F> NodeDecl for ReceiverNodeDecl<A, F>
     }
 }
 
-impl<F> Dynamic for ReceiverNode<F>
-    where F: Format {
+impl<'a, F> RenderType<'a> for ReceiverNode<F>
+    where F: Format + 'static {
+    type Element = F::Element;
+    type Render = &'a Buffer<F::Element>;
+}
+
+impl<F> Node for ReceiverNode<F>
+    where F: Format + 'static {
     fn update(&mut self, _duration: &Duration) {
         // Read all packets available without blocking but only use last one
         loop {
@@ -90,16 +96,7 @@ impl<F> Dynamic for ReceiverNode<F>
                       self.buffer.chunks(F::ELEMENT_SIZE))
             .for_each(|(o, b)| *o = F::load(b));
     }
-}
 
-impl<'a, F> RenderType<'a> for ReceiverNode<F>
-    where F: Format + 'static {
-    type Element = F::Element;
-    type Render = &'a Buffer<F::Element>;
-}
-
-impl<F> Node for ReceiverNode<F>
-    where F: Format + 'static {
     fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return &self.output;
     }

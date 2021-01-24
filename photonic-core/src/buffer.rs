@@ -38,11 +38,11 @@ impl<E> Buffer<E> {
     }
 
     pub fn get(&self, index: usize) -> &E {
-        return &self.data[index];
+        return &self.data[index % self.data.len()];
     }
 
     pub fn set(&mut self, index: usize, value: E) {
-        self.data[index] = value
+        self.data[index % self.data.len()] = value
     }
 
     pub fn iter(&self) -> impl Iterator<Item=&E> {
@@ -52,10 +52,6 @@ impl<E> Buffer<E> {
     pub fn iter_mut(&mut self) -> impl Iterator<Item=&mut E> {
         self.data.iter_mut()
     }
-}
-
-impl<E> Dynamic for Buffer<E> {
-    fn update(&mut self, _duration: &Duration) {}
 }
 
 impl<'a, E> RenderType<'a> for Buffer<E>
@@ -69,6 +65,8 @@ impl<E> Node for Buffer<E>
     fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return self;
     }
+
+    fn update(&mut self, _duration: &Duration) {}
 }
 
 impl<'a, E> Render for Buffer<E>

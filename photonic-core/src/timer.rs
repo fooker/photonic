@@ -1,37 +1,26 @@
 use std::time::Duration;
 
-use crate::core::{Dynamic, Scene};
+use crate::core::{Scene};
 use crate::input::{Input, Sink};
+use std::thread::JoinHandle;
 
 pub struct Ticker {
-    duration: Duration,
-    remaining: Duration,
-    sink: Sink<()>,
+    thread: JoinHandle<()>,
 }
 
 impl Ticker {
-    pub fn new(scene: &mut Scene, name: &str, duration: Duration) -> Input<()> {
-        let (input, sink) = Input::new();
+    pub fn new(duration: Duration) -> (Self, Input<()>) {
+        let (input, mut sink) = Input::new();
 
-        let ticker = Ticker {
-            duration,
-            remaining: duration,
-            sink,
-        };
+        let thread = std::thread::spawn(move || {
+            loop {
+                std::thread::sleep(duration);
+                sink.send(());
+            }
+        });
 
-        scene.register(name, ticker);
-
-        return input;
-    }
-}
-
-impl Dynamic for Ticker {
-    fn update(&mut self, duration: &Duration) {
-        if self.remaining < *duration {
-            self.remaining += self.duration - *duration;
-            self.sink.send(());
-        } else {
-            self.remaining -= *duration;
-        }
+        return (Ticker {
+            thread,
+        }, input);
     }
 }
