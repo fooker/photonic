@@ -4,27 +4,28 @@ use failure::Error;
 use rand::distributions::uniform::SampleUniform;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 
-use photonic_core::input::{Input, Poll};
-use photonic_core::value::*;
 use photonic_core::core::SceneBuilder;
+use photonic_core::input::{Input, Poll};
+use photonic_core::attr::*;
 
-pub struct Random<T> {
-    bounds: Bounds<T>,
+pub struct Random<V>
+    where V: AttrValue + Bounded {
+    bounds: Bounds<V>,
 
-    current: T,
+    current: V,
 
     random: SmallRng,
 
     trigger: Input<()>,
 }
 
-impl<T> Value<T> for Random<T>
-    where T: Copy + SampleUniform {
-    fn get(&self) -> T {
+impl<V> Attr<V> for Random<V>
+    where V: AttrValue + SampleUniform + Bounded {
+    fn get(&self) -> V {
         self.current
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<T> {
+    fn update(&mut self, _duration: &Duration) -> Update<V> {
         if let Poll::Ready(()) = self.trigger.poll() {
             self.current = self.random.gen_range(self.bounds.min, self.bounds.max);
             return Update::Changed(self.current);
@@ -38,10 +39,10 @@ pub struct RandomDecl {
     pub trigger: Input<()>,
 }
 
-impl<T> BoundValueDecl<T> for RandomDecl
-    where T: Copy + SampleUniform + 'static {
-    type Value = Random<T>;
-    fn meterialize(self, bounds: Bounds<T>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+impl<V> BoundAttrDecl<V> for RandomDecl
+    where V: AttrValue + SampleUniform + Bounded {
+    type Target = Random<V>;
+    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         let mut random = SmallRng::from_entropy();
 
         // Generate a random initial value

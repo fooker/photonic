@@ -13,7 +13,7 @@ impl NodeDecl for ColorwheelNodeDecl {
     type Element = HSVColor;
     type Target = Buffer<Self::Element>;
 
-    fn materialize(self, size: usize, mut _builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, _builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         let delta = 360.0 / size as f64 * self.scale;
 
         let buffer = Buffer::from_generator(size,

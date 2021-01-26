@@ -25,7 +25,7 @@ impl<E> NodeDecl for SolidNodeDecl<E>
     type Element = E;
     type Target = SolidNode<Self::Element>;
 
-    fn materialize(self, _size: usize, _builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, _builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             solid: self.solid,
         });
@@ -44,6 +44,8 @@ impl<'a, E> RenderType<'a> for SolidNode<E>
 
 impl<E> Node for SolidNode<E>
     where E: Copy + 'static {
+    const TYPE: &'static str = "solid";
+
     fn update(&mut self, _duration: &Duration) {}
 
     fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {

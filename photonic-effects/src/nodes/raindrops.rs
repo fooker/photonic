@@ -7,7 +7,7 @@ use photonic_core::color::*;
 use photonic_core::core::*;
 use photonic_core::math;
 use photonic_core::math::Lerp;
-use photonic_core::value::*;
+use photonic_core::attr::*;
 
 #[derive(Clone)]
 struct Raindrop {
@@ -84,17 +84,17 @@ pub struct RaindropsNode<Rate, Color, Decay> {
 }
 
 impl<Rate, Color, Decay> NodeDecl for RaindropsNodeDecl<Rate, Color, Decay>
-    where Rate: BoundValueDecl<f64>,
-          Color: UnboundValueDecl<Range<HSLColor>>,
-          Decay: BoundValueDecl<Range<f64>> {
+    where Rate: BoundAttrDecl<f64>,
+          Color: UnboundAttrDecl<Range<HSLColor>>,
+          Decay: BoundAttrDecl<Range<f64>> {
     type Element = HSLColor;
-    type Target = RaindropsNode<Rate::Value, Color::Value, Decay::Value>;
+    type Target = RaindropsNode<Rate::Target, Color::Attr, Decay::Target>;
 
-    fn materialize(self, size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
-            rate: builder.bound_value("rate", self.rate, Bounds::normal())?,
-            color: builder.unbound_value("color", self.color)?,
-            decay: builder.bound_value("decay", self.decay, Bounds { min: Range(0.0, 0.0), max: Range(1.0, 1.0) })?,
+            rate: builder.bound_attr("rate", self.rate, Bounds::normal())?,
+            color: builder.unbound_attr("color", self.color)?,
+            decay: builder.bound_attr("decay", self.decay, Bounds { min: Range(0.0, 0.0), max: Range(1.0, 1.0) })?,
             raindrops: vec![Raindrop::default(); size],
             random: Random::new(),
         });
@@ -107,9 +107,11 @@ impl<'a, Rate, Color, Decay> RenderType<'a> for RaindropsNode<Rate, Color, Decay
 }
 
 impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
-    where Rate: Value<f64>,
-          Color: Value<Range<HSLColor>>,
-          Decay: Value<Range<f64>> {
+    where Rate: Attr<f64>,
+          Color: Attr<Range<HSLColor>>,
+          Decay: Attr<Range<f64>> {
+    const TYPE: &'static str = "raindrops";
+
     fn update(&mut self, duration: &Duration) {
         self.rate.update(duration);
         self.color.update(duration);

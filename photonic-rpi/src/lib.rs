@@ -21,9 +21,9 @@ pub struct Strip {
 
 impl OutputDecl for StripDecl {
     type Element = RGBColor;
-    type Output = Strip;
+    type Target = Strip;
 
-    fn materialize(self, size: usize) -> Result<Self::Output, Error> {
+    fn materialize(self, size: usize) -> Result<Self::Target, Error> {
         let controller = rs_ws281x::ControllerBuilder::new()
             .freq(800_000)
             .channel(0, rs_ws281x::ChannelBuilder::new()
@@ -35,7 +35,7 @@ impl OutputDecl for StripDecl {
             .render_wait_time(0)
             .build()?;
 
-        return Ok(Self::Output {
+        return Ok(Self::Target {
             size,
             controller,
         });

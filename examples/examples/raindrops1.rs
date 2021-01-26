@@ -11,9 +11,9 @@ use photonic_core::core::Scene;
 use photonic_core::timer::Ticker;
 use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
 use photonic_effects::nodes::switch::SwitchNodeDecl;
-use photonic_effects::values::looper::LooperDecl;
+use photonic_effects::attrs::looper::LooperDecl;
 use photonic_core::color::HSLColor;
-use photonic_core::value::AsFixedValue;
+use photonic_core::attr::AsFixedAttr;
 
 const SIZE: usize = 120;
 const FPS: usize = 60;

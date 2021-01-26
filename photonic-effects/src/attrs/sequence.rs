@@ -3,24 +3,25 @@ use std::time::Duration;
 use failure::Error;
 
 use photonic_core::input::{Input, Poll};
-use photonic_core::value::*;
+use photonic_core::attr::*;
 use photonic_core::core::SceneBuilder;
 
-pub struct Sequence<T> {
-    values: Vec<T>,
+pub struct Sequence<V>
+    where V: AttrValue {
+    values: Vec<V>,
 
     position: usize,
 
     trigger: Input<()>,
 }
 
-impl<T> Value<T> for Sequence<T>
-    where T: Copy {
-    fn get(&self) -> T {
+impl<V> Attr<V> for Sequence<V>
+    where V: AttrValue {
+    fn get(&self) -> V {
         self.values[self.position]
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<T> {
+    fn update(&mut self, _duration: &Duration) -> Update<V> {
         if let Poll::Ready(()) = self.trigger.poll() {
             self.position = (self.position + 1) % self.values.len();
             return Update::Changed(self.values[self.position]);
@@ -30,18 +31,19 @@ impl<T> Value<T> for Sequence<T>
     }
 }
 
-pub struct SequenceDecl<T> {
-    pub values: Vec<T>,
+pub struct SequenceDecl<V>
+    where V: AttrValue {
+    pub values: Vec<V>,
     pub trigger: Input<()>,
 }
 
-impl<T, V> BoundValueDecl<V> for SequenceDecl<T>
-    where V: From<T> + Bounded + Copy + 'static {
-    type Value = Sequence<V>;
-    fn meterialize(self, bounds: Bounds<V>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+impl<V> BoundAttrDecl<V> for SequenceDecl<V>
+    where V: AttrValue + Bounded {
+    type Target = Sequence<V>;
+    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         let values = self.values.into_iter()
-            .map(|v| bounds.ensure(v.into()))
-            .collect::<Result<Vec<V>, Error>>()?;
+            .map(|v| bounds.ensure(v))
+            .collect::<Result<Vec<_>, Error>>()?;
 
         let trigger = builder.input("trigger", self.trigger)?;
 
@@ -53,10 +55,10 @@ impl<T, V> BoundValueDecl<V> for SequenceDecl<T>
     }
 }
 
-impl<T, V> UnboundValueDecl<V> for SequenceDecl<T>
-    where V: From<T> + Copy + 'static {
-    type Value = Sequence<V>;
-    fn meterialize(self, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+impl<V> UnboundAttrDecl<V> for SequenceDecl<V>
+    where V: AttrValue {
+    type Attr = Sequence<V>;
+    fn materialize(self, builder: &mut SceneBuilder) -> Result<Self::Attr, Error> {
         let values = self.values.into_iter()
             .map(|v| v.into())
             .collect();

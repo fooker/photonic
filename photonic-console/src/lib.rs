@@ -17,10 +17,10 @@ pub struct ConsoleOutput {
 
 impl OutputDecl for ConsoleOutputDecl {
     type Element = RGBColor;
-    type Output = ConsoleOutput;
+    type Target = ConsoleOutput;
 
-    fn materialize(self, size: usize) -> Result<Self::Output, Error> {
-        return Ok(Self::Output {
+    fn materialize(self, size: usize) -> Result<Self::Target, Error> {
+        return Ok(Self::Target {
             size,
             whaterfall: self.whaterfall,
         });

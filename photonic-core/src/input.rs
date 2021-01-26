@@ -1,25 +1,41 @@
 use std::sync::Arc;
+
 use crossbeam::atomic::AtomicCell;
 
-pub enum Poll<T> {
+pub enum InputType {
+    Trigger,
+    Bool,
+    Integer,
+    Decimal,
+}
+
+pub trait InputValue: Send + Copy + 'static {
+    const TYPE: InputType;
+}
+
+pub enum Poll<V>
+    where V: InputValue {
     Pending,
-    Ready(T),
+    Ready(V),
 }
 
-pub struct Input<T> {
-    value: Arc<AtomicCell<Poll<T>>>,
+pub struct Input<V>
+    where V: InputValue {
+    value: Arc<AtomicCell<Poll<V>>>,
 }
 
-pub struct Sink<T> {
-    value: Arc<AtomicCell<Poll<T>>>,
+pub struct Sink<V>
+    where V: InputValue {
+    value: Arc<AtomicCell<Poll<V>>>,
 }
 
-impl<T> Input<T> {
-    pub fn poll(&mut self) -> Poll<T> {
+impl<V> Input<V>
+    where V: InputValue {
+    pub fn poll(&mut self) -> Poll<V> {
         return self.value.swap(Poll::Pending);
     }
 
-    pub fn new() -> (Self, Sink<T>) {
+    pub fn new() -> (Self, Sink<V>) {
         let value = Arc::new(AtomicCell::new(Poll::Pending));
 
         return (
@@ -29,9 +45,25 @@ impl<T> Input<T> {
     }
 }
 
-impl<T> Sink<T> {
-    pub fn send(&mut self, next: T) {
+impl<V> Sink<V>
+    where V: InputValue {
+    pub fn send(&mut self, next: V) {
         self.value.store(Poll::Ready(next));
     }
 }
 
+impl InputValue for () {
+    const TYPE: InputType = InputType::Trigger;
+}
+
+impl InputValue for bool {
+    const TYPE: InputType = InputType::Bool;
+}
+
+impl InputValue for i64 {
+    const TYPE: InputType = InputType::Integer;
+}
+
+impl InputValue for f64 {
+    const TYPE: InputType = InputType::Decimal;
+}

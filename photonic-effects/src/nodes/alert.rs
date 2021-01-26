@@ -5,7 +5,7 @@ use failure::Error;
 use photonic_core::color::*;
 use photonic_core::core::*;
 use photonic_core::math;
-use photonic_core::value::*;
+use photonic_core::attr::*;
 
 pub struct AlertRenderer {
     hue: f64,
@@ -42,17 +42,17 @@ pub struct AlertNode<Hue, Block, Speed> {
 }
 
 impl<Hue, Block, Speed> NodeDecl for AlertNodeDecl<Hue, Block, Speed>
-    where Hue: BoundValueDecl<f64>,
-          Block: BoundValueDecl<usize>,
-          Speed: UnboundValueDecl<f64> {
+    where Hue: BoundAttrDecl<f64>,
+          Block: BoundAttrDecl<i64>,
+          Speed: UnboundAttrDecl<f64> {
     type Element = HSVColor;
-    type Target = AlertNode<Hue::Value, Block::Value, Speed::Value>;
+    type Target = AlertNode<Hue::Target, Block::Target, Speed::Attr>;
 
-    fn materialize(self, size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
-            hue: builder.bound_value("hue", self.hue, (0.0, 360.0))?,
-            block: builder.bound_value("block", self.block, (0, size))?,
-            speed: builder.unbound_value("speed", self.speed)?,
+            hue: builder.bound_attr("hue", self.hue, (0.0, 360.0))?,
+            block: builder.bound_attr("block", self.block, (0, size as i64))?,
+            speed: builder.unbound_attr("speed", self.speed)?,
 
             time: 0.0,
         });
@@ -65,9 +65,11 @@ impl<'a, Hue, Block, Speed> RenderType<'a> for AlertNode<Hue, Block, Speed> {
 }
 
 impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
-    where Hue: Value<f64>,
-          Block: Value<usize>,
-          Speed: Value<f64> {
+    where Hue: Attr<f64>,
+          Block: Attr<i64>,
+          Speed: Attr<f64> {
+    const TYPE: &'static str = "alert";
+
     fn update(&mut self, duration: &Duration) {
         self.block.update(duration);
         self.speed.update(duration);
@@ -78,7 +80,7 @@ impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
     fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return AlertRenderer {
             hue: self.hue.get(),
-            block_size: self.block.get(),
+            block_size: self.block.get() as usize,
             value: math::remap(math::clamp(f64::sin(self.time * std::f64::consts::PI), (-1.0, 1.0)),
                                (-1.0, 1.0), (0.0, 1.0)),
         };

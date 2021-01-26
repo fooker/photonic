@@ -10,13 +10,13 @@ use photonic_core::animation::Easing;
 use photonic_core::color::HSLColor;
 use photonic_core::core::Scene;
 use photonic_core::timer::Ticker;
-use photonic_core::value::AsFixedValue;
+use photonic_core::attr::AsFixedAttr;
 use photonic_effects::nodes::larson::LarsonNodeDecl;
 use photonic_effects::nodes::overlay::OverlayNodeDecl;
 use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
-use photonic_effects::values::button::ButtonDecl;
-use photonic_effects::values::fader::FaderDecl;
-use photonic_effects::values::sequence::SequenceDecl;
+use photonic_effects::attrs::button::ButtonDecl;
+use photonic_effects::attrs::fader::FaderDecl;
+use photonic_effects::attrs::sequence::SequenceDecl;
 use photonic_mqtt::MqttHandleBuilder;
 
 const SIZE: usize = 120;

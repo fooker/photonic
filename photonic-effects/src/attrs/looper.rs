@@ -4,27 +4,27 @@ use failure::Error;
 use num::traits::Num;
 
 use photonic_core::input::{Input, Poll};
-use photonic_core::value::*;
+use photonic_core::attr::*;
 use photonic_core::core::SceneBuilder;
 
-pub struct Looper<T>
-    where T: Num {
-    min: T,
-    max: T,
-    step: T,
+pub struct Looper<V>
+    where V: AttrValue + Num {
+    min: V,
+    max: V,
+    step: V,
 
-    current: T,
+    current: V,
 
     trigger: Input<()>,
 }
 
-impl<T> Value<T> for Looper<T>
-    where T: Copy + Num {
-    fn get(&self) -> T {
+impl<V> Attr<V> for Looper<V>
+    where V: AttrValue + Num {
+    fn get(&self) -> V {
         return self.current;
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<T> {
+    fn update(&mut self, _duration: &Duration) -> Update<V> {
         if let Poll::Ready(()) = self.trigger.poll() {
             self.current = self.min + (self.current + self.step - self.min) % (self.max - self.min);
             return Update::Changed(self.current);
@@ -34,22 +34,23 @@ impl<T> Value<T> for Looper<T>
     }
 }
 
-pub struct LooperDecl<T> {
-    pub step: T,
+pub struct LooperDecl<V>
+    where V: AttrValue {
+    pub step: V,
     pub trigger: Input<()>,
 }
 
-impl<T> BoundValueDecl<T> for LooperDecl<T>
-    where T: Copy + PartialOrd + Num + 'static {
-    type Value = Looper<T>;
-    fn meterialize(self, bounds: Bounds<T>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+impl<V> BoundAttrDecl<V> for LooperDecl<V>
+    where V: AttrValue + Bounded + Num + PartialOrd {
+    type Target = Looper<V>;
+    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         let (min, max) = bounds.into();
 
-        let step = if self.step >= T::zero() { self.step } else {
-            (self.step % (max - min + T::one())) + (max - min + T::one())
+        let step = if self.step >= V::zero() { self.step } else {
+            (self.step % (max - min + V::one())) + (max - min + V::one())
         };
 
-        let max = max + T::one();
+        let max = max + V::one();
 
         return Ok(Looper {
             min,

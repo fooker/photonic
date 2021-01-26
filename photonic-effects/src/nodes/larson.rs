@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::color::*;
 use photonic_core::core::*;
-use photonic_core::value::*;
+use photonic_core::attr::*;
 
 pub struct LarsonRenderer {
     hue: f64,
@@ -56,19 +56,19 @@ pub struct LarsonNode<Hue, Speed, Width> {
 }
 
 impl<Hue, Speed, Width> NodeDecl for LarsonNodeDecl<Hue, Speed, Width>
-    where Hue: BoundValueDecl<f64>,
-          Speed: UnboundValueDecl<f64>,
-          Width: BoundValueDecl<f64>
+    where Hue: BoundAttrDecl<f64>,
+          Speed: UnboundAttrDecl<f64>,
+          Width: BoundAttrDecl<f64>
 {
     type Element = HSVColor;
-    type Target = LarsonNode<Hue::Value, Speed::Value, Width::Value>;
+    type Target = LarsonNode<Hue::Target, Speed::Attr, Width::Target>;
 
-    fn materialize(self, size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             size,
-            hue: builder.bound_value("hue", self.hue,(0.0, 360.0))?,
-            speed: builder.unbound_value("speed", self.speed)?,
-            width: builder.bound_value("width", self.width, (0.0, size as f64))?,
+            hue: builder.bound_attr("hue", self.hue, (0.0, 360.0))?,
+            speed: builder.unbound_attr("speed", self.speed)?,
+            width: builder.bound_attr("width", self.width, (0.0, size as f64))?,
             position: 0.0,
             direction: Direction::Right,
         });
@@ -81,9 +81,11 @@ impl<Hue, Speed, Width> RenderType<'_> for LarsonNode<Hue, Speed, Width> {
 }
 
 impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
-    where Hue: Value<f64>,
-          Speed: Value<f64>,
-          Width: Value<f64> {
+    where Hue: Attr<f64>,
+          Speed: Attr<f64>,
+          Width: Attr<f64> {
+    const TYPE: &'static str = "larson";
+
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);
         self.width.update(duration);

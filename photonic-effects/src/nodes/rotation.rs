@@ -5,7 +5,7 @@ use failure::Error;
 use photonic_core::core::*;
 use photonic_core::math;
 use photonic_core::math::Lerp;
-use photonic_core::value::*;
+use photonic_core::attr::*;
 
 pub struct RotationRenderer<Source> {
     source: Source,
@@ -29,7 +29,8 @@ impl<Source> Render for RotationRenderer<Source>
     }
 }
 
-pub struct RotationNodeDecl<Source, Speed> {
+pub struct RotationNodeDecl<Source, Speed>
+    where Source: NodeDecl {
     source: NodeRef<Source>,
     speed: Speed,
 }
@@ -44,17 +45,17 @@ pub struct RotationNode<Source, Speed> {
 }
 
 impl<Source, Speed, E> NodeDecl for RotationNodeDecl<Source, Speed>
-    where Source: Node<Element=E>,
-          Speed: UnboundValueDecl<f64>,
+    where Source: NodeDecl<Element=E>,
+          Speed: UnboundAttrDecl<f64>,
           E: Lerp {
     type Element = E;
-    type Target = RotationNode<Source, Speed::Value>;
+    type Target = RotationNode<Source::Target, Speed::Attr>;
 
-    fn materialize(self, size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             size,
             source: builder.node("source", self.source)?,
-            speed: builder.unbound_value("speed", self.speed)?,
+            speed: builder.unbound_attr("speed", self.speed)?,
             offset: 0.0,
         });
     }
@@ -69,8 +70,10 @@ impl<'a, Source, Speed> RenderType<'a> for RotationNode<Source, Speed>
 
 impl<Source, Speed, E> Node for RotationNode<Source, Speed>
     where Source: Node<Element=E>,
-          Speed: Value<f64>,
+          Speed: Attr<f64>,
           E: Lerp {
+    const TYPE: &'static str = "rotation";
+
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);
         self.offset += self.speed.get() * duration.as_secs_f64();

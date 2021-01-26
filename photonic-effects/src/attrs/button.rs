@@ -1,11 +1,10 @@
-use std::fmt::Display;
 use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::input::{Input, Poll};
-use photonic_core::value::*;
+use photonic_core::attr::*;
 use photonic_core::core::SceneBuilder;
+use photonic_core::input::{Input, Poll};
 
 #[derive(Clone, Copy, Debug)]
 enum State {
@@ -34,9 +33,10 @@ impl State {
     }
 }
 
-pub struct Button<T> {
-    value_released: T,
-    value_pressed: T,
+pub struct Button<V>
+    where V: AttrValue {
+    value_released: V,
+    value_pressed: V,
 
     hold_time: Duration,
 
@@ -45,16 +45,16 @@ pub struct Button<T> {
     trigger: Input<()>,
 }
 
-impl<T> Value<T> for Button<T>
-    where T: Copy {
-    fn get(&self) -> T {
+impl<V> Attr<V> for Button<V>
+    where V: AttrValue {
+    fn get(&self) -> V {
         return match self.state {
             State::Released => self.value_released,
             State::Pressed(_) => self.value_pressed,
         };
     }
 
-    fn update(&mut self, duration: &Duration) -> Update<T> {
+    fn update(&mut self, duration: &Duration) -> Update<V> {
         let state_old = self.state.pressed();
 
         if let Poll::Ready(()) = self.trigger.poll() {
@@ -73,16 +73,17 @@ impl<T> Value<T> for Button<T>
     }
 }
 
-pub struct ButtonDecl<T> {
-    pub value: (T, T),
+pub struct ButtonDecl<V>
+    where V: AttrValue {
+    pub value: (V, V),
     pub hold_time: Duration,
     pub trigger: Input<()>,
 }
 
-impl<T> BoundValueDecl<T> for ButtonDecl<T>
-    where T: Copy + Bounded + Display + 'static {
-    type Value = Button<T>;
-    fn meterialize(self, bounds: Bounds<T>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+impl<V> BoundAttrDecl<V> for ButtonDecl<V>
+    where V: AttrValue + Bounded {
+    type Target = Button<V>;
+    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Button {
             value_released: bounds.ensure(self.value.0)?,
             value_pressed: bounds.ensure(self.value.1)?,
@@ -93,10 +94,10 @@ impl<T> BoundValueDecl<T> for ButtonDecl<T>
     }
 }
 
-impl<T> UnboundValueDecl<T> for ButtonDecl<T>
-    where T: Copy + 'static {
-    type Value = Button<T>;
-    fn meterialize(self, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
+impl<V> UnboundAttrDecl<V> for ButtonDecl<V>
+    where V: AttrValue {
+    type Attr = Button<V>;
+    fn materialize(self, builder: &mut SceneBuilder) -> Result<Self::Attr, Error> {
         return Ok(Button {
             value_released: self.value.0,
             value_pressed: self.value.1,

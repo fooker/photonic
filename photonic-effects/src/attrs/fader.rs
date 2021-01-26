@@ -3,27 +3,29 @@ use std::time::Duration;
 use failure::Error;
 
 use photonic_core::animation::{Animation, Easing, Transition};
-use photonic_core::math::Lerp;
-use photonic_core::value::*;
+use photonic_core::attr::*;
 use photonic_core::core::SceneBuilder;
+use photonic_core::math::Lerp;
 
-pub struct Fader<Input, F>
-    where F: Lerp {
+pub struct Fader<Input, V>
+    where V: AttrValue + Lerp,
+          Input: Attr<V> {
     input: Input,
-    current: F,
+
+    current: V,
 
     easing: Easing<f64>,
-    transition: Animation<F>,
+    transition: Animation<V>,
 }
 
-impl<Input, F> Value<F> for Fader<Input, F>
-    where F: Lerp + Copy,
-          Input: Value<F> {
-    fn get(&self) -> F {
+impl<Input, V> Attr<V> for Fader<Input, V>
+    where V: AttrValue + Lerp,
+          Input: Attr<V> {
+    fn get(&self) -> V {
         self.current
     }
 
-    fn update(&mut self, duration: &Duration) -> Update<F> {
+    fn update(&mut self, duration: &Duration) -> Update<V> {
         if let Update::Changed(next) = self.input.update(duration) {
             self.transition.start(self.easing, self.current, next);
         }
@@ -42,12 +44,12 @@ pub struct FaderDecl<Input> {
     pub easing: Easing<f64>,
 }
 
-impl<Input, F> BoundValueDecl<F> for FaderDecl<Input>
-    where F: Lerp + Bounded + Copy + 'static,
-          Input: BoundValueDecl<F> {
-    type Value = Fader<Input::Value, F>;
-    fn meterialize(self, bounds: Bounds<F>, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
-        let input = builder.bound_value("input", self.input, bounds)?;
+impl<Input, V> BoundAttrDecl<V> for FaderDecl<Input>
+    where V: AttrValue + Lerp + Bounded,
+          Input: BoundAttrDecl<V> {
+    type Target = Fader<Input::Target, V>;
+    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+        let input = builder.bound_attr("input", self.input, bounds)?;
 
         let current = input.get();
 
@@ -60,12 +62,12 @@ impl<Input, F> BoundValueDecl<F> for FaderDecl<Input>
     }
 }
 
-impl<Input, F> UnboundValueDecl<F> for FaderDecl<Input>
-    where F: Lerp + Copy + 'static,
-          Input: UnboundValueDecl<F> {
-    type Value = Fader<Input::Value, F>;
-    fn meterialize(self, mut builder: &mut SceneBuilder) -> Result<Self::Value, Error> {
-        let input = builder.unbound_value("input", self.input)?;
+impl<Input, V: AttrValue> UnboundAttrDecl<V> for FaderDecl<Input>
+    where V: Lerp,
+          Input: UnboundAttrDecl<V> {
+    type Attr = Fader<Input::Attr, V>;
+    fn materialize(self, builder: &mut SceneBuilder) -> Result<Self::Attr, Error> {
+        let input = builder.unbound_attr("input", self.input)?;
 
         let current = input.get();
 

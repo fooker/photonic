@@ -5,7 +5,7 @@ use std::thread;
 use failure::Error;
 use rumqtt::{MqttClient, MqttOptions, Notification, QoS, ReconnectOptions};
 
-use photonic_core::input::Input;
+use photonic_core::input::{Input, InputValue};
 
 pub struct MqttHandleBuilder {
     id: String,
@@ -37,7 +37,7 @@ impl MqttHandleBuilder {
     }
 
     pub fn endpoint<T, F, Topic>(&mut self, topic: Topic, f: F) -> Input<T>
-        where T: Send + 'static,
+        where T: InputValue,
               F: Fn(String) -> Option<T> + Send + 'static,
               Topic: Into<String> {
         let (input, mut sink) = Input::new();
@@ -62,7 +62,7 @@ impl MqttHandleBuilder {
     }
 
     pub fn value<T, Topic>(&mut self, topic: Topic) -> Input<T>
-        where T: FromStr + Send + 'static,
+        where T: FromStr + InputValue,
               Topic: Into<String> {
         return self.endpoint(topic, move |s| {
             return T::from_str(&s).ok();

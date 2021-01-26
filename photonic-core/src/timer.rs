@@ -1,7 +1,6 @@
 use std::time::Duration;
 
-use crate::core::{Scene};
-use crate::input::{Input, Sink};
+use crate::input::Input;
 use std::thread::JoinHandle;
 
 pub struct Ticker {

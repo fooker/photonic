@@ -1,15 +1,13 @@
-use std::collections::{HashMap, HashSet};
+use std::borrow::Cow;
 use std::marker::PhantomData;
-use std::pin::Pin;
-use std::sync::atomic::AtomicUsize;
 use std::time::Duration;
 
 use failure::Error;
 
-use crate::input::Input;
+use crate::attr::{AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
+use crate::input::{Input, InputValue};
+use crate::interface::{NodeInfo, Registry};
 use crate::utils::{FrameStats, FrameTimer};
-use crate::value::{Bounds, BoundValueDecl, UnboundValueDecl, Value};
-use std::borrow::Cow;
 
 struct Arena<E> {
     elements: Vec<E>,
@@ -29,12 +27,17 @@ impl<E> Arena<E> {
 }
 
 pub struct NodeHandle<Node> {
+    // The name assigned to the node during declaration
+    pub name: String,
+
+    // Index of the element in the node arena
     index: usize,
+
     phantom: PhantomData<Node>,
 }
 
 impl<Node> NodeHandle<Node>
-    where Node: NodeBase {
+    where Node: self::Node {
     fn resolve<'l>(&self, nodes: &'l Arena<Box<dyn NodeBase>>) -> &'l Node {
         let element = nodes.elements[self.index].as_ref();
         return unsafe { &*(element as *const dyn NodeBase as *const Node) };
@@ -70,9 +73,9 @@ impl<E, F> Render for F
 
 pub trait NodeDecl {
     type Element;
-    type Target: Node<Element=Self::Element>;
+    type Target: Node<Element=Self::Element> + 'static;
 
-    fn materialize(self, size: usize, builder: SceneBuilder) -> Result<Self::Target, Error>
+    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error>
         where Self::Target: std::marker::Sized;
 }
 
@@ -82,16 +85,18 @@ pub trait RenderType<'a> {
 }
 
 pub trait Node: for<'a> RenderType<'a> {
+    const TYPE: &'static str;
+
     fn update(&mut self, duration: &Duration);
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render;
 }
 
 pub trait OutputDecl {
     type Element;
-    type Output: Output<Element=Self::Element>;
+    type Target: Output<Element=Self::Element>;
 
-    fn materialize(self, size: usize) -> Result<Self::Output, Error>
-        where Self::Output: std::marker::Sized;
+    fn materialize(self, size: usize) -> Result<Self::Target, Error>
+        where Self::Target: std::marker::Sized;
 }
 
 pub trait Output {
@@ -100,76 +105,89 @@ pub trait Output {
     fn render<E: Into<Self::Element>>(&mut self, render: &dyn Render<Element=E>);
 }
 
-pub enum ValuePath<'p> {
+pub enum AttrPath<'p> {
     Root {
         node: String,
     },
 
     Nested {
-        parent: &'p ValuePath<'p>,
+        parent: &'p AttrPath<'p>,
         name: String,
     },
 }
 
-pub struct SceneBuilder<'s, 'l, 'p> {
-    scene: &'s Scene,
+pub struct SceneBuilder<'r, 'l, 'p> {
+    size: usize,
+
+    registry: &'r mut Registry,
 
     nodes: &'l mut Arena<Box<dyn NodeBase>>,
 
-    path: ValuePath<'p>,
+    // TODO: Make name ownership nice
+    path: AttrPath<'p>,
 }
 
-impl<'s, 'l, 'p> SceneBuilder<'s, 'l, 'p> {
-    pub fn node<Node>(&mut self, name: &str, node: NodeRef<Node>) -> Result<NodeHandle<Node>, Error>
-        where Node: self::Node {
-        // TODO: Make name owning nice
-        let node = (node.materialize)(self.scene.size, SceneBuilder {
-            scene: self.scene,
+impl<'r, 'l, 'p> SceneBuilder<'r, 'l, 'p> {
+    pub fn node<Node>(&mut self, name: &str, decl: NodeRef<Node>) -> Result<NodeHandle<Node::Target>, Error>
+        where Node: NodeDecl {
+        let node = Node::materialize(decl.decl, self.size, &mut SceneBuilder {
+            size: self.size,
+            registry: self.registry,
             nodes: self.nodes,
-            path: ValuePath::Root { node: node.name.to_string() },
+            path: AttrPath::Root { node: decl.name.clone() },
         })?;
 
-        let index = self.nodes.insert(node);
-
-        return Ok(NodeHandle { index, phantom: Default::default() });
-    }
-
-    pub fn bound_value<Value, T>(&mut self, name: &str, value: Value, bounds: impl Into<Bounds<T>>) -> Result<Value::Value, Error>
-        where Value: BoundValueDecl<T> {
-        let mut builder = SceneBuilder {
-            scene: self.scene,
-            nodes: self.nodes,
-            path: ValuePath::Nested { parent: &self.path, name: name.to_owned() },
+        let handle = NodeHandle {
+            name: decl.name,
+            index: self.nodes.insert(Box::new(node)),
+            phantom: Default::default(),
         };
 
-        let value = Value::meterialize(value, bounds.into(), &mut builder)?;
+        self.registry.register_node(&handle);
 
-        return Ok(value);
+        return Ok(handle);
     }
 
-    pub fn unbound_value<Value, T>(&mut self, name: &str, value: Value) -> Result<Value::Value, Error>
-        where Value: UnboundValueDecl<T> {
-        let mut builder = SceneBuilder {
-            scene: self.scene,
+    pub fn bound_attr<V, Decl>(&mut self, name: &str, decl: Decl, bounds: impl Into<Bounds<V>>) -> Result<Decl::Target, Error>
+        where V: AttrValue + Bounded,
+              Decl: BoundAttrDecl<V> {
+        let bounds = bounds.into();
+
+        let attr = Decl::materialize(decl, bounds, &mut SceneBuilder {
+            size: self.size,
+            registry: self.registry,
             nodes: self.nodes,
-            path: ValuePath::Nested { parent: &self.path, name: name.to_owned() },
-        };
+            path: AttrPath::Nested { parent: &self.path, name: name.to_owned() },
+        })?;
 
-        let value = Value::meterialize(value, &mut builder)?;
+        self.registry.register_attr(&attr, Some(bounds));
 
-        return Ok(value);
+        return Ok(attr);
     }
 
-    pub fn input<T>(&mut self, name: &str, input: Input<T>) -> Result<Input<T>, Error> {
+    pub fn unbound_attr<V, Decl>(&mut self, name: &str, decl: Decl) -> Result<Decl::Attr, Error>
+        where V: AttrValue,
+              Decl: UnboundAttrDecl<V> {
+        let attr = Decl::materialize(decl, &mut SceneBuilder {
+            size: self.size,
+            registry: self.registry,
+            nodes: self.nodes,
+            path: AttrPath::Nested { parent: &self.path, name: name.to_owned() },
+        })?;
+
+        return Ok(attr);
+    }
+
+    pub fn input<V>(&mut self, name: &str, input: Input<V>) -> Result<Input<V>, Error>
+        where V: InputValue {
         return Ok(input);
     }
 }
 
-pub struct NodeRef<Node> {
+pub struct NodeRef<Node>
+    where Node: NodeDecl {
     name: String,
-    materialize: Box<dyn FnOnce(usize, SceneBuilder) -> Result<Box<dyn NodeBase>, Error>>,
-
-    phantom: PhantomData<Node>,
+    decl: Node,
 }
 
 trait NodeBase {
@@ -198,28 +216,29 @@ impl Scene {
         return self.size;
     }
 
-    pub fn node<'a, Node: NodeDecl<Element=E> + 'static, E>(&mut self, name: impl Into<Cow<'a, str>>, decl: Node) -> Result<NodeRef<Node::Target>, Error>
-        where Node::Target: 'static {
-
+    pub fn node<'a, Node, E>(&mut self, name: impl Into<Cow<'a, str>>, decl: Node) -> Result<NodeRef<Node>, Error>
+        where Node: NodeDecl<Element=E> {
         return Ok(NodeRef {
             name: name.into().into_owned(),
-            materialize: Box::new(|size, builder| {
-                return Ok(Box::new(decl.materialize(size, builder)?));
-            }),
-            phantom: Default::default(),
+            decl,
         });
     }
 
-    pub fn output<Node, Output, EN, EO>(self, node: NodeRef<Node>, decl: Output) -> Result<Loop<Node, Output::Output>, Error>
-        where Node: self::Node<Element=EN>,
+    pub fn output<Node, Output, EN, EO>(self, node: NodeRef<Node>, decl: Output) -> Result<Loop<Node::Target, Output::Target>, Error>
+        where Node: NodeDecl<Element=EN>,
               Output: OutputDecl<Element=EO>,
               EN: Into<EO> {
+        // The nodes created while materializing the scene
         let mut nodes: Arena<Box<dyn NodeBase>> = Arena::new();
 
+        // Registry of info elements for external interface
+        let mut registry = Registry::new();
+
         let mut builder = SceneBuilder {
-            scene: &self,
+            size: self.size,
+            registry: &mut registry,
             nodes: &mut nodes,
-            path: ValuePath::Root { node: node.name.to_string() }
+            path: AttrPath::Root { node: node.name.to_string() },
         };
 
         let root = builder.node("root", node)?;

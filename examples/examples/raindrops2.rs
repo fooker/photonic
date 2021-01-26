@@ -10,10 +10,11 @@ use photonic_core::animation::Easing;
 use photonic_core::color::HSLColor;
 use photonic_core::core::Scene;
 use photonic_core::timer::Ticker;
-use photonic_core::value::AsFixedValue;
+use photonic_core::attr::{AsFixedAttr, Range};
 use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
-use photonic_effects::values::sequence::SequenceDecl;
-use photonic_effects::values::fader::FaderDecl;
+use photonic_effects::attrs::fader::FaderDecl;
+use photonic_effects::attrs::sequence::SequenceDecl;
+use photonic_varlink::VarlinkInterface;
 
 const SIZE: usize = 120;
 const FPS: usize = 60;
@@ -21,15 +22,17 @@ const FPS: usize = 60;
 fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
+    // let iface = VarlinkInterface::bind("localhost:5764")?;
+
     let ticker = Ticker::new(Duration::from_secs(5));
     let raindrops_color = SequenceDecl {
         values: vec![
-            (HSLColor::new(245.31, 0.5, 0.5),
-             HSLColor::new(333.47, 0.7, 0.5)),
-            (HSLColor::new(0.0, 0.45, 0.5),
-             HSLColor::new(17.5, 0.55, 0.5)),
-            (HSLColor::new(187.5, 0.25, 0.5),
-             HSLColor::new(223.92, 0.5, 0.5)),
+            Range(HSLColor::new(245.31, 0.5, 0.5),
+                  HSLColor::new(333.47, 0.7, 0.5)),
+            Range(HSLColor::new(0.0, 0.45, 0.5),
+                  HSLColor::new(17.5, 0.55, 0.5)),
+            Range(HSLColor::new(187.5, 0.25, 0.5),
+                  HSLColor::new(223.92, 0.5, 0.5)),
         ],
         trigger: ticker.1,
     };

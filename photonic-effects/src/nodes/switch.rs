@@ -5,7 +5,7 @@ use failure::Error;
 use photonic_core::animation::*;
 use photonic_core::core::*;
 use photonic_core::math::Lerp;
-use photonic_core::value::*;
+use photonic_core::attr::*;
 
 pub struct SwitchRenderer<Source> {
     source: Source,
@@ -30,7 +30,8 @@ impl<Source> Render for SwitchRenderer<Source>
     }
 }
 
-pub struct SwitchNodeDecl<Source, Fade> {
+pub struct SwitchNodeDecl<Source, Fade>
+    where Source: NodeDecl {
     // TODO: Make sources an iterator?
 
     pub sources: Vec<NodeRef<Source>>,
@@ -52,19 +53,19 @@ pub struct SwitchNode<Source, Fade> {
 }
 
 impl<Source, Fade, E> NodeDecl for SwitchNodeDecl<Source, Fade>
-    where Source: Node<Element=E>,
-          Fade: BoundValueDecl<usize>,
+    where Source: NodeDecl<Element=E>,
+          Fade: BoundAttrDecl<i64>,
           E: Lerp {
     type Element = E;
-    type Target = SwitchNode<Source, Fade::Value>;
+    type Target = SwitchNode<Source::Target, Fade::Target>;
 
-    fn materialize(self, _size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         let sources = self.sources.into_iter()
             .enumerate()
             .map(|(i, source)| builder.node(&format!("source-{}", i), source))
             .collect::<Result<Vec<_>, Error>>()?;
 
-        let fade = builder.bound_value("fade", self.fade, (0, sources.len() - 1))?;
+        let fade = builder.bound_attr("fade", self.fade, (0, (sources.len() - 1) as i64))?;
 
         return Ok(Self::Target {
             sources,
@@ -87,18 +88,20 @@ impl<'a, Source, Fade> RenderType<'a> for SwitchNode<Source, Fade>
 
 impl<Source, Fade, E> Node for SwitchNode<Source, Fade>
     where Source: Node<Element=E>,
-          Fade: Value<usize>,
+          Fade: Attr<i64>,
           E: Lerp {
+    const TYPE: &'static str = "switch";
+
     fn update(&mut self, duration: &Duration) {
         if let Update::Changed(fade) = self.fade.update(duration) {
             if let Some(easing) = self.easing {
                 self.source = self.target;
-                self.target = fade;
+                self.target = fade as usize;
                 self.blend = 0.0;
                 self.transition.start(easing, 0.0, 1.0);
             } else {
-                self.source = fade;
-                self.target = fade;
+                self.source = fade as usize;
+                self.target = fade as usize;
             }
         }
 

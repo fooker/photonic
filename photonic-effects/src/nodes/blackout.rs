@@ -5,7 +5,7 @@ use failure::Error;
 use photonic_core::color::Black;
 use photonic_core::core::*;
 use photonic_core::math::Lerp;
-use photonic_core::value::*;
+use photonic_core::attr::*;
 
 pub struct BlackoutRenderer<Source> {
     source: Source,
@@ -32,7 +32,8 @@ impl<Source> Render for BlackoutRenderer<Source>
     }
 }
 
-pub struct BlackoutNodeDecl<Source, Value> {
+pub struct BlackoutNodeDecl<Source, Value>
+    where Source: NodeDecl {
     pub source: NodeRef<Source>,
     pub value: Value,
     pub range: Option<(usize, usize)>,
@@ -45,16 +46,16 @@ pub struct BlackoutNode<Source, Value> {
 }
 
 impl<Source, Value, E> NodeDecl for BlackoutNodeDecl<Source, Value>
-    where Source: Node<Element=E>,
-          Value: BoundValueDecl<f64>,
+    where Source: NodeDecl<Element=E>,
+          Value: BoundAttrDecl<f64>,
           E: Lerp + Black {
     type Element = E;
-    type Target = BlackoutNode<Source, Value::Value>;
+    type Target = BlackoutNode<Source::Target, Value::Target>;
 
-    fn materialize(self, size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             source: builder.node("source", self.source)?,
-            value: builder.bound_value("value", self.value, Bounds::normal())?,
+            value: builder.bound_attr("value", self.value, Bounds::normal())?,
             range: self.range.unwrap_or((0, size)),
         });
     }
@@ -69,8 +70,10 @@ impl<'a, Source, Value> RenderType<'a> for BlackoutNode<Source, Value>
 
 impl<Source, Value, E> Node for BlackoutNode<Source, Value>
     where Source: Node<Element=E>,
-          Value: self::Value<f64>,
+          Value: self::Attr<f64>,
           E: Lerp + Black {
+    const TYPE: &'static str = "blackout";
+
     fn update(&mut self, duration: &Duration) {
         self.value.update(duration);
     }

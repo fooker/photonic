@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::core::*;
 use photonic_core::math::Lerp;
-use photonic_core::value::*;
+use photonic_core::attr::*;
 
 pub struct DistortionRenderer<'a, Source, F>
     where Source: Render,
@@ -28,7 +28,8 @@ impl<'a, Source, F> Render for DistortionRenderer<'a, Source, F>
     }
 }
 
-pub struct DistortionNodeDecl<Source, Value, F> {
+pub struct DistortionNodeDecl<Source, Value, F>
+    where Source: NodeDecl {
     pub source: NodeRef<Source>,
     pub value: Value,
     pub distortion: F,
@@ -43,17 +44,17 @@ pub struct DistortionNode<Source, Value, F> {
 }
 
 impl<Source, Value, F, E> NodeDecl for DistortionNodeDecl<Source, Value, F>
-    where Source: Node<Element=E>,
-          Value: BoundValueDecl<f64>,
+    where Source: NodeDecl<Element=E>,
+          Value: BoundAttrDecl<f64>,
           E: Lerp,
           F: Fn(&E, f64) -> E + 'static {
     type Element = E;
-    type Target = DistortionNode<Source, Value::Value, F>;
+    type Target = DistortionNode<Source::Target, Value::Target, F>;
 
-    fn materialize(self, _size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             source: builder.node("source", self.source)?,
-            value: builder.bound_value("value", self.value, Bounds::normal())?,
+            value: builder.bound_attr("value", self.value, Bounds::normal())?,
             distortion: self.distortion,
             time: 0.0,
         });
@@ -70,9 +71,11 @@ impl<'a, Source, Value, F> RenderType<'a> for DistortionNode<Source, Value, F>
 
 impl<Source, Value, E, F> Node for DistortionNode<Source, Value, F>
     where Source: Node<Element=E>,
-          Value: self::Value<f64>,
+          Value: self::Attr<f64>,
           E: Lerp,
           F: Fn(&E, f64) -> E + 'static {
+    const TYPE: &'static str = "distortion";
+
     fn update(&mut self, duration: &Duration) {
         self.value.update(duration);
 

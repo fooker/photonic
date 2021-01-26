@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::core::*;
 use photonic_core::math::Lerp;
-use photonic_core::value::*;
+use photonic_core::attr::*;
 
 pub struct OverlayRenderer<Base, Overlay> {
     base: Base,
@@ -31,7 +31,9 @@ impl<Base, Overlay> Render for OverlayRenderer<Base, Overlay>
     }
 }
 
-pub struct OverlayNodeDecl<Base, Overlay, Blend> {
+pub struct OverlayNodeDecl<Base, Overlay, Blend>
+    where Base: NodeDecl,
+          Overlay: NodeDecl {
     pub base: NodeRef<Base>,
     pub overlay: NodeRef<Overlay>,
 
@@ -46,19 +48,19 @@ pub struct OverlayNode<Base, Overlay, Blend> {
 }
 
 impl<Base, Overlay, Blend, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay, Blend>
-    where Base: Node<Element=EB>,
-          Overlay: Node<Element=EO>,
-          Blend: BoundValueDecl<f64>,
+    where Base: NodeDecl<Element=EB>,
+          Overlay: NodeDecl<Element=EO>,
+          Blend: BoundAttrDecl<f64>,
           EB: Lerp,
           EO: Into<EB> {
     type Element = EB;
-    type Target = OverlayNode<Base, Overlay, Blend::Value>;
+    type Target = OverlayNode<Base::Target, Overlay::Target, Blend::Target>;
 
-    fn materialize(self, _size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             base: builder.node("base", self.base)?,
             overlay: builder.node("overlay", self.overlay)?,
-            blend: builder.bound_value("blend", self.blend, Bounds::normal())?,
+            blend: builder.bound_attr("blend", self.blend, Bounds::normal())?,
         });
     }
 }
@@ -75,9 +77,11 @@ impl<'a, Base, Overlay, Blend> RenderType<'a> for OverlayNode<Base, Overlay, Ble
 impl<Base, Overlay, Blend, EB, EO> Node for OverlayNode<Base, Overlay, Blend>
     where Base: Node<Element=EB>,
           Overlay: Node<Element=EO>,
-          Blend: Value<f64>,
+          Blend: Attr<f64>,
           EB: Lerp,
           EO: Into<EB> {
+    const TYPE: &'static str = "overlay";
+
     fn update(&mut self, duration: &Duration) {
         self.blend.update(duration);
     }

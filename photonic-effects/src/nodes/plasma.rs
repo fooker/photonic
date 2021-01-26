@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::time::Duration;
 
 use failure::Error;
@@ -5,11 +6,11 @@ use noise::{NoiseFn, Perlin, Seedable};
 
 use photonic_core::core::*;
 use photonic_core::math;
-use photonic_core::value::*;
-use std::marker::PhantomData;
 use photonic_core::math::Lerp;
+use photonic_core::attr::*;
 
-pub struct PlasmaRenderer<'a, E> {
+pub struct PlasmaRenderer<'a, E>
+    where E: AttrValue + Lerp {
     noise: &'a Perlin,
 
     range: Range<E>,
@@ -19,7 +20,7 @@ pub struct PlasmaRenderer<'a, E> {
 }
 
 impl<'a, E> Render for PlasmaRenderer<'a, E>
-    where E: Lerp + Copy {
+    where E: AttrValue + Lerp {
     type Element = E;
 
     fn get(&self, index: usize) -> Self::Element {
@@ -30,7 +31,8 @@ impl<'a, E> Render for PlasmaRenderer<'a, E>
     }
 }
 
-pub struct PlasmaNodeDecl<Range, Scale, Speed, E> {
+pub struct PlasmaNodeDecl<Range, Scale, Speed, E>
+    where E: AttrValue + Lerp {
     pub range: Range,
     pub scale: Scale,
     pub speed: Speed,
@@ -38,7 +40,8 @@ pub struct PlasmaNodeDecl<Range, Scale, Speed, E> {
     pub phantom: PhantomData<E>,
 }
 
-pub struct PlasmaNode<Range, Scale, Speed, E> {
+pub struct PlasmaNode<Range, Scale, Speed, E>
+    where E: AttrValue + Lerp {
     perlin: Perlin,
 
     range: Range,
@@ -51,21 +54,21 @@ pub struct PlasmaNode<Range, Scale, Speed, E> {
 }
 
 impl<Range, Scale, Speed, E> NodeDecl for PlasmaNodeDecl<Range, Scale, Speed, E>
-    where Range: UnboundValueDecl<self::Range<E>>,
-          Scale: UnboundValueDecl<f64>,
-          Speed: UnboundValueDecl<f64>,
-          E: Lerp + Copy + 'static {
+    where Range: UnboundAttrDecl<self::Range<E>>,
+          Scale: UnboundAttrDecl<f64>,
+          Speed: UnboundAttrDecl<f64>,
+          E: AttrValue + Lerp {
     type Element = E;
-    type Target = PlasmaNode<Range::Value, Scale::Value, Speed::Value, E>;
+    type Target = PlasmaNode<Range::Attr, Scale::Attr, Speed::Attr, E>;
 
-    fn materialize(self, _size: usize, mut builder: SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             perlin: Perlin::new()
                 .set_seed(1),
 
-            range: builder.unbound_value("range", self.range)?,
-            scale: builder.unbound_value("scale", self.scale)?,
-            speed: builder.unbound_value("speed", self.speed)?,
+            range: builder.unbound_attr("range", self.range)?,
+            scale: builder.unbound_attr("scale", self.scale)?,
+            speed: builder.unbound_attr("speed", self.speed)?,
 
             time: 0.0,
 
@@ -75,16 +78,18 @@ impl<Range, Scale, Speed, E> NodeDecl for PlasmaNodeDecl<Range, Scale, Speed, E>
 }
 
 impl<'a, Range, Scale, Speed, E> RenderType<'a> for PlasmaNode<Range, Scale, Speed, E>
-    where E: Lerp + Copy + 'static {
+    where E: AttrValue + Lerp {
     type Element = E;
     type Render = PlasmaRenderer<'a, Self::Element>;
 }
 
 impl<Range, Scale, Speed, E> Node for PlasmaNode<Range, Scale, Speed, E>
-    where Range: Value<self::Range<E>>,
-          Scale: Value<f64>,
-          Speed: Value<f64>,
-          E: Lerp + Copy + 'static {
+    where Range: Attr<self::Range<E>>,
+          Scale: Attr<f64>,
+          Speed: Attr<f64>,
+          E: AttrValue + Lerp {
+    const TYPE: &'static str = "plasma";
+
     fn update(&mut self, duration: &Duration) {
         self.range.update(duration);
         self.scale.update(duration);
