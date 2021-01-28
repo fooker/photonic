@@ -5,7 +5,7 @@ use num::traits::Num;
 
 use photonic_core::input::{Input, Poll};
 use photonic_core::attr::*;
-use photonic_core::core::SceneBuilder;
+use photonic_core::core::{NodeBuilder, AttrBuilder};
 
 pub struct Looper<V>
     where V: AttrValue + Num {
@@ -20,6 +20,8 @@ pub struct Looper<V>
 
 impl<V> Attr<V> for Looper<V>
     where V: AttrValue + Num {
+    const KIND: &'static str = "looper";
+
     fn get(&self) -> V {
         return self.current;
     }
@@ -43,7 +45,7 @@ pub struct LooperDecl<V>
 impl<V> BoundAttrDecl<V> for LooperDecl<V>
     where V: AttrValue + Bounded + Num + PartialOrd {
     type Target = Looper<V>;
-    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let (min, max) = bounds.into();
 
         let step = if self.step >= V::zero() { self.step } else {

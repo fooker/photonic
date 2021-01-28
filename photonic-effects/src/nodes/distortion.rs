@@ -30,13 +30,13 @@ impl<'a, Source, F> Render for DistortionRenderer<'a, Source, F>
 
 pub struct DistortionNodeDecl<Source, Value, F>
     where Source: NodeDecl {
-    pub source: NodeRef<Source>,
+    pub source: NodeHandle<Source>,
     pub value: Value,
     pub distortion: F,
 }
 
 pub struct DistortionNode<Source, Value, F> {
-    source: NodeHandle<Source>,
+    source: NodeRef<Source>,
     value: Value,
     distortion: F,
 
@@ -51,7 +51,7 @@ impl<Source, Value, F, E> NodeDecl for DistortionNodeDecl<Source, Value, F>
     type Element = E;
     type Target = DistortionNode<Source::Target, Value::Target, F>;
 
-    fn materialize(self, _size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             source: builder.node("source", self.source)?,
             value: builder.bound_attr("value", self.value, Bounds::normal())?,
@@ -74,7 +74,7 @@ impl<Source, Value, E, F> Node for DistortionNode<Source, Value, F>
           Value: self::Attr<f64>,
           E: Lerp,
           F: Fn(&E, f64) -> E + 'static {
-    const TYPE: &'static str = "distortion";
+    const KIND: &'static str = "distortion";
 
     fn update(&mut self, duration: &Duration) {
         self.value.update(duration);

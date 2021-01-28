@@ -31,14 +31,14 @@ impl<Source> Render for RotationRenderer<Source>
 
 pub struct RotationNodeDecl<Source, Speed>
     where Source: NodeDecl {
-    source: NodeRef<Source>,
+    source: NodeHandle<Source>,
     speed: Speed,
 }
 
 pub struct RotationNode<Source, Speed> {
     size: usize,
 
-    source: NodeHandle<Source>,
+    source: NodeRef<Source>,
     speed: Speed,
 
     offset: f64,
@@ -49,9 +49,9 @@ impl<Source, Speed, E> NodeDecl for RotationNodeDecl<Source, Speed>
           Speed: UnboundAttrDecl<f64>,
           E: Lerp {
     type Element = E;
-    type Target = RotationNode<Source::Target, Speed::Attr>;
+    type Target = RotationNode<Source::Target, Speed::Target>;
 
-    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             size,
             source: builder.node("source", self.source)?,
@@ -72,7 +72,7 @@ impl<Source, Speed, E> Node for RotationNode<Source, Speed>
     where Source: Node<Element=E>,
           Speed: Attr<f64>,
           E: Lerp {
-    const TYPE: &'static str = "rotation";
+    const KIND: &'static str = "rotation";
 
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);

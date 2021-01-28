@@ -54,7 +54,7 @@ fn main() -> Result<!, Error> {
         easing: Easing::some(animation::linear, Duration::from_secs(4)),
     })?;
 
-    let main = scene.output(switch_raindrops, ConsoleOutputDecl {
+    let (main, _) = scene.output(switch_raindrops, ConsoleOutputDecl {
         whaterfall: true
     })?;
 

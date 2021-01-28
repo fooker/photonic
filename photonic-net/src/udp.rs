@@ -61,7 +61,7 @@ impl<A, F> NodeDecl for ReceiverNodeDecl<A, F>
     type Element = F::Element;
     type Target = ReceiverNode<F>;
 
-    fn materialize(self, size: usize, _builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         let socket = UdpSocket::bind(self.address)?;
         socket.set_nonblocking(true).unwrap();
 
@@ -82,7 +82,7 @@ impl<'a, F> RenderType<'a> for ReceiverNode<F>
 
 impl<F> Node for ReceiverNode<F>
     where F: Format + 'static {
-    const TYPE: &'static str = "udp";
+    const KIND: &'static str = "udp";
 
     fn update(&mut self, _duration: &Duration) {
         // Read all packets available without blocking but only use last one

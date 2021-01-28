@@ -1,71 +1,46 @@
 use std::sync::Arc;
 
-use crate::attr::{Attr, AttrValue, Bounded, Bounds};
-use crate::core::{Node, NodeHandle};
-use crate::input::{Input, InputValue};
-
-pub enum InputType {
-    Trigger,
-    Integer,
-    Decimal,
-}
+use crate::attr::{Attr, AttrValue, Bounded, Bounds, AttrType};
+use crate::core::{Node, NodeDecl, NodeRef, NodeHandle, AttrPath};
+use crate::input::{Input, InputValue, InputType};
+use std::collections::HashMap;
 
 pub struct InputInfo {
     name: String,
-    kind: InputType,
-}
+    kind: &'static str,
 
-pub enum ValueType {
-    Integer,
-    Decimal,
+    value_type: InputType,
 }
 
 pub struct AttrInfo {
-    name: String,
-    kind: ValueType,
+    pub name: String,
+    pub kind: &'static str,
 
-    nested: Vec<Arc<AttrInfo>>,
-    inputs: Vec<Arc<InputInfo>>,
+    pub value_type: AttrType,
+
+    pub nested: Vec<Arc<AttrInfo>>,
+    pub inputs: Vec<Arc<InputInfo>>,
 }
 
 pub struct NodeInfo {
-    name: String,
-    kind: &'static str,
+    pub name: String,
+    pub kind: &'static str,
 
-    attrs: Vec<Arc<AttrInfo>>,
+    pub alias: String,
+
+    pub attrs: Vec<Arc<AttrInfo>>,
 }
 
 pub struct Registry {
-    nodes: Vec<Arc<NodeInfo>>,
+    nodes_by_alias: HashMap<String, Arc<NodeInfo>>,
 }
 
 impl Registry {
-    pub fn new() -> Self {
+    pub fn from(nodes: Vec<Arc<NodeInfo>>) -> Self {
         return Self {
-            nodes: Vec::new(),
+            nodes_by_alias: nodes.iter().cloned().map(|node| (node.alias.clone(), node)).collect(),
         };
     }
-
-    pub fn register_node<Node>(&mut self, node: &NodeHandle<Node>)
-        where Node: self::Node {
-        self.nodes.push(Arc::new(NodeInfo {
-            name: node.name.clone(),
-            kind: Node::TYPE,
-            attrs: Vec::new(),
-        }));
-    }
-
-    pub fn register_attr<Attr, V>(&mut self, attr: &Attr, bounds: Option<Bounds<V>>)
-        where Attr: self::Attr<V>,
-              V: AttrValue {
-
-    }
-
-    // pub fn register_input<Input, V>(&mut self, input: &Input, bounds: Option<Bounds<V>>)
-    //     where Input: self::Input<V>,
-    //           V: InputValue {
-    //
-    // }
 }
 
 pub trait Interface {}

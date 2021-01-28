@@ -7,16 +7,16 @@ use failure::Error;
 use photonic_console::ConsoleOutputDecl;
 use photonic_core::animation;
 use photonic_core::animation::Easing;
+use photonic_core::attr::{AsFixedAttr, Range};
 use photonic_core::color::HSLColor;
 use photonic_core::core::Scene;
 use photonic_core::timer::Ticker;
-use photonic_core::attr::AsFixedAttr;
-use photonic_effects::nodes::larson::LarsonNodeDecl;
-use photonic_effects::nodes::overlay::OverlayNodeDecl;
-use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
 use photonic_effects::attrs::button::ButtonDecl;
 use photonic_effects::attrs::fader::FaderDecl;
 use photonic_effects::attrs::sequence::SequenceDecl;
+use photonic_effects::nodes::larson::LarsonNodeDecl;
+use photonic_effects::nodes::overlay::OverlayNodeDecl;
+use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
 use photonic_mqtt::MqttHandleBuilder;
 
 const SIZE: usize = 120;
@@ -28,16 +28,17 @@ fn main() -> Result<!, Error> {
     let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883)
         .with_realm("photonic");
 
+    let ticker = Ticker::new(Duration::from_secs(5));
     let raindrops_color = SequenceDecl {
         values: vec![
-            (HSLColor::new(245.31, 0.5, 0.5),
-             HSLColor::new(333.47, 0.7, 0.5)),
-            (HSLColor::new(0.0, 0.45, 0.5),
-             HSLColor::new(17.5, 0.55, 0.5)),
-            (HSLColor::new(187.5, 0.25, 0.5),
-             HSLColor::new(223.92, 0.5, 0.5)),
+            Range::new(HSLColor::new(245.31, 0.5, 0.5),
+                       HSLColor::new(333.47, 0.7, 0.5)),
+            Range::new(HSLColor::new(0.0, 0.45, 0.5),
+                       HSLColor::new(17.5, 0.55, 0.5)),
+            Range::new(HSLColor::new(187.5, 0.25, 0.5),
+                       HSLColor::new(223.92, 0.5, 0.5)),
         ],
-        trigger: Ticker::new(&mut scene, "raindrops:ticker", Duration::from_secs(5)),
+        trigger: ticker.1,
     };
     let raindrops_color = FaderDecl {
         input: raindrops_color,
@@ -87,7 +88,7 @@ fn main() -> Result<!, Error> {
 //
 //    let effect = scene.node("effect", UdpReciverNodeDecl::<_, RGBColor>::bind("127.0.0.1:7331"))?;
 
-    let main = scene.output(effect, ConsoleOutputDecl {
+    let (main, _) = scene.output(effect, ConsoleOutputDecl {
         whaterfall: true
     })?;
 

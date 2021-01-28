@@ -34,15 +34,15 @@ impl<Base, Overlay> Render for OverlayRenderer<Base, Overlay>
 pub struct OverlayNodeDecl<Base, Overlay, Blend>
     where Base: NodeDecl,
           Overlay: NodeDecl {
-    pub base: NodeRef<Base>,
-    pub overlay: NodeRef<Overlay>,
+    pub base: NodeHandle<Base>,
+    pub overlay: NodeHandle<Overlay>,
 
     pub blend: Blend,
 }
 
 pub struct OverlayNode<Base, Overlay, Blend> {
-    base: NodeHandle<Base>,
-    overlay: NodeHandle<Overlay>,
+    base: NodeRef<Base>,
+    overlay: NodeRef<Overlay>,
 
     blend: Blend,
 }
@@ -56,7 +56,7 @@ impl<Base, Overlay, Blend, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay, B
     type Element = EB;
     type Target = OverlayNode<Base::Target, Overlay::Target, Blend::Target>;
 
-    fn materialize(self, _size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             base: builder.node("base", self.base)?,
             overlay: builder.node("overlay", self.overlay)?,
@@ -80,7 +80,7 @@ impl<Base, Overlay, Blend, EB, EO> Node for OverlayNode<Base, Overlay, Blend>
           Blend: Attr<f64>,
           EB: Lerp,
           EO: Into<EB> {
-    const TYPE: &'static str = "overlay";
+    const KIND: &'static str = "overlay";
 
     fn update(&mut self, duration: &Duration) {
         self.blend.update(duration);

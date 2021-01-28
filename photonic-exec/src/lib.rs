@@ -48,7 +48,7 @@ impl NodeDecl for ExecNodeDecl {
     type Element = RGBColor;
     type Target = ExecNode;
 
-    fn materialize(self, size: usize, _builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         let command = shlex::split(&self.command)
             .ok_or(format_err!("Invalid command: {}", &self.command))?;
         let (command, args) = command.split_first()
@@ -81,7 +81,7 @@ impl<'a> RenderType<'a> for ExecNode {
 }
 
 impl Node for ExecNode {
-    const TYPE: &'static str = "exec";
+    const KIND: &'static str = "exec";
 
     fn update(&mut self, duration: &Duration) {
         let stdin = self.child.stdin.as_mut()

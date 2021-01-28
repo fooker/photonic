@@ -61,9 +61,9 @@ impl<Hue, Speed, Width> NodeDecl for LarsonNodeDecl<Hue, Speed, Width>
           Width: BoundAttrDecl<f64>
 {
     type Element = HSVColor;
-    type Target = LarsonNode<Hue::Target, Speed::Attr, Width::Target>;
+    type Target = LarsonNode<Hue::Target, Speed::Target, Width::Target>;
 
-    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             size,
             hue: builder.bound_attr("hue", self.hue, (0.0, 360.0))?,
@@ -84,7 +84,7 @@ impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
     where Hue: Attr<f64>,
           Speed: Attr<f64>,
           Width: Attr<f64> {
-    const TYPE: &'static str = "larson";
+    const KIND: &'static str = "larson";
 
     fn update(&mut self, duration: &Duration) {
         self.speed.update(duration);

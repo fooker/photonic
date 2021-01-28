@@ -88,9 +88,9 @@ impl<Rate, Color, Decay> NodeDecl for RaindropsNodeDecl<Rate, Color, Decay>
           Color: UnboundAttrDecl<Range<HSLColor>>,
           Decay: BoundAttrDecl<Range<f64>> {
     type Element = HSLColor;
-    type Target = RaindropsNode<Rate::Target, Color::Attr, Decay::Target>;
+    type Target = RaindropsNode<Rate::Target, Color::Target, Decay::Target>;
 
-    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             rate: builder.bound_attr("rate", self.rate, Bounds::normal())?,
             color: builder.unbound_attr("color", self.color)?,
@@ -110,7 +110,7 @@ impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
     where Rate: Attr<f64>,
           Color: Attr<Range<HSLColor>>,
           Decay: Attr<Range<f64>> {
-    const TYPE: &'static str = "raindrops";
+    const KIND: &'static str = "raindrops";
 
     fn update(&mut self, duration: &Duration) {
         self.rate.update(duration);

@@ -62,7 +62,7 @@ impl<'a, E> RenderType<'a> for Buffer<E>
 
 impl<E> Node for Buffer<E>
     where E: Copy + 'static {
-    const TYPE: &'static str = "buffer";
+    const KIND: &'static str = "buffer";
 
     fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return self;

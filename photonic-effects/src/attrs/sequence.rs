@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::input::{Input, Poll};
 use photonic_core::attr::*;
-use photonic_core::core::SceneBuilder;
+use photonic_core::core::{NodeBuilder, AttrBuilder};
 
 pub struct Sequence<V>
     where V: AttrValue {
@@ -17,6 +17,8 @@ pub struct Sequence<V>
 
 impl<V> Attr<V> for Sequence<V>
     where V: AttrValue {
+    const KIND: &'static str = "sequence";
+
     fn get(&self) -> V {
         self.values[self.position]
     }
@@ -40,7 +42,7 @@ pub struct SequenceDecl<V>
 impl<V> BoundAttrDecl<V> for SequenceDecl<V>
     where V: AttrValue + Bounded {
     type Target = Sequence<V>;
-    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let values = self.values.into_iter()
             .map(|v| bounds.ensure(v))
             .collect::<Result<Vec<_>, Error>>()?;
@@ -57,8 +59,8 @@ impl<V> BoundAttrDecl<V> for SequenceDecl<V>
 
 impl<V> UnboundAttrDecl<V> for SequenceDecl<V>
     where V: AttrValue {
-    type Attr = Sequence<V>;
-    fn materialize(self, builder: &mut SceneBuilder) -> Result<Self::Attr, Error> {
+    type Target = Sequence<V>;
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let values = self.values.into_iter()
             .map(|v| v.into())
             .collect();

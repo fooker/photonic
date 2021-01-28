@@ -47,7 +47,7 @@ fn main() -> Result<!, Error> {
         decay: (0.96, 0.98).fixed(),
     })?;
 
-    let main = scene.output(raindrops, ConsoleOutputDecl {
+    let (main, registry) = scene.output(raindrops, ConsoleOutputDecl {
         whaterfall: true
     })?;
 

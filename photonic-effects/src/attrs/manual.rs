@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::input::{Input, Poll, InputValue};
 use photonic_core::attr::*;
-use photonic_core::core::SceneBuilder;
+use photonic_core::core::{NodeBuilder, AttrBuilder};
 
 pub struct BoundManual<V>
     where V: AttrValue + InputValue + Bounded {
@@ -16,6 +16,8 @@ pub struct BoundManual<V>
 
 impl<V> Attr<V> for BoundManual<V>
     where V: AttrValue + InputValue + Bounded {
+    const KIND: &'static str = "manual";
+
     fn get(&self) -> V {
         self.current
     }
@@ -42,6 +44,8 @@ pub struct UnboundManual<V>
 
 impl<V> Attr<V> for UnboundManual<V>
     where V: AttrValue + InputValue {
+    const KIND: &'static str = "manual";
+
     fn get(&self) -> V {
         self.current
     }
@@ -72,7 +76,7 @@ impl<V> BoundAttrDecl<V> for ManualDecl<V>
     where V: AttrValue + InputValue + Bounded {
     type Target = BoundManual<V>;
 
-    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let value = builder.input("value", self.value)?;
 
         let current = bounds.min;
@@ -87,9 +91,9 @@ impl<V> BoundAttrDecl<V> for ManualDecl<V>
 
 impl<V> UnboundAttrDecl<V> for ManualDecl<V>
     where V: AttrValue + InputValue + Default {
-    type Attr = UnboundManual<V>;
+    type Target = UnboundManual<V>;
 
-    fn materialize(self, builder: &mut SceneBuilder) -> Result<Self::Attr, Error> {
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let value = builder.input("value", self.value)?;
 
         let current = V::default();

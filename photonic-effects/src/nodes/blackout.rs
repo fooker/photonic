@@ -34,13 +34,13 @@ impl<Source> Render for BlackoutRenderer<Source>
 
 pub struct BlackoutNodeDecl<Source, Value>
     where Source: NodeDecl {
-    pub source: NodeRef<Source>,
+    pub source: NodeHandle<Source>,
     pub value: Value,
     pub range: Option<(usize, usize)>,
 }
 
 pub struct BlackoutNode<Source, Value> {
-    source: NodeHandle<Source>,
+    source: NodeRef<Source>,
     value: Value,
     range: (usize, usize),
 }
@@ -52,7 +52,7 @@ impl<Source, Value, E> NodeDecl for BlackoutNodeDecl<Source, Value>
     type Element = E;
     type Target = BlackoutNode<Source::Target, Value::Target>;
 
-    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             source: builder.node("source", self.source)?,
             value: builder.bound_attr("value", self.value, Bounds::normal())?,
@@ -72,7 +72,7 @@ impl<Source, Value, E> Node for BlackoutNode<Source, Value>
     where Source: Node<Element=E>,
           Value: self::Attr<f64>,
           E: Lerp + Black {
-    const TYPE: &'static str = "blackout";
+    const KIND: &'static str = "blackout";
 
     fn update(&mut self, duration: &Duration) {
         self.value.update(duration);

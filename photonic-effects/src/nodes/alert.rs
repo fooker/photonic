@@ -46,9 +46,9 @@ impl<Hue, Block, Speed> NodeDecl for AlertNodeDecl<Hue, Block, Speed>
           Block: BoundAttrDecl<i64>,
           Speed: UnboundAttrDecl<f64> {
     type Element = HSVColor;
-    type Target = AlertNode<Hue::Target, Block::Target, Speed::Attr>;
+    type Target = AlertNode<Hue::Target, Block::Target, Speed::Target>;
 
-    fn materialize(self, size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             hue: builder.bound_attr("hue", self.hue, (0.0, 360.0))?,
             block: builder.bound_attr("block", self.block, (0, size as i64))?,
@@ -68,7 +68,7 @@ impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
     where Hue: Attr<f64>,
           Block: Attr<i64>,
           Speed: Attr<f64> {
-    const TYPE: &'static str = "alert";
+    const KIND: &'static str = "alert";
 
     fn update(&mut self, duration: &Duration) {
         self.block.update(duration);

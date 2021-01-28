@@ -8,7 +8,7 @@ use failure::Error;
 use num::{One, Zero};
 
 use crate::color::{HSLColor, HSVColor, RGBColor};
-use crate::core::SceneBuilder;
+use crate::core::{NodeBuilder, AttrBuilder};
 use crate::interface::AttrInfo;
 use crate::math::Lerp;
 
@@ -32,6 +32,8 @@ pub enum Update<V>
 
 pub trait Attr<V>
     where V: AttrValue {
+    const KIND: &'static str;
+
     fn get(&self) -> V;
     fn update(&mut self, duration: &Duration) -> Update<V>;
 }
@@ -111,14 +113,14 @@ impl<V> Bounded for V where V: PartialOrd + Display {
 
 pub trait UnboundAttrDecl<V>
     where V: AttrValue {
-    type Attr: self::Attr<V> + 'static;
-    fn materialize(self, builder: &mut SceneBuilder) -> Result<Self::Attr, Error>;
+    type Target: Attr<V> + 'static;
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error>;
 }
 
 pub trait BoundAttrDecl<V>
     where V: AttrValue + Bounded {
-    type Target: self::Attr<V> + 'static;
-    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error>;
+    type Target: Attr<V> + 'static;
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error>;
 }
 
 pub struct FixedAttr<V>(V)
@@ -126,6 +128,8 @@ pub struct FixedAttr<V>(V)
 
 impl<V> Attr<V> for FixedAttr<V>
     where V: AttrValue {
+    const KIND: &'static str = "fixed";
+
     fn get(&self) -> V {
         return self.0;
     }
@@ -140,8 +144,8 @@ pub struct FixedAttrDecl<V>(V)
 
 impl<V> UnboundAttrDecl<V> for FixedAttrDecl<V>
     where V: AttrValue {
-    type Attr = FixedAttr<V>;
-    fn materialize(self, _builder: &mut SceneBuilder) -> Result<Self::Attr, Error> {
+    type Target = FixedAttr<V>;
+    fn materialize(self, _builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         return Ok(FixedAttr(self.0));
     }
 }
@@ -149,7 +153,7 @@ impl<V> UnboundAttrDecl<V> for FixedAttrDecl<V>
 impl<V> BoundAttrDecl<V> for FixedAttrDecl<V>
     where V: AttrValue + Bounded {
     type Target = FixedAttr<V>;
-    fn materialize(self, bounds: Bounds<V>, _builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, bounds: Bounds<V>, _builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let value = bounds.ensure(self.0)?;
 
         return Ok(FixedAttr(value));
@@ -221,7 +225,7 @@ impl<V, T> BoundAttrDecl<V> for Box<T>
           T: BoundAttrDecl<V> {
     type Target = T::Target;
 
-    fn materialize(self, bounds: Bounds<V>, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         return T::materialize(*self, bounds, builder);
     }
 }
@@ -229,9 +233,9 @@ impl<V, T> BoundAttrDecl<V> for Box<T>
 impl<V, T> UnboundAttrDecl<V> for Box<T>
     where V: AttrValue,
           T: UnboundAttrDecl<V> {
-    type Attr = T::Attr;
+    type Target = T::Target;
 
-    fn materialize(self, builder: &mut SceneBuilder) -> Result<Self::Attr, Error> {
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         return T::materialize(*self, builder);
     }
 }

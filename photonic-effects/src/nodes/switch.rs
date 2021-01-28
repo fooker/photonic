@@ -34,13 +34,13 @@ pub struct SwitchNodeDecl<Source, Fade>
     where Source: NodeDecl {
     // TODO: Make sources an iterator?
 
-    pub sources: Vec<NodeRef<Source>>,
+    pub sources: Vec<NodeHandle<Source>>,
     pub fade: Fade,
     pub easing: Option<Easing<f64>>,
 }
 
 pub struct SwitchNode<Source, Fade> {
-    sources: Vec<NodeHandle<Source>>,
+    sources: Vec<NodeRef<Source>>,
 
     fade: Fade,
 
@@ -59,7 +59,7 @@ impl<Source, Fade, E> NodeDecl for SwitchNodeDecl<Source, Fade>
     type Element = E;
     type Target = SwitchNode<Source::Target, Fade::Target>;
 
-    fn materialize(self, _size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         let sources = self.sources.into_iter()
             .enumerate()
             .map(|(i, source)| builder.node(&format!("source-{}", i), source))
@@ -90,7 +90,7 @@ impl<Source, Fade, E> Node for SwitchNode<Source, Fade>
     where Source: Node<Element=E>,
           Fade: Attr<i64>,
           E: Lerp {
-    const TYPE: &'static str = "switch";
+    const KIND: &'static str = "switch";
 
     fn update(&mut self, duration: &Duration) {
         if let Update::Changed(fade) = self.fade.update(duration) {

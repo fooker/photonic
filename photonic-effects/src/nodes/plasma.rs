@@ -59,9 +59,9 @@ impl<Range, Scale, Speed, E> NodeDecl for PlasmaNodeDecl<Range, Scale, Speed, E>
           Speed: UnboundAttrDecl<f64>,
           E: AttrValue + Lerp {
     type Element = E;
-    type Target = PlasmaNode<Range::Attr, Scale::Attr, Speed::Attr, E>;
+    type Target = PlasmaNode<Range::Target, Scale::Target, Speed::Target, E>;
 
-    fn materialize(self, _size: usize, builder: &mut SceneBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             perlin: Perlin::new()
                 .set_seed(1),
@@ -88,7 +88,7 @@ impl<Range, Scale, Speed, E> Node for PlasmaNode<Range, Scale, Speed, E>
           Scale: Attr<f64>,
           Speed: Attr<f64>,
           E: AttrValue + Lerp {
-    const TYPE: &'static str = "plasma";
+    const KIND: &'static str = "plasma";
 
     fn update(&mut self, duration: &Duration) {
         self.range.update(duration);
