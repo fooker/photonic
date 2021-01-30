@@ -83,12 +83,13 @@ impl FrameTimer {
         }
     }
 
-    pub fn next(&mut self) -> Duration {
+    pub async fn next(&mut self) -> Duration {
         // Sleep until it's time to render next frame
         let next = self.frame_curr + self.frame_time;
         let curr = Instant::now();
         if next > curr {
-            thread::sleep(next - curr);
+            // TODO: This results in sleeping to long - find something more precise?
+            tokio::time::sleep(next - curr);
         }
 
         // Remember current and previous frame start time

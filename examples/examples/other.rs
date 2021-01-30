@@ -22,7 +22,8 @@ use photonic_mqtt::MqttHandleBuilder;
 const SIZE: usize = 120;
 const FPS: usize = 60;
 
-fn main() -> Result<!, Error> {
+#[tokio::main]
+async fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
     let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883)
@@ -94,5 +95,5 @@ fn main() -> Result<!, Error> {
 
     mqtt.start()?;
 
-    main.run(FPS)?;
+    main.run(FPS).await?;
 }

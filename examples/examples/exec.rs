@@ -9,7 +9,8 @@ use photonic_exec::ExecNodeDecl;
 const SIZE: usize = 120;
 const FPS: usize = 60;
 
-fn main() -> Result<!, Error> {
+#[tokio::main]
+async fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
     let exec = scene.node("exec", ExecNodeDecl {
@@ -20,5 +21,5 @@ fn main() -> Result<!, Error> {
         whaterfall: true
     })?;
 
-    main.run(FPS)?;
+    main.run(FPS).await?;
 }

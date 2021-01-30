@@ -9,6 +9,7 @@ use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDe
 use crate::input::{Input, InputValue};
 use crate::interface::{AttrInfo, NodeInfo, Registry};
 use crate::utils::{FrameStats, FrameTimer};
+use std::collections::HashMap;
 
 struct NodeArena {
     elements: Vec<Box<dyn NodeBase>>,
@@ -150,6 +151,7 @@ impl SceneBuilder {
                 name: name.to_owned(),
                 kind: Node::Target::KIND,
                 alias: decl.alias.clone(),
+                nested: HashMap::new(),
                 attrs: Vec::new(),
             },
         };
@@ -295,7 +297,7 @@ impl Scene {
         });
     }
 
-    pub fn output<Node, Output, EN, EO>(self, root: NodeHandle<Node>, decl: Output) -> Result<(Loop<Node::Target, Output::Target>, Registry), Error>
+    pub fn output<Node, Output, EN, EO>(self, root: NodeHandle<Node>, decl: Output) -> Result<(Loop<Node::Target, Output::Target>, Arc<Registry>), Error>
         where Node: NodeDecl<Element=EN>,
               Output: OutputDecl<Element=EO>,
               EN: Into<EO> {
@@ -331,13 +333,13 @@ impl<Root, Output, EN, EO> Loop<Root, Output>
     where Root: self::Node<Element=EN>,
           Output: self::Output<Element=EO>,
           EN: Into<EO> {
-    pub fn run(mut self, fps: usize) -> Result<!, Error> {
+    pub async fn run(mut self, fps: usize) -> Result<!, Error> {
         let mut timer = FrameTimer::new(fps);
 
         let mut stats = FrameStats::new();
 
         loop {
-            let duration = timer.next();
+            let duration = timer.next().await;
 
             // Update the nodes
             for node in self.nodes.elements.iter_mut() {

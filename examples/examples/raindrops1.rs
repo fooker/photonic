@@ -18,7 +18,8 @@ use photonic_core::attr::AsFixedAttr;
 const SIZE: usize = 120;
 const FPS: usize = 60;
 
-fn main() -> Result<!, Error> {
+#[tokio::main]
+async fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
     let raindrops_violet = scene.node("raindrops:violet", RaindropsNodeDecl {
@@ -58,5 +59,5 @@ fn main() -> Result<!, Error> {
         whaterfall: true
     })?;
 
-    main.run(FPS)?;
+    main.run(FPS).await?;
 }

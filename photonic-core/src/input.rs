@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crossbeam::atomic::AtomicCell;
 
-pub enum InputType {
+pub enum InputValueType {
     Trigger,
     Bool,
     Integer,
@@ -10,7 +10,7 @@ pub enum InputType {
 }
 
 pub trait InputValue: Send + Copy + 'static {
-    const TYPE: InputType;
+    const TYPE: InputValueType;
 }
 
 pub enum Poll<V>
@@ -53,17 +53,17 @@ impl<V> Sink<V>
 }
 
 impl InputValue for () {
-    const TYPE: InputType = InputType::Trigger;
+    const TYPE: InputValueType = InputValueType::Trigger;
 }
 
 impl InputValue for bool {
-    const TYPE: InputType = InputType::Bool;
+    const TYPE: InputValueType = InputValueType::Bool;
 }
 
 impl InputValue for i64 {
-    const TYPE: InputType = InputType::Integer;
+    const TYPE: InputValueType = InputValueType::Integer;
 }
 
 impl InputValue for f64 {
-    const TYPE: InputType = InputType::Decimal;
+    const TYPE: InputValueType = InputValueType::Decimal;
 }

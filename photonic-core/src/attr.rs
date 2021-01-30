@@ -12,16 +12,16 @@ use crate::core::{NodeBuilder, AttrBuilder};
 use crate::interface::AttrInfo;
 use crate::math::Lerp;
 
-pub enum AttrType {
+pub enum AttrValueType {
     Bool,
     Integer,
     Decimal,
     Color,
-    Range(&'static AttrType),
+    Range(&'static AttrValueType),
 }
 
 pub trait AttrValue: Send + Copy + 'static {
-    const TYPE: AttrType;
+    const TYPE: AttrValueType;
 }
 
 pub enum Update<V>
@@ -241,27 +241,27 @@ impl<V, T> UnboundAttrDecl<V> for Box<T>
 }
 
 impl AttrValue for bool {
-    const TYPE: AttrType = AttrType::Bool;
+    const TYPE: AttrValueType = AttrValueType::Bool;
 }
 
 impl AttrValue for i64 {
-    const TYPE: AttrType = AttrType::Integer;
+    const TYPE: AttrValueType = AttrValueType::Integer;
 }
 
 impl AttrValue for f64 {
-    const TYPE: AttrType = AttrType::Decimal;
+    const TYPE: AttrValueType = AttrValueType::Decimal;
 }
 
 impl<V> AttrValue for Range<V>
     where V: AttrValue {
-    const TYPE: AttrType = AttrType::Range(&V::TYPE);
+    const TYPE: AttrValueType = AttrValueType::Range(&V::TYPE);
 }
 
 pub trait Color: Copy + Send + 'static {}
 
 impl<C> AttrValue for C
     where C: Color {
-    const TYPE: AttrType = AttrType::Color;
+    const TYPE: AttrValueType = AttrValueType::Color;
 }
 
 impl Color for RGBColor {}

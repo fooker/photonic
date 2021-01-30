@@ -14,15 +14,16 @@ use photonic_core::attr::{AsFixedAttr, Range};
 use photonic_effects::nodes::raindrops::RaindropsNodeDecl;
 use photonic_effects::attrs::fader::FaderDecl;
 use photonic_effects::attrs::sequence::SequenceDecl;
-use photonic_varlink::VarlinkInterface;
+use photonic_grpc::GrpcInterface;
 
 const SIZE: usize = 120;
 const FPS: usize = 60;
 
-fn main() -> Result<!, Error> {
+#[tokio::main]
+async fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
-    // let iface = VarlinkInterface::bind("localhost:5764")?;
+    let grpc = GrpcInterface::bind("localhost:5764".parse()?);
 
     let ticker = Ticker::new(Duration::from_secs(5));
     let raindrops_color = SequenceDecl {
@@ -51,5 +52,7 @@ fn main() -> Result<!, Error> {
         whaterfall: true
     })?;
 
-    main.run(FPS)?;
+    registry.serve(grpc)?;
+
+    main.run(FPS).await?;
 }
