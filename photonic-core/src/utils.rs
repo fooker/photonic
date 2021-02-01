@@ -1,4 +1,3 @@
-use std::thread;
 use std::time::{Duration, Instant};
 
 pub fn combine_opts<V, F>(v1: Option<V>, v2: Option<V>, f: F) -> Option<V>

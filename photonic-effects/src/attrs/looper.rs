@@ -5,7 +5,7 @@ use num::traits::Num;
 
 use photonic_core::input::{Input, Poll};
 use photonic_core::attr::*;
-use photonic_core::core::{NodeBuilder, AttrBuilder};
+use photonic_core::core::AttrBuilder;
 
 pub struct Looper<V>
     where V: AttrValue + Num {

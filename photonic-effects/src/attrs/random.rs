@@ -4,7 +4,7 @@ use failure::Error;
 use rand::distributions::uniform::SampleUniform;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 
-use photonic_core::core::{NodeBuilder, AttrBuilder};
+use photonic_core::core::AttrBuilder;
 use photonic_core::input::{Input, Poll};
 use photonic_core::attr::*;
 

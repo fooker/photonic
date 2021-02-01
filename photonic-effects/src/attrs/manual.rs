@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::input::{Input, Poll, InputValue};
 use photonic_core::attr::*;
-use photonic_core::core::{NodeBuilder, AttrBuilder};
+use photonic_core::core::AttrBuilder;
 
 pub struct BoundManual<V>
     where V: AttrValue + InputValue + Bounded {

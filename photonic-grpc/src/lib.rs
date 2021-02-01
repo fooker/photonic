@@ -1,15 +1,12 @@
-use std::io::{stdout, Write};
-use std::net::{SocketAddr, TcpListener};
+use std::net::SocketAddr;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use failure::{Error, Fail};
+use failure::Error;
 
 use photonic_core::attr::AttrValueType;
-use photonic_core::color::RGBColor;
-use photonic_core::core::*;
 use photonic_core::input::InputValueType;
-use photonic_core::interface::{AttrInfo, InputInfo, Interface, NodeInfo, Registry, Visitor};
+use photonic_core::interface::{AttrInfo, InputInfo, Interface, NodeInfo, Registry};
 use photonic_grpc_proto as proto;
 
 fn into_node(node: &NodeInfo) -> proto::NodeInfo {
@@ -79,7 +76,7 @@ struct InterfaceService {
 
 #[tonic::async_trait]
 impl proto::interface_server::Interface for InterfaceService {
-    async fn node_list(&self, request: tonic::Request<proto::NodeListRequest>) -> Result<tonic::Response<proto::NodeListResponse>, tonic::Status> {
+    async fn node_list(&self, _: tonic::Request<proto::NodeListRequest>) -> Result<tonic::Response<proto::NodeListResponse>, tonic::Status> {
         let names = self.registry.nodes.keys().cloned().collect();
 
         return Ok(tonic::Response::new(proto::NodeListResponse {

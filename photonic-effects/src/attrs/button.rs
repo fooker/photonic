@@ -3,7 +3,7 @@ use std::time::Duration;
 use failure::Error;
 
 use photonic_core::attr::*;
-use photonic_core::core::{NodeBuilder, AttrBuilder};
+use photonic_core::core::AttrBuilder;
 use photonic_core::input::{Input, Poll};
 
 #[derive(Clone, Copy, Debug)]

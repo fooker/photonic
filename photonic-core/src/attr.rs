@@ -1,6 +1,5 @@
 use std::fmt;
 use std::fmt::Display;
-use std::sync::Arc;
 use std::time::Duration;
 
 use failure::ensure;
@@ -8,8 +7,7 @@ use failure::Error;
 use num::{One, Zero};
 
 use crate::color::{HSLColor, HSVColor, RGBColor};
-use crate::core::{NodeBuilder, AttrBuilder};
-use crate::interface::AttrInfo;
+use crate::core::{AttrBuilder};
 use crate::math::Lerp;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]

@@ -7,7 +7,7 @@ use failure::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 use crate::input::{Input, InputValue};
-use crate::interface::{AttrInfo, NodeInfo, Interface, Registry};
+use crate::interface::{AttrInfo, NodeInfo, Registry};
 use crate::utils::{FrameStats, FrameTimer};
 use std::collections::HashMap;
 

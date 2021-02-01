@@ -4,9 +4,8 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use failure::Error;
 
-use crate::attr::{Attr, AttrValue, AttrValueType, Bounded, Bounds};
-use crate::core::{AttrPath, Node, NodeDecl, NodeHandle, NodeRef};
-use crate::input::{Input, InputValue, InputValueType};
+use crate::attr::AttrValueType;
+use crate::input::InputValueType;
 use crate::utils::TreeIterator;
 
 pub struct InputInfo {
@@ -17,10 +16,6 @@ pub struct InputInfo {
 }
 
 impl InputInfo {
-    pub fn walk<V: Visitor>(&self, mut visitor: V) -> V {
-        let visitor = visitor.input(self);
-        return visitor;
-    }
 }
 
 pub struct AttrInfo {
@@ -33,13 +28,6 @@ pub struct AttrInfo {
 }
 
 impl AttrInfo {
-    pub fn walk<V: Visitor>(&self, mut visitor: V) -> V {
-        let visitor = visitor.attr(self);
-        let visitor = self.attrs.values().fold(visitor, |v, attr| attr.walk(v));
-        let visitor = self.inputs.values().fold(visitor, |v, input| input.walk(v));
-        return visitor;
-    }
-
     pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item=&'s Arc<Self>> + 's {
         return TreeIterator::new(self, |node| node.attrs.values());
     }
@@ -54,22 +42,9 @@ pub struct NodeInfo {
 }
 
 impl NodeInfo {
-    // pub fn walk<V: Visitor>(&self, mut visitor: V) -> V {
-    //     let visitor = visitor.node(self);
-    //     let visitor = self.nodes.values().fold(visitor, |v, node| node.walk(v));
-    //     let visitor = self.attrs.values().fold(visitor, |v, attr| attr.walk(v));
-    //     return visitor;
-    // }
-
     pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item=&'s Arc<Self>> + 's {
         return TreeIterator::new(self, |node| node.nodes.values());
     }
-}
-
-pub trait Visitor {
-    fn node(self, node: &NodeInfo) -> Self;
-    fn attr(self, attr: &AttrInfo) -> Self;
-    fn input(self, input: &InputInfo) -> Self;
 }
 
 pub struct Registry {

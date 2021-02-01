@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::animation::{Animation, Easing, Transition};
 use photonic_core::attr::*;
-use photonic_core::core::{NodeBuilder, AttrBuilder};
+use photonic_core::core::AttrBuilder;
 use photonic_core::math::Lerp;
 
 pub struct Fader<Input, V>
