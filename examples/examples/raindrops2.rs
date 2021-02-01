@@ -23,7 +23,7 @@ const FPS: usize = 60;
 async fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
-    let grpc = GrpcInterface::bind("localhost:5764".parse()?);
+    let grpc = GrpcInterface::bind("127.0.0.1:5764".parse()?);
 
     let ticker = Ticker::new(Duration::from_secs(5));
     let raindrops_color = SequenceDecl {
@@ -48,7 +48,7 @@ async fn main() -> Result<!, Error> {
         decay: (0.96, 0.98).fixed(),
     })?;
 
-    let (main, registry) = scene.output(raindrops, ConsoleOutputDecl {
+    let (main, registry) = scene.run(raindrops, ConsoleOutputDecl {
         whaterfall: true
     })?;
 

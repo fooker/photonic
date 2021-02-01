@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crossbeam::atomic::AtomicCell;
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum InputValueType {
     Trigger,
     Bool,

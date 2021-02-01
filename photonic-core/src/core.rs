@@ -7,7 +7,7 @@ use failure::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 use crate::input::{Input, InputValue};
-use crate::interface::{AttrInfo, NodeInfo, Registry};
+use crate::interface::{AttrInfo, NodeInfo, Interface, Registry};
 use crate::utils::{FrameStats, FrameTimer};
 use std::collections::HashMap;
 
@@ -22,11 +22,11 @@ impl NodeArena {
         };
     }
 
-    pub fn insert<Node>(&mut self, alias: String, node: Node) -> NodeRef<Node>
+    pub fn insert<Node>(&mut self, name: String, node: Node) -> NodeRef<Node>
         where Node: self::Node + 'static {
         self.elements.push(Box::new(node));
         return NodeRef {
-            alias: alias,
+            name,
             index: self.elements.len() - 1,
             phantom: PhantomData::default(),
         };
@@ -40,8 +40,8 @@ impl NodeArena {
 }
 
 pub struct NodeRef<Node> {
-    /// The scene-wide unique alias assigned to the node during declaration
-    pub alias: String,
+    /// The scene-wide unique name assigned to the node during declaration
+    pub name: String,
 
     // Index of the element in the node arena
     index: usize,
@@ -138,30 +138,26 @@ pub struct SceneBuilder {
     // The arena used to build nodes and hand out node-refs
     nodes: NodeArena,
 
-    infos: Vec<Arc<NodeInfo>>,
+    // infos: Vec<Arc<NodeInfo>>,
 }
 
 impl SceneBuilder {
-    pub fn node<Node>(&mut self, name: &str, decl: NodeHandle<Node>) -> Result<NodeRef<Node::Target>, Error>
+    pub fn node<Node>(&mut self, decl: NodeHandle<Node>) -> Result<(NodeInfo, NodeRef<Node::Target>), Error>
         where Node: NodeDecl {
         let mut builder = NodeBuilder {
             scene: self,
-            alias: decl.alias.clone(),
+            name: decl.name.clone(),
             info: NodeInfo {
-                name: name.to_owned(),
                 kind: Node::Target::KIND,
-                alias: decl.alias.clone(),
-                nested: HashMap::new(),
-                attrs: Vec::new(),
+                name: decl.name.clone(),
+                nodes: HashMap::new(),
+                attrs: HashMap::new(),
             },
         };
 
         let node = Node::materialize(decl.decl, builder.scene.size, &mut builder)?;
 
-        let info = Arc::new(builder.info);
-        self.infos.push(info);
-
-        return Ok(self.nodes.insert(decl.alias, node));
+        return Ok((builder.info, self.nodes.insert(decl.name, node)));
     }
 }
 
@@ -169,8 +165,8 @@ pub struct NodeBuilder<'b> {
     /// The parent builder used to materialize the scene
     pub scene: &'b mut SceneBuilder,
 
-    /// The alias of the node to materialize
-    pub alias: String,
+    /// The name of the node to materialize
+    pub name: String,
 
     info: NodeInfo,
 }
@@ -178,7 +174,12 @@ pub struct NodeBuilder<'b> {
 impl<'b> NodeBuilder<'b> {
     pub fn node<Node>(&mut self, name: &str, decl: NodeHandle<Node>) -> Result<NodeRef<Node::Target>, Error>
         where Node: NodeDecl {
-        return self.scene.node(name, decl);
+        let (info, node) = self.scene.node(decl)?;
+
+        // TODO: Assert for duplicated keys
+        self.info.nodes.insert(name.to_owned(), Arc::new(info));
+
+        return Ok(node);
     }
 
     pub fn bound_attr<V, Attr>(&mut self, name: &str, decl: Attr, bounds: impl Into<Bounds<V>>) -> Result<Attr::Target, Error>
@@ -189,18 +190,17 @@ impl<'b> NodeBuilder<'b> {
         let mut builder = AttrBuilder {
             node: self,
             info: AttrInfo {
-                name: name.to_owned(),
                 kind: Attr::Target::KIND,
                 value_type: V::TYPE,
-                nested: Vec::new(),
-                inputs: Vec::new(),
+                attrs: HashMap::new(),
+                inputs: HashMap::new(),
             },
         };
 
         let attr = decl.materialize(bounds, &mut builder)?;
 
         let info = Arc::new(builder.info);
-        self.info.attrs.push(info);
+        self.info.attrs.insert(name.to_owned(), info);
 
         return Ok(attr);
     }
@@ -211,18 +211,17 @@ impl<'b> NodeBuilder<'b> {
         let mut builder = AttrBuilder {
             node: self,
             info: AttrInfo {
-                name: name.to_owned(),
                 kind: Attr::Target::KIND,
                 value_type: V::TYPE,
-                nested: Vec::new(),
-                inputs: Vec::new(),
+                attrs: HashMap::new(),
+                inputs: HashMap::new(),
             },
         };
 
         let attr = decl.materialize(&mut builder)?;
 
         let info = Arc::new(builder.info);
-        self.info.attrs.push(info);
+        self.info.attrs.insert(name.to_owned(), info);
 
         return Ok(attr);
     }
@@ -256,8 +255,8 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
 
 pub struct NodeHandle<Node>
     where Node: NodeDecl {
-    /// The scene-wide unique alias of the node
-    pub alias: String,
+    /// The scene-wide unique name of the node
+    pub name: String,
 
     /// The declaration of the node
     pub decl: Node,
@@ -289,34 +288,34 @@ impl Scene {
         return self.size;
     }
 
-    pub fn node<'a, Node, E>(&mut self, alias: impl Into<Cow<'a, str>>, decl: Node) -> Result<NodeHandle<Node>, Error>
+    pub fn node<'a, Node, E>(&mut self, name: impl Into<Cow<'a, str>>, decl: Node) -> Result<NodeHandle<Node>, Error>
         where Node: NodeDecl<Element=E> {
         return Ok(NodeHandle {
-            alias: alias.into().into_owned(),
+            name: name.into().into_owned(),
             decl,
         });
     }
 
-    pub fn output<Node, Output, EN, EO>(self, root: NodeHandle<Node>, decl: Output) -> Result<(Loop<Node::Target, Output::Target>, Arc<Registry>), Error>
+    pub fn run<Node, Output, EN, EO>(self, root: NodeHandle<Node>, decl: Output) -> Result<(Loop<Node::Target, Output::Target>, Arc<Registry>), Error>
         where Node: NodeDecl<Element=EN>,
               Output: OutputDecl<Element=EO>,
               EN: Into<EO> {
         let mut builder = SceneBuilder {
             size: self.size,
             nodes: NodeArena::new(),
-            infos: Vec::new(),
         };
 
-        let root = builder.node("root", root)?;
+        // Materialize the node tree using a builder tracking the info object creation
+        let (root_info, root_node) = builder.node(root)?;
 
+        // Materialize the output
         let output = decl.materialize(self.size())?;
 
-        // Registry of info elements for external interface
-        let mut registry = Registry::from(builder.infos);
+        let registry = Registry::from(Arc::new(root_info));
 
         return Ok((Loop {
             nodes: builder.nodes,
-            root,
+            root: root_node,
             output,
         }, registry));
     }

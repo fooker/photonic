@@ -14,6 +14,7 @@ use photonic_effects::nodes::switch::SwitchNodeDecl;
 use photonic_effects::attrs::looper::LooperDecl;
 use photonic_core::color::HSLColor;
 use photonic_core::attr::AsFixedAttr;
+use photonic_grpc::GrpcInterface;
 
 const SIZE: usize = 120;
 const FPS: usize = 60;
@@ -21,6 +22,8 @@ const FPS: usize = 60;
 #[tokio::main]
 async fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
+
+    let grpc = GrpcInterface::bind("127.0.0.1:5764".parse()?);
 
     let raindrops_violet = scene.node("raindrops:violet", RaindropsNodeDecl {
         rate: 0.3_f64.fixed(),
@@ -55,9 +58,11 @@ async fn main() -> Result<!, Error> {
         easing: Easing::some(animation::linear, Duration::from_secs(4)),
     })?;
 
-    let (main, _) = scene.output(switch_raindrops, ConsoleOutputDecl {
+    let (main, registry) = scene.run(switch_raindrops, ConsoleOutputDecl {
         whaterfall: true
     })?;
+
+    registry.serve(grpc)?;
 
     main.run(FPS).await?;
 }

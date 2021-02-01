@@ -1,0 +1,15 @@
+[package]
+name = "photonic-grpc-proto"
+version = "0.1.0"
+authors = ["Dustin Frisch <fooker@lab.sh>"]
+edition = "2018"
+
+[dependencies]
+tonic = { version = "0.4.0" }
+prost = "0.7"
+prost-types = "0.7"
+failure = "0.1"
+
+[build-dependencies]
+tonic-build = { version = "0.4.0", features = ["prost"] }
+prost-build = { version = "0.7" }

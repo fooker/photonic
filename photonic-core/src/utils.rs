@@ -89,7 +89,7 @@ impl FrameTimer {
         let curr = Instant::now();
         if next > curr {
             // TODO: This results in sleeping to long - find something more precise?
-            tokio::time::sleep(next - curr);
+            tokio::time::sleep(next - curr).await;
         }
 
         // Remember current and previous frame start time
@@ -100,5 +100,35 @@ impl FrameTimer {
         let duration = self.frame_curr - self.frame_last;
 
         return duration;
+    }
+}
+
+pub struct TreeIterator<E, F, I>
+    where F: Fn(&E) -> I,
+          I: Iterator<Item=E>  {
+    sprawl: F,
+    stack: Vec<E>,
+}
+
+impl<E, F, I> TreeIterator<E, F, I>
+    where F: Fn(&E) -> I,
+          I: Iterator<Item=E> {
+    pub fn new(root: E, sprawl: F) -> Self {
+        return Self {
+            sprawl,
+            stack: vec![root],
+        };
+    }
+}
+
+impl<E, F, I> Iterator for TreeIterator<E, F, I>
+    where F: Fn(&E) -> I,
+          I: Iterator<Item=E>  {
+    type Item = E;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let curr = self.stack.pop()?;
+        self.stack.extend((self.sprawl)(&curr));
+        return Some(curr);
     }
 }

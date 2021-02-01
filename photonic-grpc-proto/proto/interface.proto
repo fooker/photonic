@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package photonic.interface;
+
+message NodeInfo {
+  string name = 1;
+  string kind = 2;
+
+  map<string, string> nodes = 3;
+  map<string, AttrInfo> attrs = 4;
+}
+
+message AttrInfo {
+  enum ValueType {
+    BOOL = 0;
+    INTEGER = 1;
+    DECIMAL = 2;
+    COLOR = 3;
+    RANGE = 4;
+  }
+
+  string kind = 1;
+
+  ValueType value_type = 2;
+
+  map<string, AttrInfo> attrs = 3;
+  map<string, string> inputs = 4;
+}
+
+message InputInfo {
+  enum ValueType {
+    TRIGGER = 0;
+    BOOL = 1;
+    INTEGER = 2;
+    DECIMAL = 3;
+  }
+
+  string name = 1;
+  string kind = 2;
+
+  ValueType value_type = 3;
+}
+
+message NodeListRequest {
+}
+
+message NodeListResponse {
+  string root = 1;
+  repeated string names = 2;
+}
+
+message NodeInfoRequest {
+  optional string name = 1;
+}
+
+message NodeInfoResponse {
+  NodeInfo node = 1;
+}
+
+service Interface {
+  rpc NodeList(NodeListRequest) returns (NodeListResponse) {}
+  rpc NodeInfo(NodeInfoRequest) returns (NodeInfoResponse) {}
+}

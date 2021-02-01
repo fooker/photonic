@@ -17,7 +17,7 @@ async fn main() -> Result<!, Error> {
         command: "target/debug/examples/exec-sub".to_string(),
     })?;
 
-    let (main, _) = scene.output(exec, ConsoleOutputDecl {
+    let (main, _) = scene.run(exec, ConsoleOutputDecl {
         whaterfall: true
     })?;
 

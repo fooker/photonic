@@ -1,0 +1,14 @@
+[package]
+name = "photonic-grpc"
+version = "0.1.0"
+authors = ["Dustin Frisch <fooker@lab.sh>"]
+edition = "2018"
+
+[dependencies]
+photonic-core = { path = "../photonic-core" }
+photonic-grpc-proto = { path = "../photonic-grpc-proto" }
+
+tonic = { version = "0.4.0" }
+prost = "0.7"
+failure = "0.1"
+async-trait = "0.1.42"

@@ -12,6 +12,7 @@ use crate::core::{NodeBuilder, AttrBuilder};
 use crate::interface::AttrInfo;
 use crate::math::Lerp;
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AttrValueType {
     Bool,
     Integer,
