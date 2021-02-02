@@ -33,7 +33,8 @@ impl<Source> Render for BlackoutRenderer<Source>
 }
 
 pub struct BlackoutNodeDecl<Source, Value>
-    where Source: NodeDecl {
+    where Source: NodeDecl,
+          Value: BoundAttrDecl<f64> {
     pub source: NodeHandle<Source>,
     pub value: Value,
     pub range: Option<(usize, usize)>,

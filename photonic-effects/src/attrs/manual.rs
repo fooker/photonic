@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::input::{Input, Poll, InputValue};
+use photonic_core::input::{Input, Poll, InputValue, InputHandle};
 use photonic_core::attr::*;
 use photonic_core::core::AttrBuilder;
 
@@ -62,12 +62,12 @@ impl<V> Attr<V> for UnboundManual<V>
 
 pub struct ManualDecl<V>
     where V: AttrValue + InputValue {
-    pub value: Input<V>,
+    pub value: InputHandle<V>,
 }
 
-impl<V> From<Input<V>> for ManualDecl<V>
+impl<V> From<InputHandle<V>> for ManualDecl<V>
     where V: AttrValue + InputValue {
-    fn from(value: Input<V>) -> Self {
+    fn from(value: InputHandle<V>) -> Self {
         return Self { value };
     }
 }

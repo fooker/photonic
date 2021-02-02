@@ -8,16 +8,22 @@ use crate::attr::AttrValueType;
 use crate::input::InputValueType;
 use crate::utils::TreeIterator;
 
-pub struct InputInfo {
+#[derive(Debug)]
+pub struct NodeInfo {
     pub name: String,
     pub kind: &'static str,
 
-    pub value_type: InputValueType,
+    pub nodes: HashMap<String, Arc<NodeInfo>>,
+    pub attrs: HashMap<String, Arc<AttrInfo>>,
 }
 
-impl InputInfo {
+impl NodeInfo {
+    pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item=&'s Arc<Self>> + 's {
+        return TreeIterator::new(self, |node| node.nodes.values());
+    }
 }
 
+#[derive(Debug)]
 pub struct AttrInfo {
     pub kind: &'static str,
 
@@ -33,18 +39,15 @@ impl AttrInfo {
     }
 }
 
-pub struct NodeInfo {
+#[derive(Debug)]
+pub struct InputInfo {
     pub name: String,
     pub kind: &'static str,
 
-    pub nodes: HashMap<String, Arc<NodeInfo>>,
-    pub attrs: HashMap<String, Arc<AttrInfo>>,
+    pub value_type: InputValueType,
 }
 
-impl NodeInfo {
-    pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item=&'s Arc<Self>> + 's {
-        return TreeIterator::new(self, |node| node.nodes.values());
-    }
+impl InputInfo {
 }
 
 pub struct Registry {

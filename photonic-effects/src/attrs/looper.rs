@@ -3,9 +3,9 @@ use std::time::Duration;
 use failure::Error;
 use num::traits::Num;
 
-use photonic_core::input::{Input, Poll};
 use photonic_core::attr::*;
 use photonic_core::core::AttrBuilder;
+use photonic_core::input::{Input, Poll, InputHandle};
 
 pub struct Looper<V>
     where V: AttrValue + Num {
@@ -39,7 +39,7 @@ impl<V> Attr<V> for Looper<V>
 pub struct LooperDecl<V>
     where V: AttrValue {
     pub step: V,
-    pub trigger: Input<()>,
+    pub trigger: InputHandle<()>,
 }
 
 impl<V> BoundAttrDecl<V> for LooperDecl<V>

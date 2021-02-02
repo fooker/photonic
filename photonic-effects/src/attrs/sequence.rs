@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::input::{Input, Poll};
+use photonic_core::input::{Input, InputHandle, Poll};
 use photonic_core::attr::*;
 use photonic_core::core::AttrBuilder;
 
@@ -36,7 +36,7 @@ impl<V> Attr<V> for Sequence<V>
 pub struct SequenceDecl<V>
     where V: AttrValue {
     pub values: Vec<V>,
-    pub trigger: Input<()>,
+    pub trigger: InputHandle<()>,
 }
 
 impl<V> BoundAttrDecl<V> for SequenceDecl<V>

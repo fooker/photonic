@@ -5,7 +5,7 @@ use rand::distributions::uniform::SampleUniform;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 
 use photonic_core::core::AttrBuilder;
-use photonic_core::input::{Input, Poll};
+use photonic_core::input::{Input, Poll, InputHandle};
 use photonic_core::attr::*;
 
 pub struct Random<V>
@@ -38,7 +38,7 @@ impl<V> Attr<V> for Random<V>
 }
 
 pub struct RandomDecl {
-    pub trigger: Input<()>,
+    pub trigger: InputHandle<()>,
 }
 
 impl<V> BoundAttrDecl<V> for RandomDecl

@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::attr::*;
 use photonic_core::core::AttrBuilder;
-use photonic_core::input::{Input, Poll};
+use photonic_core::input::{Input, Poll, InputHandle};
 
 #[derive(Clone, Copy, Debug)]
 enum State {
@@ -79,7 +79,7 @@ pub struct ButtonDecl<V>
     where V: AttrValue {
     pub value: (V, V),
     pub hold_time: Duration,
-    pub trigger: Input<()>,
+    pub trigger: InputHandle<()>,
 }
 
 impl<V> BoundAttrDecl<V> for ButtonDecl<V>

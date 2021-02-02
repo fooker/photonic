@@ -7,8 +7,9 @@ use failure::Error;
 use num::{One, Zero};
 
 use crate::color::{HSLColor, HSVColor, RGBColor};
-use crate::core::{AttrBuilder};
+use crate::core::AttrBuilder;
 use crate::math::Lerp;
+use crate::input::{InputValue, Input};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AttrValueType {
@@ -268,3 +269,57 @@ impl Color for RGBColor {}
 impl Color for HSVColor {}
 
 impl Color for HSLColor {}
+
+/*
+pub struct BoundInputAttr<V>
+    where V: InputValue + AttrValue + Bounded {
+    bounds: Bounds<V>,
+    input: Input<V>,
+
+    value: V,
+}
+
+impl<V> BoundAttrDecl<V> for InputHandle<V>
+    where V: InputValue + AttrValue + Bounded {
+    type Target = BoundInputAttr<V>;
+
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+        return Ok(Self::Target {
+            bounds,
+            input: builder.input("input", self)?,
+        });
+    }
+}
+
+impl<V> Attr<V> for BoundedInputAttr<V>
+    where V: InputValue + AttrValue + Bounded {
+    const KIND: &'static str = "input";
+
+    fn get(&self) -> V {
+        unimplemented!()
+    }
+
+    fn update(&mut self, duration: &Duration) -> Update<V> {
+        unimplemented!()
+    }
+}
+
+pub struct UnboundInputAttr<V>
+    where V: InputValue + AttrValue {
+    input: Input<V>,
+
+    value: V,
+}
+
+impl<V> UnboundAttrDecl<V> for InputHandle<V>
+    where V: InputValue + AttrValue {
+    type Target = UnboundInputAttr<V>;
+
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+        return Ok(Self::Target {
+            input: builder.input("input", self)?,
+            value:
+        });
+    }
+}
+*/

@@ -62,6 +62,8 @@ async fn main() -> Result<!, Error> {
         whaterfall: true
     })?;
 
+    println!("{:#?}", registry.root);
+
     registry.serve(grpc)?;
 
     main.run(FPS).await?;

@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::sync::Arc;
 use std::time::Duration;
@@ -6,10 +7,9 @@ use std::time::Duration;
 use failure::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
-use crate::input::{Input, InputValue};
+use crate::input::{Input, InputValue, Sink, InputHandle};
 use crate::interface::{AttrInfo, NodeInfo, Registry};
 use crate::utils::{FrameStats, FrameTimer};
-use std::collections::HashMap;
 
 struct NodeArena {
     elements: Vec<Box<dyn NodeBase>>,
@@ -238,18 +238,50 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
     pub fn bound_attr<V, Attr>(&mut self, name: &str, decl: Attr, bounds: impl Into<Bounds<V>>) -> Result<Attr::Target, Error>
         where V: AttrValue + Bounded,
               Attr: BoundAttrDecl<V> {
-        return self.node.bound_attr(name, decl, bounds);
+        let bounds = bounds.into();
+
+        let mut builder = AttrBuilder {
+            node: self.node,
+            info: AttrInfo {
+                kind: Attr::Target::KIND,
+                value_type: V::TYPE,
+                attrs: HashMap::new(),
+                inputs: HashMap::new(),
+            },
+        };
+
+        let attr = decl.materialize(bounds, &mut builder)?;
+
+        let info = Arc::new(builder.info);
+        self.info.attrs.insert(name.to_owned(), info);
+
+        return Ok(attr);
     }
 
     pub fn unbound_attr<V, Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target, Error>
         where V: AttrValue,
               Attr: UnboundAttrDecl<V> {
-        return self.node.unbound_attr(name, decl);
+        let mut builder = AttrBuilder {
+            node: self.node,
+            info: AttrInfo {
+                kind: Attr::Target::KIND,
+                value_type: V::TYPE,
+                attrs: HashMap::new(),
+                inputs: HashMap::new(),
+            },
+        };
+
+        let attr = decl.materialize(&mut builder)?;
+
+        let info = Arc::new(builder.info);
+        self.info.attrs.insert(name.to_owned(), info);
+
+        return Ok(attr);
     }
 
-    pub fn input<V>(&mut self, name: &str, input: Input<V>) -> Result<Input<V>, Error>
+    pub fn input<V>(&mut self, name: &str, input: InputHandle<V>) -> Result<Input<V>, Error>
         where V: InputValue {
-        return Ok(input);
+        return Ok(input.into());
     }
 }
 
@@ -294,6 +326,11 @@ impl Scene {
             name: name.into().into_owned(),
             decl,
         });
+    }
+
+    pub fn input<'a, V>(&mut self, name: impl Into<Cow<'a, str>>) -> Result<(InputHandle<V>, Sink<V>), Error>
+        where V: InputValue {
+        return Ok(InputHandle::new(name.into().into_owned()));
     }
 
     pub fn run<Node, Output, EN, EO>(self, root: NodeHandle<Node>, decl: Output) -> Result<(Loop<Node::Target, Output::Target>, Arc<Registry>), Error>
