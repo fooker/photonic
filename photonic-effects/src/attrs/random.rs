@@ -4,9 +4,9 @@ use failure::Error;
 use rand::distributions::uniform::SampleUniform;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 
-use photonic_core::core::AttrBuilder;
+use photonic_core::scene::AttrBuilder;
 use photonic_core::input::{Input, Poll, InputHandle};
-use photonic_core::attr::*;
+use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 
 pub struct Random<V>
     where V: AttrValue + Bounded {

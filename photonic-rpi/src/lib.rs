@@ -3,7 +3,8 @@
 use failure::Error;
 
 use palette::Component;
-use photonic_core::core::{Output, OutputDecl, Render};
+use photonic_core::scene::Render;
+use photonic_core::output::{Output, OutputDecl};
 use photonic_core::color::RGBColor;
 
 pub type Kind = rs_ws281x::StripType;

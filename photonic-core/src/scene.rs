@@ -6,36 +6,34 @@ use std::time::Duration;
 
 use failure::Error;
 
+use crate::arena::{Arena, Ref};
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
-use crate::input::{Input, InputValue, Sink, InputHandle};
+use crate::input::{Input, InputHandle, InputValue, Sink};
 use crate::interface::{AttrInfo, NodeInfo, Registry};
+use crate::node::{NodeDecl, Node, RenderType};
+use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
 
-struct NodeArena {
-    elements: Vec<Box<dyn NodeBase>>,
+trait NodeBase {
+    fn update(&mut self, duration: &Duration);
 }
 
-impl NodeArena {
-    pub fn new() -> Self {
-        return Self {
-            elements: Vec::new(),
-        };
+impl<Node> NodeBase for Node
+    where Node: self::Node {
+    fn update(&mut self, duration: &Duration) {
+        Node::update(self, duration);
     }
+}
 
-    pub fn insert<Node>(&mut self, name: String, node: Node) -> NodeRef<Node>
-        where Node: self::Node + 'static {
-        self.elements.push(Box::new(node));
-        return NodeRef {
-            name,
-            index: self.elements.len() - 1,
-            phantom: PhantomData::default(),
-        };
-    }
+pub struct Renderer<'a> {
+    nodes: &'a Arena<dyn NodeBase>,
+}
 
-    pub fn resolve<'n, Node>(&self, r: &NodeRef<Node>) -> &'n Node
-        where Node: self::Node {
-        let element = self.elements[r.index].as_ref();
-        return unsafe { &*(element as *const dyn NodeBase as *const Node) };
+impl<'a> Renderer<'a> {
+    pub fn render<'b, N, E>(&'b self, node: &'a NodeRef<N>) -> <N as RenderType<'a>>::Render
+        where 'b: 'a,
+              N: Node<Element=E> + 'b {
+        self.nodes.resolve(&node.node).render(self)
     }
 }
 
@@ -43,92 +41,7 @@ pub struct NodeRef<Node> {
     /// The scene-wide unique name assigned to the node during declaration
     pub name: String,
 
-    // Index of the element in the node arena
-    index: usize,
-
-    phantom: PhantomData<Node>,
-}
-
-pub struct Renderer<'a> {
-    nodes: &'a NodeArena,
-}
-
-impl<'a> Renderer<'a> {
-    pub fn render<'b, N, E>(&'b self, node: &'a NodeRef<N>) -> <N as RenderType<'a>>::Render
-        where 'b: 'a,
-              N: Node<Element=E> + 'b {
-        self.nodes.resolve(node).render(self)
-    }
-}
-
-pub trait Render {
-    type Element;
-
-    fn get(&self, index: usize) -> Self::Element;
-}
-
-impl<E, F> Render for F
-    where F: Fn(usize) -> E {
-    type Element = E;
-
-    fn get(&self, index: usize) -> Self::Element {
-        return self(index);
-    }
-}
-
-pub trait NodeDecl {
-    type Element;
-    type Target: Node<Element=Self::Element> + 'static;
-
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error>
-        where Self::Target: std::marker::Sized;
-}
-
-pub trait RenderType<'a> {
-    type Element;
-    type Render: Render<Element=Self::Element> + 'a;
-}
-
-pub trait Node: for<'a> RenderType<'a> {
-    const KIND: &'static str;
-
-    fn update(&mut self, duration: &Duration);
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render;
-}
-
-pub trait OutputDecl {
-    type Element;
-    type Target: Output<Element=Self::Element>;
-
-    fn materialize(self, size: usize) -> Result<Self::Target, Error>
-        where Self::Target: std::marker::Sized;
-}
-
-pub trait Output {
-    type Element;
-
-    fn render<E: Into<Self::Element>>(&mut self, render: &dyn Render<Element=E>);
-}
-
-pub enum AttrPath<'p> {
-    Root,
-    Nested {
-        parent: &'p AttrPath<'p>,
-        name: String,
-    },
-}
-
-impl<'p> AttrPath<'p> {
-    pub fn to_vec(&self) -> Vec<String> {
-        return match self {
-            AttrPath::Root => Vec::new(),
-            AttrPath::Nested { parent, name } => {
-                let mut r = parent.to_vec();
-                r.push(name.clone());
-                r
-            }
-        };
-    }
+    node: Ref<Node>,
 }
 
 pub struct SceneBuilder {
@@ -136,7 +49,7 @@ pub struct SceneBuilder {
     pub size: usize,
 
     // The arena used to build nodes and hand out node-refs
-    nodes: NodeArena,
+    nodes: Arena<dyn NodeBase>,
 
     // infos: Vec<Arc<NodeInfo>>,
 }
@@ -157,7 +70,10 @@ impl SceneBuilder {
 
         let node = Node::materialize(decl.decl, builder.scene.size, &mut builder)?;
 
-        return Ok((builder.info, self.nodes.insert(decl.name, node)));
+        return Ok((builder.info, NodeRef {
+            name: decl.name,
+            node: self.nodes.insert(node),
+        }));
     }
 }
 
@@ -294,17 +210,6 @@ pub struct NodeHandle<Node>
     pub decl: Node,
 }
 
-trait NodeBase {
-    fn update(&mut self, duration: &Duration);
-}
-
-impl<Node> NodeBase for Node
-    where Node: self::Node {
-    fn update(&mut self, duration: &Duration) {
-        Node::update(self, duration);
-    }
-}
-
 pub struct Scene {
     size: usize,
 }
@@ -339,7 +244,7 @@ impl Scene {
               EN: Into<EO> {
         let mut builder = SceneBuilder {
             size: self.size,
-            nodes: NodeArena::new(),
+            nodes: Arena::new(),
         };
 
         // Materialize the node tree using a builder tracking the info object creation
@@ -359,7 +264,7 @@ impl Scene {
 }
 
 pub struct Loop<Root, Output> {
-    nodes: NodeArena,
+    nodes: Arena<dyn NodeBase>,
 
     root: NodeRef<Root>,
     output: Output,
@@ -378,7 +283,7 @@ impl<Root, Output, EN, EO> Loop<Root, Output>
             let duration = timer.next().await;
 
             // Update the nodes
-            for node in self.nodes.elements.iter_mut() {
+            for node in self.nodes.iter_mut() {
                 node.update(&duration);
             }
 

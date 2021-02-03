@@ -8,7 +8,7 @@ use photonic_console::ConsoleOutputDecl;
 use photonic_core::animation;
 use photonic_core::animation::Easing;
 use photonic_core::color::HSLColor;
-use photonic_core::core::Scene;
+use photonic_core::scene::Scene;
 use photonic_core::timer::Ticker;
 use photonic_core::attr::{AsFixedAttr, Range};
 use photonic_effects::nodes::raindrops::RaindropsNodeDecl;

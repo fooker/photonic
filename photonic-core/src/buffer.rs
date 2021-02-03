@@ -1,7 +1,8 @@
 use std::time::Duration;
 
-use crate::color::*;
-use crate::core::*;
+use crate::node::{RenderType, Node, Render};
+use crate::color::Black;
+use crate::scene::Renderer;
 
 pub struct Buffer<E> {
     data: Box<[E]>,
@@ -64,11 +65,11 @@ impl<E> Node for Buffer<E>
     where E: Copy + 'static {
     const KIND: &'static str = "buffer";
 
+    fn update(&mut self, _duration: &Duration) {}
+
     fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
         return self;
     }
-
-    fn update(&mut self, _duration: &Duration) {}
 }
 
 impl<'a, E> Render for Buffer<E>

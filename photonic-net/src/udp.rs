@@ -6,8 +6,9 @@ use failure::Error;
 
 use photonic_core::buffer::Buffer;
 use photonic_core::color::{Black, RGBColor};
-use photonic_core::core::*;
+use photonic_core::scene::*;
 use palette::Component;
+use photonic_core::node::{RenderType, NodeDecl, Node};
 
 pub trait Format {
     type Element: Copy;

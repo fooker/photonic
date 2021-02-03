@@ -7,7 +7,7 @@ use failure::Error;
 use num::{One, Zero};
 
 use crate::color::{HSLColor, HSVColor, RGBColor};
-use crate::core::AttrBuilder;
+use crate::scene::AttrBuilder;
 use crate::math::Lerp;
 use crate::input::{InputValue, Input};
 

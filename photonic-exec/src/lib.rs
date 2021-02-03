@@ -7,9 +7,10 @@ use failure::{Error, format_err};
 use shared_memory::{SharedMemRaw, SharedMemCast, ReadRaw};
 
 use photonic_core::color::*;
-use photonic_core::core::*;
+use photonic_core::scene::*;
 use palette::Component;
 use std::io::Write;
+use photonic_core::node::{RenderType, Render, NodeDecl, Node};
 
 #[repr(C, packed)]
 struct Element {

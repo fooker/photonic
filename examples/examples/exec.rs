@@ -3,7 +3,7 @@
 use failure::Error;
 
 use photonic_console::ConsoleOutputDecl;
-use photonic_core::core::Scene;
+use photonic_core::scene::Scene;
 use photonic_exec::ExecNodeDecl;
 
 const SIZE: usize = 120;

@@ -2,10 +2,11 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::animation::*;
-use photonic_core::core::*;
+use photonic_core::scene::{NodeBuilder, Renderer, NodeHandle, NodeRef};
 use photonic_core::math::Lerp;
-use photonic_core::attr::*;
+use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, AttrValue, Range, Update};
+use photonic_core::node::{RenderType, Node, NodeDecl, Render};
+use photonic_core::animation::{Animation, Easing, Transition};
 
 pub struct SwitchRenderer<Source> {
     source: Source,

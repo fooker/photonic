@@ -2,7 +2,8 @@ use failure::Error;
 
 use photonic_core::buffer::*;
 use photonic_core::color::HSVColor;
-use photonic_core::core::*;
+use photonic_core::scene::{NodeBuilder, Renderer, NodeHandle, NodeRef};
+use photonic_core::node::{RenderType, Node, NodeDecl};
 
 pub struct ColorwheelNodeDecl {
     pub offset: f64,

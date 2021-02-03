@@ -3,8 +3,8 @@ use std::time::Duration;
 use failure::Error;
 
 use photonic_core::input::{Input, InputHandle, Poll};
-use photonic_core::attr::*;
-use photonic_core::core::AttrBuilder;
+use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
+use photonic_core::scene::AttrBuilder;
 
 pub struct Sequence<V>
     where V: AttrValue {

@@ -2,9 +2,9 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::attr::*;
-use photonic_core::core::AttrBuilder;
+use photonic_core::scene::AttrBuilder;
 use photonic_core::input::{Input, Poll, InputHandle};
+use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 
 #[derive(Clone, Copy, Debug)]
 enum State {

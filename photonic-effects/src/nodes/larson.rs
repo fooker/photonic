@@ -2,9 +2,10 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::color::*;
-use photonic_core::core::*;
-use photonic_core::attr::*;
+use photonic_core::color::HSVColor;
+use photonic_core::scene::{NodeBuilder, Renderer};
+use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr};
+use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 
 pub struct LarsonRenderer {
     hue: f64,

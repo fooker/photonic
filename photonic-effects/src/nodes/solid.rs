@@ -2,7 +2,8 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::core::*;
+use photonic_core::scene::{NodeBuilder, Renderer};
+use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 
 pub struct SolidRenderer<'a, E>(&'a E);
 

@@ -3,8 +3,10 @@ use std::io::{stdout, Write};
 use failure::Error;
 
 use palette::Component;
-use photonic_core::core::*;
+use photonic_core::scene::*;
 use photonic_core::color::RGBColor;
+use photonic_core::output::{OutputDecl, Output};
+use photonic_core::node::Render;
 
 pub struct ConsoleOutputDecl {
     pub whaterfall: bool,
