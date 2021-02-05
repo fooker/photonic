@@ -9,7 +9,9 @@ pub struct Ticker {
 
 impl Ticker {
     pub fn new(duration: Duration) -> (Self, Input<()>) {
-        let (input, mut sink) = Input::new();
+        let input = Input::new();
+
+        let mut sink = input.sink();
 
         let thread = std::thread::spawn(move || {
             loop {

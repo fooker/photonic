@@ -8,8 +8,8 @@ use failure::Error;
 
 use crate::arena::{Arena, Ref};
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
-use crate::input::{Input, InputHandle, InputValue, Sink};
-use crate::interface::{AttrInfo, NodeInfo, Registry};
+use crate::input::{Input, InputValue, Sink};
+use crate::interface::{AttrInfo, NodeInfo, Registry, InputInfo};
 use crate::node::{NodeDecl, Node, RenderType};
 use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
@@ -50,8 +50,6 @@ pub struct SceneBuilder {
 
     // The arena used to build nodes and hand out node-refs
     nodes: Arena<dyn NodeBase>,
-
-    // infos: Vec<Arc<NodeInfo>>,
 }
 
 impl SceneBuilder {
@@ -197,7 +195,18 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
 
     pub fn input<V>(&mut self, name: &str, input: InputHandle<V>) -> Result<Input<V>, Error>
         where V: InputValue {
-        return Ok(input.into());
+
+        let info = InputInfo {
+            name: input.name,
+            // kind: "", // TODO
+            value_type: V::TYPE,
+            sender: V::sender(input.input.sink()),
+        };
+
+        let info = Arc::new(info);
+        self.info.inputs.insert(name.to_owned(), info);
+
+        return Ok(input.input);
     }
 }
 
@@ -208,6 +217,30 @@ pub struct NodeHandle<Node>
 
     /// The declaration of the node
     pub decl: Node,
+}
+
+pub struct InputHandle<V>
+    where V: InputValue {
+    /// The scene-wide unique name of the input
+    pub name: String,
+
+    input: Input<V>,
+}
+
+impl<V> InputHandle<V>
+    where V: InputValue {
+    pub fn new(name: String) -> Self {
+        let input = Input::new();
+
+        return Self { name, input };
+    }
+}
+
+impl <V> Into<Input<V>> for InputHandle<V>
+where V: InputValue {
+    fn into(self) -> Input<V> {
+        return self.input;
+    }
 }
 
 pub struct Scene {
@@ -233,7 +266,7 @@ impl Scene {
         });
     }
 
-    pub fn input<'a, V>(&mut self, name: impl Into<Cow<'a, str>>) -> Result<(InputHandle<V>, Sink<V>), Error>
+    pub fn input<'a, V>(&mut self, name: impl Into<Cow<'a, str>>) -> Result<InputHandle<V>, Error>
         where V: InputValue {
         return Ok(InputHandle::new(name.into().into_owned()));
     }

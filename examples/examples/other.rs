@@ -39,7 +39,7 @@ async fn main() -> Result<!, Error> {
             Range::new(HSLColor::new(187.5, 0.25, 0.5),
                        HSLColor::new(223.92, 0.5, 0.5)),
         ],
-        trigger: ticker.1,
+        next: ticker.1,
     };
     let raindrops_color = FaderDecl {
         input: raindrops_color,

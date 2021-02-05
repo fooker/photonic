@@ -7,17 +7,40 @@ pub mod client;
 
 #[derive(Clap)]
 #[clap(name="photonic", author, about, version)]
-struct Opts {
+pub struct Opts {
 
     #[clap(subcommand)]
-    command: Command,
+    pub command: Command,
 }
 
 #[derive(Clap)]
-enum Command {
+pub enum Command {
     Nodes,
     Node {
         name: Option<String>,
+    },
+    Send {
+        name: String,
+
+        #[clap(subcommand)]
+        value: SendValue,
+    }
+}
+
+#[derive(Clap)]
+pub enum SendValue {
+    Trigger,
+    Boolean {
+        #[clap(parse(try_from_str))]
+        value: bool,
+    },
+    Integer {
+        #[clap(parse(try_from_str))]
+        value: i64,
+    },
+    Decimal {
+        #[clap(parse(try_from_str))]
+        value: f64,
     },
 }
 
@@ -30,6 +53,7 @@ pub async fn main() -> Result<(), Error> {
     let output: Box<dyn Serialize> = match opts.command {
         Command::Nodes => Box::new(client.nodes().await?),
         Command::Node { name } => Box::new(client.node(name).await?),
+        Command::Send { name, value } => Box::new(client.send(name, value).await?),
     };
 
     println!("{}", serde_yaml::to_string(&output)?);

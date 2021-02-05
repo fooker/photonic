@@ -13,7 +13,7 @@ use crate::input::{InputValue, Input};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AttrValueType {
-    Bool,
+    Boolean,
     Integer,
     Decimal,
     Color,
@@ -241,7 +241,7 @@ impl<V, T> UnboundAttrDecl<V> for Box<T>
 }
 
 impl AttrValue for bool {
-    const TYPE: AttrValueType = AttrValueType::Bool;
+    const TYPE: AttrValueType = AttrValueType::Boolean;
 }
 
 impl AttrValue for i64 {

@@ -1,5 +1,6 @@
 pub mod rotation;
 pub mod blackout;
+pub mod brightness;
 pub mod colorwheel;
 pub mod solid;
 pub mod raindrops;

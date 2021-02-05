@@ -8,78 +8,80 @@ use photonic_core::math::Lerp;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, Bounds};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 
-pub struct BlackoutRenderer<Source> {
+pub struct BrightnessRenderer<Source> {
     source: Source,
 
     range: (usize, usize),
-    active: bool,
+    brightness: f64,
 }
 
-impl<Source> Render for BlackoutRenderer<Source>
+impl<Source> Render for BrightnessRenderer<Source>
     where Source: Render,
           Source::Element: Lerp + Black {
     type Element = Source::Element;
 
     fn get(&self, index: usize) -> Self::Element {
-        return if self.range.0 <= index && index <= self.range.1 && self.active {
-            Self::Element::black()
+        let value = self.source.get(index);
+
+        if self.range.0 <= index && index <= self.range.1 {
+            return Self::Element::lerp(Self::Element::black(), value, self.brightness);
         } else {
-            self.source.get(index)
+            return value;
         }
     }
 }
 
-pub struct BlackoutNodeDecl<Source, Active>
+pub struct BrightnessNodeDecl<Source, Brightness>
     where Source: NodeDecl,
-          Active: UnboundAttrDecl<bool> {
+          Brightness: BoundAttrDecl<f64> {
     pub source: NodeHandle<Source>,
-    pub active: Active,
+    pub brightness: Brightness,
     pub range: Option<(usize, usize)>,
 }
 
-pub struct BlackoutNode<Source, Active> {
+pub struct BrightnessNode<Source, Brightness> {
     source: NodeRef<Source>,
-    active: Active,
+    brightness: Brightness,
     range: (usize, usize),
 }
 
-impl<Source, Active, E> NodeDecl for BlackoutNodeDecl<Source, Active>
+impl<Source, Brightness, E> NodeDecl for BrightnessNodeDecl<Source, Brightness>
     where Source: NodeDecl<Element=E>,
-          Active: UnboundAttrDecl<bool>,
+          Brightness: BoundAttrDecl<f64>,
           E: Lerp + Black {
     type Element = E;
-    type Target = BlackoutNode<Source::Target, Active::Target>;
+    type Target = BrightnessNode<Source::Target, Brightness::Target>;
 
     fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             source: builder.node("source", self.source)?,
-            active: builder.unbound_attr("active", self.active)?,
+            brightness: builder.bound_attr("brightness", self.brightness, Bounds::normal())?,
             range: self.range.unwrap_or((0, size - 1)),
         });
     }
 }
 
-impl<'a, Source, Active> RenderType<'a> for BlackoutNode<Source, Active>
+impl<'a, Source, Brightness> RenderType<'a> for BrightnessNode<Source, Brightness>
     where Source: RenderType<'a>,
           Source::Element: Lerp + Black {
     type Element = Source::Element;
-    type Render = BlackoutRenderer<Source::Render>;
+    type Render = BrightnessRenderer<Source::Render>;
 }
 
-impl<Source, Active, E> Node for BlackoutNode<Source, Active>
+impl<Source, Brightness, E> Node for BrightnessNode<Source, Brightness>
     where Source: Node<Element=E>,
-          Active: self::Attr<bool>,
+          Brightness: self::Attr<f64>,
           E: Lerp + Black {
-    const KIND: &'static str = "blackout";
+    const KIND: &'static str = "brightness";
 
     fn update(&mut self, duration: &Duration) {
-        self.active.update(duration);
+        self.brightness.update(duration);
     }
 
     fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
-        return BlackoutRenderer {
+        return BrightnessRenderer {
             source: renderer.render(&self.source),
-            active: self.active.get(),
+            brightness: self.brightness.get(),
             range: self.range,
         };
     }

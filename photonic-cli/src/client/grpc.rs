@@ -2,9 +2,10 @@ use async_trait::async_trait;
 use failure::Error;
 
 use photonic_grpc_proto as proto;
-
-use crate::client::{NodeInfo, AttrInfo, AttrValueType};
 use photonic_grpc_proto::attr_info::ValueType;
+
+use crate::client::{AttrInfo, AttrValueType, NodeInfo};
+use crate::SendValue;
 
 pub struct GrpcClient {
     client: proto::interface_client::InterfaceClient<tonic::transport::Channel>,
@@ -45,7 +46,7 @@ impl Into<AttrInfo> for proto::AttrInfo {
 impl Into<AttrValueType> for proto::attr_info::ValueType {
     fn into(self) -> AttrValueType {
         return match self {
-            Self::Bool => AttrValueType::Bool,
+            Self::Boolean => AttrValueType::Boolean,
             Self::Integer => AttrValueType::Integer,
             Self::Decimal => AttrValueType::Decimal,
             Self::Color => AttrValueType::Color,
@@ -64,8 +65,7 @@ impl super::Client for GrpcClient {
     }
 
     async fn nodes(&mut self) -> Result<Vec<String>, Error> {
-        let response = self.client.node_list(proto::NodeListRequest {
-        }).await?;
+        let response = self.client.node_list(proto::NodeListRequest {}).await?;
 
         let list = response.into_inner();
 
@@ -80,5 +80,21 @@ impl super::Client for GrpcClient {
         let node = response.into_inner().node;
 
         return Ok(node.map(Into::into));
+    }
+
+    async fn send(&mut self, name: String, value: SendValue) -> Result<(), Error> {
+        let value = match value {
+            SendValue::Trigger => proto::input_send_request::Value::Trigger(proto::TriggerValue {}),
+            SendValue::Boolean { value } => proto::input_send_request::Value::Boolean(proto::BooleanValue { value }),
+            SendValue::Integer { value } => proto::input_send_request::Value::Integer(proto::IntegerValue { value }),
+            SendValue::Decimal { value } => proto::input_send_request::Value::Decimal(proto::DecimalValue { value }),
+        };
+
+        self.client.input_send(proto::InputSendRequest {
+            name,
+            value: Some(value),
+        }).await?;
+
+        return Ok(());
     }
 }

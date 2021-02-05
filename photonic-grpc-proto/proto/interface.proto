@@ -12,7 +12,7 @@ message NodeInfo {
 
 message AttrInfo {
   enum ValueType {
-    BOOL = 0;
+    BOOLEAN = 0;
     INTEGER = 1;
     DECIMAL = 2;
     COLOR = 3;
@@ -30,16 +30,25 @@ message AttrInfo {
 message InputInfo {
   enum ValueType {
     TRIGGER = 0;
-    BOOL = 1;
+    BOOLEAN = 1;
     INTEGER = 2;
     DECIMAL = 3;
   }
 
   string name = 1;
-  string kind = 2;
+//  string kind = 2;
 
   ValueType value_type = 3;
 }
+
+//// Value types ////
+
+message TriggerValue {}
+message BooleanValue { bool value = 1; }
+message IntegerValue { sfixed64 value = 1;  }
+message DecimalValue { double value = 1; }
+
+//// Request and response types ////
 
 message NodeListRequest {
 }
@@ -57,7 +66,24 @@ message NodeInfoResponse {
   NodeInfo node = 1;
 }
 
+message InputSendRequest {
+  string name = 1;
+  oneof value {
+    TriggerValue trigger = 2;
+    BooleanValue boolean = 3;
+    IntegerValue integer = 4;
+    DecimalValue decimal = 5;
+  }
+}
+
+message InputSendResponse {
+}
+
+//// Interface ////
+
 service Interface {
   rpc NodeList(NodeListRequest) returns (NodeListResponse) {}
   rpc NodeInfo(NodeInfoRequest) returns (NodeInfoResponse) {}
+
+  rpc InputSend(InputSendRequest) returns (InputSendResponse) {}
 }

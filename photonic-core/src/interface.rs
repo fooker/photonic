@@ -5,8 +5,9 @@ use async_trait::async_trait;
 use failure::Error;
 
 use crate::attr::AttrValueType;
-use crate::input::InputValueType;
+use crate::input::{InputValue, InputValueType, Sink, InputSender};
 use crate::utils::TreeIterator;
+use failure::_core::ops::Bound;
 
 #[derive(Debug)]
 pub struct NodeInfo {
@@ -42,12 +43,11 @@ impl AttrInfo {
 #[derive(Debug)]
 pub struct InputInfo {
     pub name: String,
-    pub kind: &'static str,
+    // pub kind: &'static str,
 
     pub value_type: InputValueType,
-}
 
-impl InputInfo {
+    pub sender: InputSender,
 }
 
 pub struct Registry {

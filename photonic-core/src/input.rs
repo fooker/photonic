@@ -1,17 +1,24 @@
 use std::sync::Arc;
 
 use crossbeam::atomic::AtomicCell;
+use failure::_core::fmt::Formatter;
+use crate::attr::{BoundAttrDecl, AttrValue, Bounded, Bounds, UnboundAttrDecl, Attr, Update};
+use crate::scene::{AttrBuilder, InputHandle};
+use failure::Error;
+use std::time::Duration;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum InputValueType {
     Trigger,
-    Bool,
+    Boolean,
     Integer,
     Decimal,
 }
 
 pub trait InputValue: Send + Copy + 'static {
     const TYPE: InputValueType;
+
+    fn sender(sink: Sink<Self>) -> InputSender;
 }
 
 pub enum Poll<V>
@@ -25,6 +32,7 @@ pub struct Input<V>
     value: Arc<AtomicCell<Poll<V>>>,
 }
 
+#[derive(Clone)]
 pub struct Sink<V>
     where V: InputValue {
     value: Arc<AtomicCell<Poll<V>>>,
@@ -32,66 +40,175 @@ pub struct Sink<V>
 
 impl<V> Input<V>
     where V: InputValue {
-    pub fn new() -> (Self, Sink<V>) {
+    pub fn new() -> Self {
         let value = Arc::new(AtomicCell::new(Poll::Pending));
 
-        return (
-            Self { value: value.clone() },
-            Sink { value: value.clone() },
-        );
+        return Self { value: value.clone() };
     }
 
     pub fn poll(&mut self) -> Poll<V> {
         return self.value.swap(Poll::Pending);
     }
+
+    pub fn sink(&self) -> Sink<V> {
+        return Sink { value: self.value.clone() };
+    }
 }
 
 impl<V> Sink<V>
     where V: InputValue {
-    pub fn send(&mut self, next: V) {
+    pub fn send(&self, next: V) {
         self.value.store(Poll::Ready(next));
-    }
-}
-
-pub struct InputHandle<V>
-    where V: InputValue {
-    /// The scene-wide unique name of the input
-    pub name: String,
-
-    input: Input<V>,
-}
-
-impl<V> InputHandle<V>
-    where V: InputValue {
-    pub fn new(name: String) -> (Self, Sink<V>) {
-        let (input, sink) = Input::new();
-
-        return (Self {
-            name,
-            input,
-        }, sink);
-    }
-}
-
-impl<V> Into<Input<V>> for InputHandle<V>
-    where V: InputValue {
-    fn into(self) -> Input<V> {
-        return self.input;
     }
 }
 
 impl InputValue for () {
     const TYPE: InputValueType = InputValueType::Trigger;
+
+    fn sender(sink: Sink<Self>) -> InputSender {
+        return InputSender::Trigger(sink);
+    }
 }
 
 impl InputValue for bool {
-    const TYPE: InputValueType = InputValueType::Bool;
+    const TYPE: InputValueType = InputValueType::Boolean;
+
+    fn sender(sink: Sink<Self>) -> InputSender {
+        return InputSender::Boolean(sink);
+    }
 }
 
 impl InputValue for i64 {
     const TYPE: InputValueType = InputValueType::Integer;
+
+    fn sender(sink: Sink<Self>) -> InputSender {
+        return InputSender::Integer(sink);
+    }
 }
 
 impl InputValue for f64 {
     const TYPE: InputValueType = InputValueType::Decimal;
+
+    fn sender(sink: Sink<Self>) -> InputSender {
+        return InputSender::Decimal(sink);
+    }
+}
+
+pub enum InputSender {
+    Trigger(Sink<()>),
+    Boolean(Sink<bool>),
+    Integer(Sink<i64>),
+    Decimal(Sink<f64>),
+}
+
+impl std::fmt::Debug for InputSender {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        return write!(f, "({})", match self {
+            Self::Trigger(_) => "trigger",
+            Self::Boolean(_) => "boolean",
+            Self::Integer(_) => "integer",
+            Self::Decimal(_) => "decimal",
+        });
+    }
+}
+
+impl<V> InputHandle<V>
+    where V: InputValue + AttrValue {
+    pub fn attr(self, initial: V) -> InputAttrDecl<V> {
+        return InputAttrDecl {
+            input: self.into(),
+            initial,
+        };
+    }
+}
+
+pub struct InputAttrDecl<V>
+    where V: InputValue + AttrValue {
+    input: InputHandle<V>,
+    initial: V,
+}
+
+pub struct BoundInputAttr<V>
+    where V: AttrValue + InputValue + Bounded {
+    bounds: Bounds<V>,
+
+    input: Input<V>,
+    current: V,
+}
+
+impl<V> Attr<V> for BoundInputAttr<V>
+    where V: AttrValue + InputValue + Bounded {
+    const KIND: &'static str = "input";
+
+    fn get(&self) -> V {
+        self.current
+    }
+
+    fn update(&mut self, _duration: &Duration) -> Update<V> {
+        if let Poll::Ready(update) = self.input.poll() {
+            if let Ok(update) = self.bounds.ensure(update) {
+                self.current = update;
+                return Update::Changed(self.current);
+            } else {
+                return Update::Idle;
+            }
+        } else {
+            return Update::Idle;
+        }
+    }
+}
+
+impl<V> BoundAttrDecl<V> for InputAttrDecl<V>
+    where V: AttrValue + InputValue + Bounded {
+    type Target = BoundInputAttr<V>;
+
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+        let input = builder.input("input", self.input)?;
+
+        let initial = bounds.ensure(self.initial)?;
+
+        return Ok(Self::Target {
+            bounds,
+            input,
+            current: initial,
+        });
+    }
+}
+
+pub struct UnboundInputAttr<V>
+    where V: AttrValue + InputValue {
+    input: Input<V>,
+    current: V,
+}
+
+impl<V> Attr<V> for UnboundInputAttr<V>
+    where V: AttrValue + InputValue {
+    const KIND: &'static str = "manual";
+
+    fn get(&self) -> V {
+        self.current
+    }
+
+    fn update(&mut self, _duration: &Duration) -> Update<V> {
+        if let Poll::Ready(update) = self.input.poll() {
+            self.current = update;
+            return Update::Changed(self.current);
+        } else {
+            return Update::Idle;
+        }
+    }
+}
+
+impl<V> UnboundAttrDecl<V> for InputAttrDecl<V>
+    where V: AttrValue + InputValue {
+    type Target = UnboundInputAttr<V>;
+
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+        let input = builder.input("value", self.input)?;
+
+        return Ok(Self::Target {
+            input,
+            current: self.initial,
+        });
+    }
 }

@@ -3,13 +3,14 @@ use std::collections::HashMap;
 use async_trait::async_trait;
 use failure::Error;
 use serde::Serialize;
+use crate::SendValue;
 
 pub mod grpc;
 
 #[derive(Serialize, Copy, Clone, Debug, Eq, PartialEq)]
 pub enum InputValueType {
     Trigger,
-    Bool,
+    Boolean,
     Integer,
     Decimal,
 }
@@ -24,7 +25,7 @@ pub struct InputInfo {
 
 #[derive(Serialize, Copy, Clone, Debug, Eq, PartialEq)]
 pub enum AttrValueType {
-    Bool,
+    Boolean,
     Integer,
     Decimal,
     Color,
@@ -56,4 +57,6 @@ pub trait Client: Sized {
 
     async fn nodes(&mut self) -> Result<Vec<String>, Error>;
     async fn node(&mut self, name: Option<String>) -> Result<Option<NodeInfo>, Error>;
+
+    async fn send(&mut self, name: String, value: SendValue) -> Result<(), Error>;
 }

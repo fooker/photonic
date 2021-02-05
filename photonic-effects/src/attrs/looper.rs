@@ -4,8 +4,8 @@ use failure::Error;
 use num::traits::Num;
 
 use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
-use photonic_core::scene::AttrBuilder;
-use photonic_core::input::{Input, Poll, InputHandle};
+use photonic_core::scene::{AttrBuilder, InputHandle};
+use photonic_core::input::{Input, Poll};
 
 pub struct Looper<V>
     where V: AttrValue + Num {

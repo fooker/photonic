@@ -40,7 +40,8 @@ impl MqttHandleBuilder {
         where T: InputValue,
               F: Fn(String) -> Option<T> + Send + 'static,
               Topic: Into<String> {
-        let (input, mut sink) = Input::new();
+        let input = Input::new();
+        let mut sink = input.sink();
 
         let mut topic = topic.into();
         if let Some(ref realm) = self.realm {

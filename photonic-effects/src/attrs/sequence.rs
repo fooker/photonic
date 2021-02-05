@@ -2,9 +2,9 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::input::{Input, InputHandle, Poll};
+use photonic_core::input::{Input, Poll};
 use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
-use photonic_core::scene::AttrBuilder;
+use photonic_core::scene::{AttrBuilder, InputHandle};
 
 pub struct Sequence<V>
     where V: AttrValue {
@@ -12,7 +12,8 @@ pub struct Sequence<V>
 
     position: usize,
 
-    trigger: Input<()>,
+    next: Option<Input<()>>,
+    prev: Option<Input<()>>,
 }
 
 impl<V> Attr<V> for Sequence<V>
@@ -24,19 +25,29 @@ impl<V> Attr<V> for Sequence<V>
     }
 
     fn update(&mut self, _duration: &Duration) -> Update<V> {
-        if let Poll::Ready(()) = self.trigger.poll() {
-            self.position = (self.position + 1) % self.values.len();
-            return Update::Changed(self.values[self.position]);
-        } else {
-            return Update::Idle;
-        }
+        let next = self.next.as_mut().map_or(Poll::Pending, Input::poll);
+        let prev = self.prev.as_mut().map_or(Poll::Pending, Input::poll);
+
+        return match (next, prev) {
+            (Poll::Ready(()), Poll::Ready(())) |
+            (Poll::Pending, Poll::Pending) => Update::Idle,
+            (Poll::Ready(()), Poll::Pending) => {
+                self.position = (self.position + self.values.len() + 1) % self.values.len();
+                Update::Changed(self.values[self.position])
+            }
+            (Poll::Pending, Poll::Ready(())) => {
+                self.position = (self.position + self.values.len() - 1) % self.values.len();
+                Update::Changed(self.values[self.position])
+            }
+        };
     }
 }
 
 pub struct SequenceDecl<V>
     where V: AttrValue {
     pub values: Vec<V>,
-    pub trigger: InputHandle<()>,
+    pub next: Option<InputHandle<()>>,
+    pub prev: Option<InputHandle<()>>,
 }
 
 impl<V> BoundAttrDecl<V> for SequenceDecl<V>
@@ -47,12 +58,14 @@ impl<V> BoundAttrDecl<V> for SequenceDecl<V>
             .map(|v| bounds.ensure(v))
             .collect::<Result<Vec<_>, Error>>()?;
 
-        let trigger = builder.input("trigger", self.trigger)?;
+        let next = self.next.map(|input| builder.input("next", input)).transpose()?;
+        let prev = self.prev.map(|input| builder.input("prev", input)).transpose()?;
 
         return Ok(Sequence {
             values,
             position: 0,
-            trigger,
+            next,
+            prev,
         });
     }
 }
@@ -65,12 +78,14 @@ impl<V> UnboundAttrDecl<V> for SequenceDecl<V>
             .map(|v| v.into())
             .collect();
 
-        let trigger = builder.input("trigger", self.trigger)?;
+        let next = self.next.map(|input| builder.input("next", input)).transpose()?;
+        let prev = self.prev.map(|input| builder.input("prev", input)).transpose()?;
 
         return Ok(Sequence {
             values,
             position: 0,
-            trigger,
+            next,
+            prev,
         });
     }
 }
