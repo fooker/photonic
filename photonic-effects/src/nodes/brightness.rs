@@ -3,7 +3,7 @@ use std::time::Duration;
 use failure::Error;
 
 use photonic_core::color::Black;
-use photonic_core::scene::{NodeBuilder, Renderer, NodeHandle, NodeRef};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math::Lerp;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, Bounds};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
@@ -40,7 +40,7 @@ pub struct BrightnessNodeDecl<Source, Brightness>
 }
 
 pub struct BrightnessNode<Source, Brightness> {
-    source: NodeRef<Source>,
+    source: Source,
     brightness: Brightness,
     range: (usize, usize),
 }
@@ -78,9 +78,9 @@ impl<Source, Brightness, E> Node for BrightnessNode<Source, Brightness>
         self.brightness.update(duration);
     }
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return BrightnessRenderer {
-            source: renderer.render(&self.source),
+            source: self.source.render(),
             brightness: self.brightness.get(),
             range: self.range,
         };

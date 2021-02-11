@@ -26,7 +26,7 @@ pub trait AttrValue: Send + Copy + 'static {
 
 pub enum Update<V>
     where V: AttrValue {
-    Idle,
+    Idle, // TODO: Let idle carry a value, too
     Changed(V),
 }
 

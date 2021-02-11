@@ -102,7 +102,7 @@ impl Node for ExecNode {
             .expect("Failed to write to child process");
     }
 
-    fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return ExecRenderer {
             shm: &self.shm,
         };

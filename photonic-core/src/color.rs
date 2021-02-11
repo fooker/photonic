@@ -1,10 +1,12 @@
-use palette::Mix;
-
 use crate::math;
 
 pub type RGBColor = palette::LinSrgb<f64>;
 pub type HSVColor = palette::Hsv<palette::encoding::Srgb, f64>;
 pub type HSLColor = palette::Hsl<palette::encoding::Srgb, f64>;
+
+pub trait Mix = palette::Mix<Scalar=f64>;
+pub trait Shade = palette::Shade<Scalar=f64>;
+pub trait Saturate = palette::Saturate<Scalar=f64>;
 
 pub trait Black {
     fn black() -> Self;
@@ -20,7 +22,7 @@ impl math::Lerp for RGBColor {
             return c2;
         }
 
-        return Mix::mix(&c1, &c2, i);
+        return palette::Mix::mix(&c1, &c2, i);
     }
 }
 
@@ -34,7 +36,7 @@ impl math::Lerp for HSVColor {
             return c2;
         }
 
-        return Mix::mix(&c1, &c2, i);
+        return palette::Mix::mix(&c1, &c2, i);
     }
 }
 
@@ -48,7 +50,7 @@ impl math::Lerp for HSLColor {
             return c2;
         }
 
-        return Mix::mix(&c1, &c2, i);
+        return palette::Mix::mix(&c1, &c2, i);
     }
 }
 

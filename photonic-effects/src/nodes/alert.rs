@@ -6,7 +6,7 @@ use photonic_core::math;
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 use photonic_core::color::HSVColor;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr};
-use photonic_core::scene::{NodeBuilder, Renderer};
+use photonic_core::scene::NodeBuilder;
 
 pub struct AlertRenderer {
     hue: f64,
@@ -78,7 +78,7 @@ impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
         self.time += duration.as_secs_f64() * self.speed.get();
     }
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return AlertRenderer {
             hue: self.hue.get(),
             block_size: self.block.get() as usize,

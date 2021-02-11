@@ -2,17 +2,21 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::scene::{NodeBuilder, Renderer, NodeHandle, NodeRef};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math::Lerp;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, AttrValue, Range, Update};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 use photonic_core::animation::{Animation, Easing, Transition};
 
-pub struct SwitchRenderer<Source> {
-    source: Source,
-    target: Source,
+pub enum SwitchRenderer<Source> {
+    Blending {
+        source: Source,
+        target: Source,
 
-    blend: f64,
+        blend: f64,
+    },
+
+    Full(Source),
 }
 
 impl<Source> Render for SwitchRenderer<Source>
@@ -21,13 +25,21 @@ impl<Source> Render for SwitchRenderer<Source>
     type Element = Source::Element;
 
     fn get(&self, index: usize) -> Self::Element {
-        let source = self.source.get(index);
-        let target = self.target.get(index);
+        match self {
+            SwitchRenderer::Blending { source, target, blend } => {
+                let source = source.get(index);
+                let target = target.get(index);
 
-        // TODO: Blending modes
-        return Self::Element::lerp(source,
-                                   target,
-                                   self.blend);
+                // TODO: Blending modes
+                return Self::Element::lerp(source,
+                                           target,
+                                           *blend);
+            }
+
+            SwitchRenderer::Full(source) => {
+                return source.get(index);
+            }
+        }
     }
 }
 
@@ -41,7 +53,7 @@ pub struct SwitchNodeDecl<Source, Fade>
 }
 
 pub struct SwitchNode<Source, Fade> {
-    sources: Vec<NodeRef<Source>>,
+    sources: Vec<Source>,
 
     fade: Fade,
 
@@ -114,11 +126,23 @@ impl<Source, Fade, E> Node for SwitchNode<Source, Fade>
         }
     }
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
-        return SwitchRenderer {
-            source: renderer.render(&self.sources[self.source]),
-            target: renderer.render(&self.sources[self.target]),
-            blend: self.blend,
-        };
+    fn render(&mut self) -> <Self as RenderType>::Render {
+        if self.source == self.target {
+            return SwitchRenderer::Full(self.sources[self.source].render());
+        } else {
+            let sources = self.sources.as_mut_ptr();
+
+            // We guarantee to have two distinct indices in bounds
+            let (source, target) = unsafe {
+                (&mut *sources.offset(self.source as isize),
+                 &mut *sources.offset(self.target as isize))
+            };
+
+            return SwitchRenderer::Blending {
+                source: source.render(),
+                target: target.render(),
+                blend: self.blend,
+            };
+        }
     }
 }

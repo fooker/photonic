@@ -3,7 +3,7 @@ use std::time::Duration;
 use failure::Error;
 
 use photonic_core::color::Black;
-use photonic_core::scene::{NodeBuilder, Renderer, NodeHandle, NodeRef};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math::Lerp;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, Bounds};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
@@ -38,7 +38,7 @@ pub struct BlackoutNodeDecl<Source, Active>
 }
 
 pub struct BlackoutNode<Source, Active> {
-    source: NodeRef<Source>,
+    source: Source,
     active: Active,
     range: (usize, usize),
 }
@@ -76,9 +76,9 @@ impl<Source, Active, E> Node for BlackoutNode<Source, Active>
         self.active.update(duration);
     }
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return BlackoutRenderer {
-            source: renderer.render(&self.source),
+            source: self.source.render(),
             active: self.active.get(),
             range: self.range,
         };

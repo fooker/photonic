@@ -4,7 +4,7 @@ use std::time::Duration;
 use failure::Error;
 use noise::{NoiseFn, Perlin, Seedable};
 
-use photonic_core::scene::{NodeBuilder, Renderer};
+use photonic_core::scene::NodeBuilder;
 use photonic_core::math;
 use photonic_core::math::Lerp;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, AttrValue, Range};
@@ -99,7 +99,7 @@ impl<Range, Scale, Speed, E> Node for PlasmaNode<Range, Scale, Speed, E>
         self.time += duration.as_secs_f64() * self.speed.get();
     }
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return PlasmaRenderer {
             noise: &self.perlin,
             range: self.range.get(),

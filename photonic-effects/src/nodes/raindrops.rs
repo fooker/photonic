@@ -4,7 +4,7 @@ use failure::Error;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 
 use photonic_core::color::{HSLColor, Black};
-use photonic_core::scene::{NodeBuilder, Renderer};
+use photonic_core::scene::NodeBuilder;
 use photonic_core::math;
 use photonic_core::math::Lerp;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, AttrValue, Range, Bounds};
@@ -128,7 +128,7 @@ impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
         }
     }
 
-    fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return RaindropsRenderer(&self.raindrops);
     }
 }

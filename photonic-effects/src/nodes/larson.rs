@@ -3,7 +3,7 @@ use std::time::Duration;
 use failure::Error;
 
 use photonic_core::color::HSVColor;
-use photonic_core::scene::{NodeBuilder, Renderer};
+use photonic_core::scene::NodeBuilder;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 
@@ -111,7 +111,7 @@ impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
         }
     }
 
-    fn render<'a>(&'a self, _renderer: &Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return LarsonRenderer {
             hue: self.hue.get(),
             width: self.width.get(),

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::scene::{NodeBuilder, Renderer, NodeHandle, NodeRef};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math::Lerp;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, Bounds};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
@@ -42,8 +42,8 @@ pub struct OverlayNodeDecl<Base, Overlay, Blend>
 }
 
 pub struct OverlayNode<Base, Overlay, Blend> {
-    base: NodeRef<Base>,
-    overlay: NodeRef<Overlay>,
+    base: Base,
+    overlay: Overlay,
 
     blend: Blend,
 }
@@ -87,10 +87,10 @@ impl<Base, Overlay, Blend, EB, EO> Node for OverlayNode<Base, Overlay, Blend>
         self.blend.update(duration);
     }
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return OverlayRenderer {
-            base: renderer.render(&self.base),
-            overlay: renderer.render(&self.overlay),
+            base: self.base.render(),
+            overlay: self.overlay.render(),
             blend: self.blend.get(),
         };
     }

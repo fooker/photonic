@@ -1,3 +1,4 @@
+pub mod afterglow;
 pub mod rotation;
 pub mod blackout;
 pub mod brightness;

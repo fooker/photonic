@@ -100,7 +100,7 @@ impl<F> Node for ReceiverNode<F>
             .for_each(|(o, b)| *o = F::load(b));
     }
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return &self.output;
     }
 }

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::scene::{NodeBuilder, Renderer, NodeHandle, NodeRef};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math;
 use photonic_core::math::Lerp;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, AttrValue, Range};
@@ -39,7 +39,7 @@ pub struct RotationNodeDecl<Source, Speed>
 pub struct RotationNode<Source, Speed> {
     size: usize,
 
-    source: NodeRef<Source>,
+    source: Source,
     speed: Speed,
 
     offset: f64,
@@ -80,9 +80,9 @@ impl<Source, Speed, E> Node for RotationNode<Source, Speed>
         self.offset += self.speed.get() * duration.as_secs_f64();
     }
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return RotationRenderer {
-            source: renderer.render(&self.source),
+            source: self.source.render(),
             size: self.size,
             offset: self.offset,
         };

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::scene::{NodeBuilder, Renderer};
+use photonic_core::scene::NodeBuilder;
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 
 pub struct SolidRenderer<'a, E>(&'a E);
@@ -49,7 +49,7 @@ impl<E> Node for SolidNode<E>
 
     fn update(&mut self, _duration: &Duration) {}
 
-    fn render<'a>(&'a self, _renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return SolidRenderer(&self.solid);
     }
 }

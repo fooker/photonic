@@ -6,7 +6,6 @@ use std::time::Duration;
 
 use failure::Error;
 
-use crate::arena::{Arena, Ref};
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 use crate::input::{Input, InputValue, Sink};
 use crate::interface::{AttrInfo, NodeInfo, Registry, InputInfo};
@@ -14,46 +13,13 @@ use crate::node::{NodeDecl, Node, RenderType};
 use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
 
-trait NodeBase {
-    fn update(&mut self, duration: &Duration);
-}
-
-impl<Node> NodeBase for Node
-    where Node: self::Node {
-    fn update(&mut self, duration: &Duration) {
-        Node::update(self, duration);
-    }
-}
-
-pub struct Renderer<'a> {
-    nodes: &'a Arena<dyn NodeBase>,
-}
-
-impl<'a> Renderer<'a> {
-    pub fn render<'b, N, E>(&'b self, node: &'a NodeRef<N>) -> <N as RenderType<'a>>::Render
-        where 'b: 'a,
-              N: Node<Element=E> + 'b {
-        self.nodes.resolve(&node.node).render(self)
-    }
-}
-
-pub struct NodeRef<Node> {
-    /// The scene-wide unique name assigned to the node during declaration
-    pub name: String,
-
-    node: Ref<Node>,
-}
-
 pub struct SceneBuilder {
     /// The size of the scene
     pub size: usize,
-
-    // The arena used to build nodes and hand out node-refs
-    nodes: Arena<dyn NodeBase>,
 }
 
 impl SceneBuilder {
-    pub fn node<Node>(&mut self, decl: NodeHandle<Node>) -> Result<(NodeInfo, NodeRef<Node::Target>), Error>
+    pub fn node<Node>(&mut self, decl: NodeHandle<Node>) -> Result<(NodeInfo, Node::Target), Error>
         where Node: NodeDecl {
         let mut builder = NodeBuilder {
             scene: self,
@@ -68,10 +34,7 @@ impl SceneBuilder {
 
         let node = Node::materialize(decl.decl, builder.scene.size, &mut builder)?;
 
-        return Ok((builder.info, NodeRef {
-            name: decl.name,
-            node: self.nodes.insert(node),
-        }));
+        return Ok((builder.info, node));
     }
 }
 
@@ -86,7 +49,7 @@ pub struct NodeBuilder<'b> {
 }
 
 impl<'b> NodeBuilder<'b> {
-    pub fn node<Node>(&mut self, name: &str, decl: NodeHandle<Node>) -> Result<NodeRef<Node::Target>, Error>
+    pub fn node<Node>(&mut self, name: &str, decl: NodeHandle<Node>) -> Result<Node::Target, Error>
         where Node: NodeDecl {
         let (info, node) = self.scene.node(decl)?;
 
@@ -277,7 +240,6 @@ impl Scene {
               EN: Into<EO> {
         let mut builder = SceneBuilder {
             size: self.size,
-            nodes: Arena::new(),
         };
 
         // Materialize the node tree using a builder tracking the info object creation
@@ -289,7 +251,6 @@ impl Scene {
         let registry = Registry::from(Arc::new(root_info));
 
         return Ok((Loop {
-            nodes: builder.nodes,
             root: root_node,
             output,
         }, registry));
@@ -297,9 +258,7 @@ impl Scene {
 }
 
 pub struct Loop<Root, Output> {
-    nodes: Arena<dyn NodeBase>,
-
-    root: NodeRef<Root>,
+    root: Root,
     output: Output,
 }
 
@@ -315,16 +274,8 @@ impl<Root, Output, EN, EO> Loop<Root, Output>
         loop {
             let duration = timer.next().await;
 
-            // Update the nodes
-            for node in self.nodes.iter_mut() {
-                node.update(&duration);
-            }
-
             // Render node tree to output
-            let renderer = Renderer {
-                nodes: &self.nodes,
-            };
-            let render = renderer.render(&self.root);
+            let render = self.root.render();
             self.output.render(&render);
 
             if let Some(stats) = stats.update(duration, fps) {

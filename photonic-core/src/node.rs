@@ -2,8 +2,7 @@ use std::time::Duration;
 
 use failure::Error;
 
-use crate::arena::{Arena, Ref};
-use crate::scene::{NodeBuilder, Renderer};
+use crate::scene::NodeBuilder;
 
 pub trait Render {
     type Element;
@@ -37,5 +36,5 @@ pub trait Node: for<'a> RenderType<'a> {
     const KIND: &'static str;
 
     fn update(&mut self, duration: &Duration);
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render;
+    fn render(&mut self) -> <Self as RenderType>::Render;
 }

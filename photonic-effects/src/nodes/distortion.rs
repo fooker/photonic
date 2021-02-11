@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use failure::Error;
 
-use photonic_core::scene::{NodeBuilder, Renderer, NodeHandle, NodeRef};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math::Lerp;
 use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, Bounds};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
@@ -37,7 +37,7 @@ pub struct DistortionNodeDecl<Source, Value, F>
 }
 
 pub struct DistortionNode<Source, Value, F> {
-    source: NodeRef<Source>,
+    source: Source,
     value: Value,
     distortion: F,
 
@@ -83,9 +83,9 @@ impl<Source, Value, E, F> Node for DistortionNode<Source, Value, F>
         self.time += duration.as_secs_f64();
     }
 
-    fn render<'a>(&'a self, renderer: &'a Renderer) -> <Self as RenderType<'a>>::Render {
+    fn render(&mut self) -> <Self as RenderType>::Render {
         return DistortionRenderer {
-            source: renderer.render(&self.source),
+            source: self.source.render(),
             distortion: &self.distortion,
             value: self.value.get(),
             time: self.time,
