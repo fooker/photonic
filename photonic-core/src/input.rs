@@ -1,11 +1,11 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use crossbeam::atomic::AtomicCell;
-use failure::_core::fmt::Formatter;
-use crate::attr::{BoundAttrDecl, AttrValue, Bounded, Bounds, UnboundAttrDecl, Attr, Update};
-use crate::scene::{AttrBuilder, InputHandle};
 use failure::Error;
-use std::time::Duration;
+
+use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl, Update};
+use crate::scene::{AttrBuilder, InputHandle};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum InputValueType {

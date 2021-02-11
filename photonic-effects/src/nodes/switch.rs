@@ -106,6 +106,10 @@ impl<Source, Fade, E> Node for SwitchNode<Source, Fade>
     const KIND: &'static str = "switch";
 
     fn update(&mut self, duration: &Duration) {
+        for source in &mut self.sources {
+            source.update(duration);
+        }
+
         if let Update::Changed(fade) = self.fade.update(duration) {
             if let Some(easing) = self.easing {
                 self.source = self.target;

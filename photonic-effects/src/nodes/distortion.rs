@@ -78,6 +78,8 @@ impl<Source, Value, E, F> Node for DistortionNode<Source, Value, F>
     const KIND: &'static str = "distortion";
 
     fn update(&mut self, duration: &Duration) {
+        self.source.update(duration);
+
         self.value.update(duration);
 
         self.time += duration.as_secs_f64();

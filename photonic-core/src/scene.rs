@@ -272,6 +272,8 @@ impl<Root, Output, EN, EO> Loop<Root, Output>
         loop {
             let duration = timer.next().await;
 
+            self.root.update(&duration);
+
             // Render node tree to output
             let render = self.root.render();
             self.output.render(&render);

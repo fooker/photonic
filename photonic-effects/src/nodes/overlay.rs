@@ -84,6 +84,9 @@ impl<Base, Overlay, Blend, EB, EO> Node for OverlayNode<Base, Overlay, Blend>
     const KIND: &'static str = "overlay";
 
     fn update(&mut self, duration: &Duration) {
+        self.base.update(duration);
+        self.overlay.update(duration);
+
         self.blend.update(duration);
     }
 

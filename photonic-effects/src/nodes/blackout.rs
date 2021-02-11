@@ -73,6 +73,8 @@ impl<Source, Active, E> Node for BlackoutNode<Source, Active>
     const KIND: &'static str = "blackout";
 
     fn update(&mut self, duration: &Duration) {
+        self.source.update(duration);
+
         self.active.update(duration);
     }
 

@@ -76,8 +76,9 @@ impl<Source, Speed, E> Node for RotationNode<Source, Speed>
     const KIND: &'static str = "rotation";
 
     fn update(&mut self, duration: &Duration) {
-        self.speed.update(duration);
-        self.offset += self.speed.get() * duration.as_secs_f64();
+        self.source.update(duration);
+
+        self.offset += self.speed.update(duration).value() * duration.as_secs_f64();
     }
 
     fn render(&mut self) -> <Self as RenderType>::Render {

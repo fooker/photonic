@@ -8,9 +8,9 @@ pub struct Buffer<E> {
 }
 
 impl<E> Buffer<E> {
-    pub fn update<F>(&mut self, f: F) where F: Fn(&E) -> E {
-        for e in self.data.iter_mut() {
-            *e = f(e);
+    pub fn update<F>(&mut self, f: F) where F: Fn(usize, &E) -> E {
+        for (i, e) in self.data.iter_mut().enumerate() {
+            *e = f(i, e);
         }
     }
 }
