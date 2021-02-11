@@ -11,7 +11,7 @@ impl Ticker {
     pub fn new(duration: Duration) -> (Self, Input<()>) {
         let input = Input::new();
 
-        let mut sink = input.sink();
+        let sink = input.sink();
 
         let thread = std::thread::spawn(move || {
             loop {

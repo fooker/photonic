@@ -70,7 +70,9 @@ impl<V> Attr<V> for Button<V>
         return match (state_old, state_new) {
             (false, true) => Update::Changed(self.value_pressed),
             (true, false) => Update::Changed(self.value_released),
-            _ => Update::Idle,
+
+            (false, false) => Update::Idle(self.value_released),
+            (true, true) => Update::Idle(self.value_pressed),
         };
     }
 }

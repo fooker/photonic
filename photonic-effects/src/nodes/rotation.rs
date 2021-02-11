@@ -5,7 +5,7 @@ use failure::Error;
 use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math;
 use photonic_core::math::Lerp;
-use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, AttrValue, Range};
+use photonic_core::attr::{UnboundAttrDecl, Attr};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 
 pub struct RotationRenderer<Source> {

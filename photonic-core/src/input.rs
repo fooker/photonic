@@ -150,10 +150,10 @@ impl<V> Attr<V> for BoundInputAttr<V>
                 self.current = update;
                 return Update::Changed(self.current);
             } else {
-                return Update::Idle;
+                return Update::Idle(self.current);
             }
         } else {
-            return Update::Idle;
+            return Update::Idle(self.current);
         }
     }
 }
@@ -194,7 +194,7 @@ impl<V> Attr<V> for UnboundInputAttr<V>
             self.current = update;
             return Update::Changed(self.current);
         } else {
-            return Update::Idle;
+            return Update::Idle(self.current);
         }
     }
 }

@@ -3,7 +3,7 @@ use std::time::Duration;
 use failure::Error;
 use num::traits::Num;
 
-use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
+use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds};
 use photonic_core::scene::{AttrBuilder, InputHandle};
 use photonic_core::input::{Input, Poll};
 
@@ -31,7 +31,7 @@ impl<V> Attr<V> for Looper<V>
             self.current = self.min + (self.current + self.step - self.min) % (self.max - self.min);
             return Update::Changed(self.current);
         } else {
-            return Update::Idle;
+            return Update::Idle(self.current);
         }
     }
 }

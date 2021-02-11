@@ -9,7 +9,6 @@ use num::{One, Zero};
 use crate::color::{HSLColor, HSVColor, RGBColor};
 use crate::scene::AttrBuilder;
 use crate::math::Lerp;
-use crate::input::{InputValue, Input};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AttrValueType {
@@ -26,8 +25,18 @@ pub trait AttrValue: Send + Copy + 'static {
 
 pub enum Update<V>
     where V: AttrValue {
-    Idle, // TODO: Let idle carry a value, too
+    Idle(V),
     Changed(V),
+}
+
+impl <V> Update<V>
+    where V: AttrValue {
+    pub fn value(self) -> V {
+        return match self {
+            Self::Idle(value) => value,
+            Self::Changed(value) => value,
+        };
+    }
 }
 
 pub trait Attr<V>
@@ -135,7 +144,7 @@ impl<V> Attr<V> for FixedAttr<V>
     }
 
     fn update(&mut self, _duration: &Duration) -> Update<V> {
-        return Update::Idle;
+        return Update::Idle(self.0);
     }
 }
 

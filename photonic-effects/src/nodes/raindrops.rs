@@ -7,7 +7,7 @@ use photonic_core::color::{HSLColor, Black};
 use photonic_core::scene::NodeBuilder;
 use photonic_core::math;
 use photonic_core::math::Lerp;
-use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, AttrValue, Range, Bounds};
+use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, Range, Bounds};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 
 #[derive(Clone)]

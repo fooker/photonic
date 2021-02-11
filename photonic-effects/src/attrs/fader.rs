@@ -36,7 +36,7 @@ impl<Input, V> Attr<V> for Fader<Input, V>
             self.current = value;
             return Update::Changed(self.current);
         } else {
-            return Update::Idle;
+            return Update::Idle(self.current);
         }
     }
 }

@@ -6,7 +6,7 @@ use rand::prelude::{FromEntropy, Rng, SmallRng};
 
 use photonic_core::scene::{AttrBuilder, InputHandle};
 use photonic_core::input::{Input, Poll};
-use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
+use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds};
 
 pub struct Random<V>
     where V: AttrValue + Bounded {
@@ -32,7 +32,7 @@ impl<V> Attr<V> for Random<V>
             self.current = self.random.gen_range(self.bounds.min, self.bounds.max);
             return Update::Changed(self.current);
         } else {
-            return Update::Idle;
+            return Update::Idle(self.current);
         }
     }
 }

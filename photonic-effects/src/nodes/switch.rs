@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math::Lerp;
-use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, AttrValue, Range, Update};
+use photonic_core::attr::{BoundAttrDecl, Attr, Update};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 use photonic_core::animation::{Animation, Easing, Transition};
 

@@ -1,15 +1,13 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::marker::PhantomData;
 use std::sync::Arc;
-use std::time::Duration;
 
 use failure::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
-use crate::input::{Input, InputValue, Sink};
+use crate::input::{Input, InputValue};
 use crate::interface::{AttrInfo, NodeInfo, Registry, InputInfo};
-use crate::node::{NodeDecl, Node, RenderType};
+use crate::node::{NodeDecl, Node};
 use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
 

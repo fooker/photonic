@@ -5,9 +5,8 @@ use async_trait::async_trait;
 use failure::Error;
 
 use crate::attr::AttrValueType;
-use crate::input::{InputValue, InputValueType, Sink, InputSender};
+use crate::input::{InputValueType, InputSender};
 use crate::utils::TreeIterator;
-use failure::_core::ops::Bound;
 
 #[derive(Debug)]
 pub struct NodeInfo {

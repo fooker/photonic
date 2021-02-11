@@ -7,7 +7,7 @@ use noise::{NoiseFn, Perlin, Seedable};
 use photonic_core::scene::NodeBuilder;
 use photonic_core::math;
 use photonic_core::math::Lerp;
-use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, AttrValue, Range};
+use photonic_core::attr::{UnboundAttrDecl, Attr, AttrValue, Range};
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 
 pub struct PlasmaRenderer<'a, E>

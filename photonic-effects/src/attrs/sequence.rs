@@ -30,7 +30,7 @@ impl<V> Attr<V> for Sequence<V>
 
         return match (next, prev) {
             (Poll::Ready(()), Poll::Ready(())) |
-            (Poll::Pending, Poll::Pending) => Update::Idle,
+            (Poll::Pending, Poll::Pending) => Update::Idle(self.values[self.position]),
             (Poll::Ready(()), Poll::Pending) => {
                 self.position = (self.position + self.values.len() + 1) % self.values.len();
                 Update::Changed(self.values[self.position])
