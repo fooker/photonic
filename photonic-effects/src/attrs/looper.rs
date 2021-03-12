@@ -26,7 +26,7 @@ impl<V> Attr<V> for Looper<V>
         return self.current;
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<V> {
+    fn update(&mut self, _duration: Duration) -> Update<V> {
         if let Poll::Ready(()) = self.trigger.poll() {
             self.current = self.min + (self.current + self.step - self.min) % (self.max - self.min);
             return Update::Changed(self.current);

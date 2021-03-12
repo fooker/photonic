@@ -44,7 +44,7 @@ pub trait Attr<V>
     const KIND: &'static str;
 
     fn get(&self) -> V;
-    fn update(&mut self, duration: &Duration) -> Update<V>;
+    fn update(&mut self, duration: Duration) -> Update<V>;
 }
 
 /// Inclusive on both sides
@@ -143,7 +143,7 @@ impl<V> Attr<V> for FixedAttr<V>
         return self.0;
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<V> {
+    fn update(&mut self, _duration: Duration) -> Update<V> {
         return Update::Idle(self.0);
     }
 }

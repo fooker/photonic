@@ -77,7 +77,7 @@ impl<Source, Value, E, F> Node for DistortionNode<Source, Value, F>
           F: Fn(&E, f64) -> E + 'static {
     const KIND: &'static str = "distortion";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.source.update(duration);
 
         self.value.update(duration);

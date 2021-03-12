@@ -47,7 +47,7 @@ impl<E> Node for SolidNode<E>
     where E: Copy + 'static {
     const KIND: &'static str = "solid";
 
-    fn update(&mut self, _duration: &Duration) {}
+    fn update(&mut self, _duration: Duration) {}
 
     fn render(&mut self) -> <Self as RenderType>::Render {
         return SolidRenderer(&self.solid);

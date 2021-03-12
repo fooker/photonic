@@ -91,7 +91,7 @@ impl<Range, Scale, Speed, E> Node for PlasmaNode<Range, Scale, Speed, E>
           E: AttrValue + Lerp {
     const KIND: &'static str = "plasma";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.range.update(duration);
         self.scale.update(duration);
         self.speed.update(duration);

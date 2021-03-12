@@ -105,7 +105,7 @@ impl<Source, Fade, E> Node for SwitchNode<Source, Fade>
           E: Lerp {
     const KIND: &'static str = "switch";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         for source in &mut self.sources {
             source.update(duration);
         }

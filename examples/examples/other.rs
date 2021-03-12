@@ -90,7 +90,7 @@ async fn main() -> Result<!, Error> {
 //    let effect = scene.node("effect", UdpReciverNodeDecl::<_, RGBColor>::bind("127.0.0.1:7331"))?;
 
     let (main, _) = scene.run(effect, ConsoleOutputDecl {
-        whaterfall: true
+        waterfall: true
     })?;
 
     mqtt.start()?;

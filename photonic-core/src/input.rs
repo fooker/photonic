@@ -144,7 +144,7 @@ impl<V> Attr<V> for BoundInputAttr<V>
         self.current
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<V> {
+    fn update(&mut self, _duration: Duration) -> Update<V> {
         if let Poll::Ready(update) = self.input.poll() {
             if let Ok(update) = self.bounds.ensure(update) {
                 self.current = update;
@@ -189,7 +189,7 @@ impl<V> Attr<V> for UnboundInputAttr<V>
         self.current
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<V> {
+    fn update(&mut self, _duration: Duration) -> Update<V> {
         if let Poll::Ready(update) = self.input.poll() {
             self.current = update;
             return Update::Changed(self.current);

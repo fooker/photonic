@@ -87,7 +87,7 @@ impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
           Width: Attr<f64> {
     const KIND: &'static str = "larson";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.speed.update(duration);
         self.width.update(duration);
 

@@ -75,7 +75,7 @@ impl<Source, Speed, E> Node for RotationNode<Source, Speed>
           E: Lerp {
     const KIND: &'static str = "rotation";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.source.update(duration);
 
         self.offset += self.speed.update(duration).value() * duration.as_secs_f64();

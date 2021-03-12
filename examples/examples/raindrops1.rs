@@ -59,7 +59,7 @@ async fn main() -> Result<!, Error> {
     })?;
 
     let (main, registry) = scene.run(switch_raindrops, ConsoleOutputDecl {
-        whaterfall: true
+        waterfall: true
     })?;
 
     println!("{:#?}", registry.root);

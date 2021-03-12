@@ -12,5 +12,7 @@ pub trait OutputDecl {
 pub trait Output {
     type Element;
 
+    const KIND: &'static str;
+
     fn render<E: Into<Self::Element>>(&mut self, render: &dyn Render<Element=E>);
 }

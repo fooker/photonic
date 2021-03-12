@@ -70,7 +70,7 @@ async fn main() -> Result<!, Error> {
     })?;
 
     let (main, registry) = scene.run(blackout, ConsoleOutputDecl {
-        whaterfall: true
+        waterfall: true
     })?;
 
     println!("{:#?}", registry.root);

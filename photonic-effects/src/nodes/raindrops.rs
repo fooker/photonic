@@ -44,7 +44,7 @@ impl Random {
 
     pub fn rate(&mut self,
                 value: f64,
-                duration: &Duration) -> bool {
+                duration: Duration) -> bool {
         return self.0.gen_bool(math::clamp(duration.as_secs_f64() * value, (0.0, 1.0)));
     }
 
@@ -113,7 +113,7 @@ impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
           Decay: Attr<Range<f64>> {
     const KIND: &'static str = "raindrops";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.rate.update(duration);
         self.color.update(duration);
         self.decay.update(duration);

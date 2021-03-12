@@ -35,6 +35,6 @@ pub trait RenderType<'a> {
 pub trait Node: for<'a> RenderType<'a> {
     const KIND: &'static str;
 
-    fn update(&mut self, duration: &Duration);
+    fn update(&mut self, duration: Duration);
     fn render(&mut self) -> <Self as RenderType>::Render;
 }

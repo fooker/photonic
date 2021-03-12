@@ -24,7 +24,7 @@ impl<V> Attr<V> for Sequence<V>
         self.values[self.position]
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<V> {
+    fn update(&mut self, _duration: Duration) -> Update<V> {
         let next = self.next.as_mut().map_or(Poll::Pending, Input::poll);
         let prev = self.prev.as_mut().map_or(Poll::Pending, Input::poll);
 

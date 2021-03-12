@@ -52,7 +52,7 @@ impl<Source, Decay, E> Node for AfterglowNode<Source, Decay, E>
           E: Black + Shade + Ord + Copy + 'static {
     const KIND: &'static str = "afterglow";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.source.update(duration);
 
         let decay = self.decay.update(duration).value() * duration.as_secs_f64();

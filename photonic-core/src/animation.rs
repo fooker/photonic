@@ -53,7 +53,7 @@ impl<F> Animation<F>
         });
     }
 
-    pub fn update(&mut self, duration: &Duration) -> Transition<F> {
+    pub fn update(&mut self, duration: Duration) -> Transition<F> {
         match self.state {
             State::Running(ref mut runner) => {
                 if let Some(value) = runner.update(duration) {
@@ -92,7 +92,7 @@ struct Running<F>
 
 impl<F> Running<F>
     where F: Lerp + Copy {
-    fn update(&mut self, duration: &Duration) -> Option<F> {
+    fn update(&mut self, duration: Duration) -> Option<F> {
         if self.position > 1.0 {
             return None;
         }

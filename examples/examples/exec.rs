@@ -18,7 +18,7 @@ async fn main() -> Result<!, Error> {
     })?;
 
     let (main, _) = scene.run(exec, ConsoleOutputDecl {
-        whaterfall: true
+        waterfall: true
     })?;
 
     main.run(FPS).await?;

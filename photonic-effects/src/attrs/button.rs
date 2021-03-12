@@ -13,10 +13,10 @@ enum State {
 }
 
 impl State {
-    fn update(self, duration: &Duration) -> Self {
+    fn update(self, duration: Duration) -> Self {
         if let State::Pressed(remaining) = self {
-            if remaining > *duration {
-                return State::Pressed(remaining - *duration);
+            if remaining > duration {
+                return State::Pressed(remaining - duration);
             } else {
                 return State::Released;
             }
@@ -56,7 +56,7 @@ impl<V> Attr<V> for Button<V>
         };
     }
 
-    fn update(&mut self, duration: &Duration) -> Update<V> {
+    fn update(&mut self, duration: Duration) -> Update<V> {
         let state_old = self.state.pressed();
 
         if let Poll::Ready(()) = self.trigger.poll() {

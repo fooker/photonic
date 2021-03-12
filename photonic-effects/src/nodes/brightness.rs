@@ -74,7 +74,7 @@ impl<Source, Brightness, E> Node for BrightnessNode<Source, Brightness>
           E: Lerp + Black {
     const KIND: &'static str = "brightness";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.source.update(duration);
 
         self.brightness.update(duration);

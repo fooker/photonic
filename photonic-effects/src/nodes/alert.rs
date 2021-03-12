@@ -71,7 +71,7 @@ impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
           Speed: Attr<f64> {
     const KIND: &'static str = "alert";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.block.update(duration);
         self.speed.update(duration);
 

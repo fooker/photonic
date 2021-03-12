@@ -72,7 +72,7 @@ impl<Source, Active, E> Node for BlackoutNode<Source, Active>
           E: Lerp + Black {
     const KIND: &'static str = "blackout";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.source.update(duration);
 
         self.active.update(duration);

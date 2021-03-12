@@ -27,7 +27,7 @@ impl<V> Attr<V> for Random<V>
         self.current
     }
 
-    fn update(&mut self, _duration: &Duration) -> Update<V> {
+    fn update(&mut self, _duration: Duration) -> Update<V> {
         if let Poll::Ready(()) = self.trigger.poll() {
             self.current = self.random.gen_range(self.bounds.min, self.bounds.max);
             return Update::Changed(self.current);

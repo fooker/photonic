@@ -83,7 +83,7 @@ impl<Base, Overlay, Blend, EB, EO> Node for OverlayNode<Base, Overlay, Blend>
           EO: Into<EB> {
     const KIND: &'static str = "overlay";
 
-    fn update(&mut self, duration: &Duration) {
+    fn update(&mut self, duration: Duration) {
         self.base.update(duration);
         self.overlay.update(duration);
 

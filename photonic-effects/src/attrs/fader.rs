@@ -27,7 +27,7 @@ impl<Input, V> Attr<V> for Fader<Input, V>
         self.current
     }
 
-    fn update(&mut self, duration: &Duration) -> Update<V> {
+    fn update(&mut self, duration: Duration) -> Update<V> {
         if let Update::Changed(next) = self.input.update(duration) {
             self.transition.start(self.easing, self.current, next);
         }
