@@ -3,7 +3,7 @@ use std::time::Duration;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use failure::{Error, format_err};
+use anyhow::{Error, format_err};
 use shared_memory::{SharedMemRaw, SharedMemCast, ReadRaw};
 
 use photonic_core::color::*;

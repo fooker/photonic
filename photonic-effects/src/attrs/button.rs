@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use failure::Error;
+use anyhow::Error;
 
 use photonic_core::scene::{AttrBuilder, InputHandle};
 use photonic_core::input::{Input, Poll};

@@ -10,5 +10,5 @@ photonic-grpc-proto = { path = "../photonic-grpc-proto" }
 
 tonic = { version = "0.4.0" }
 prost = "0.7"
-failure = "0.1"
+anyhow = "1"
 async-trait = "0.1.42"

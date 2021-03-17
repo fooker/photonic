@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use std::time::Duration;
 
-use failure::Error;
+use anyhow::Error;
 use noise::{NoiseFn, Perlin, Seedable};
 
 use photonic_core::scene::NodeBuilder;

@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 use std::net::{ToSocketAddrs, UdpSocket};
 use std::time::Duration;
 
-use failure::Error;
+use anyhow::Error;
 
 use photonic_core::buffer::Buffer;
 use photonic_core::color::{Black, RGBColor};

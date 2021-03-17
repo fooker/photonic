@@ -1,6 +1,6 @@
 #![feature(never_type)]
 
-use failure::Error;
+use anyhow::Error;
 
 use photonic_console::ConsoleOutputDecl;
 use photonic_core::scene::Scene;

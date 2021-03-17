@@ -1,4 +1,4 @@
-use failure::Error;
+use anyhow::Error;
 use clap::Clap;
 use crate::client::Client;
 use erased_serde::Serialize;

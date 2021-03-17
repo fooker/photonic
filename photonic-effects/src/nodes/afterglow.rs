@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use failure::Error;
+use anyhow::Error;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
 use photonic_core::buffer::Buffer;

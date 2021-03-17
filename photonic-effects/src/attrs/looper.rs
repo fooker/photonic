@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use failure::Error;
+use anyhow::Error;
 use num::traits::Num;
 
 use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds};

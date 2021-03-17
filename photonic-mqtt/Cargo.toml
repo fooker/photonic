@@ -6,5 +6,5 @@ edition = "2018"
 
 [dependencies]
 photonic-core = {path="../photonic-core"}
-failure = "0.1"
-rumqtt = "0.30"
+anyhow = "1"
+rumqtt = "0.31"

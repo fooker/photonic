@@ -1,7 +1,7 @@
 use std::time::Duration;
+use std::marker::PhantomData;
 
-use failure::_core::marker::PhantomData;
-use failure::Error;
+use anyhow::Error;
 
 use crate::scene::NodeBuilder;
 

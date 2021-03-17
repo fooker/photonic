@@ -2,8 +2,8 @@ use std::fmt;
 use std::fmt::Display;
 use std::time::Duration;
 
-use failure::ensure;
-use failure::Error;
+use anyhow::ensure;
+use anyhow::Error;
 use num::{One, Zero};
 
 use crate::color::{HSLColor, HSVColor, RGBColor};

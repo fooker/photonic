@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use failure::Error;
+use anyhow::Error;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 
 use photonic_core::color::{HSLColor, Black};

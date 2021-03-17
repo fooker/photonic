@@ -1,6 +1,6 @@
 #![cfg(target = "arm-unknown-linux-gnueabihf")]
 
-use failure::Error;
+use anyhow::Error;
 
 use palette::Component;
 use photonic_core::scene::Render;

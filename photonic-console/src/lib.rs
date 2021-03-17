@@ -1,6 +1,6 @@
 use std::io::{stdout, Write};
 
-use failure::Error;
+use anyhow::Error;
 use palette::Component;
 use serde::Deserialize;
 

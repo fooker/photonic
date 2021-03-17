@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crossbeam::atomic::AtomicCell;
-use failure::Error;
+use anyhow::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl, Update};
 use crate::scene::{AttrBuilder, InputHandle};

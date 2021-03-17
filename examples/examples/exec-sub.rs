@@ -1,6 +1,6 @@
 use shared_memory::{SharedMemRaw, SharedMemCast, WriteRaw};
 use byteorder::{ReadBytesExt, BigEndian, WriteBytesExt};
-use failure::_core::time::Duration;
+use std::time::Duration;
 use std::io::Write;
 
 #[repr(C, packed)]

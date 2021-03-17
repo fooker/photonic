@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::thread;
 
-use failure::Error;
+use anyhow::Error;
 use rumqtt::{MqttClient, MqttOptions, Notification, QoS, ReconnectOptions};
 
 use photonic_core::input::{Input, InputValue};
@@ -75,7 +75,8 @@ impl MqttHandleBuilder {
             .set_clean_session(true)
             .set_reconnect_opts(ReconnectOptions::Always(5));
 
-        let (mut client, notifications) = MqttClient::start(opts)?;
+        let (mut client, notifications) = MqttClient::start(opts)
+            .map_err(|err| Error::msg(err.to_string()))?; // TODO: Better error conversion
 
         for endpoint in self.endpoints.keys() {
             client.subscribe(endpoint.to_owned(), QoS::AtLeastOnce)

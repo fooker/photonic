@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 palette = "0.4"
 regex = "0.2"
-failure = "0.1"
+anyhow = "1"
 rand = "0.6"
 num = "0.2"
 ezing = "0.2"

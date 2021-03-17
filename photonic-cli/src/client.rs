@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use async_trait::async_trait;
-use failure::Error;
+use anyhow::Error;
 use serde::Serialize;
 use crate::SendValue;
 

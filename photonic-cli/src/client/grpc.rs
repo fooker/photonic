@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use failure::Error;
+use anyhow::Error;
 
 use photonic_grpc_proto as proto;
 use photonic_grpc_proto::attr_info::ValueType;

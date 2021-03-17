@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 photonic-core = {path="../photonic-core"}
-failure = "~0.1"
+anyhow = "1"
 shlex = "^0.1.1"
 shared_memory = "0.8.2"
 byteorder = "1.3"

@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use failure::Error;
+use anyhow::Error;
 
 use photonic_console::ConsoleOutputDecl;
 use photonic_core::animation;

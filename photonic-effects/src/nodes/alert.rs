@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use failure::Error;
+use anyhow::Error;
 
 use photonic_core::math;
 use photonic_core::node::{RenderType, Node, NodeDecl, Render};

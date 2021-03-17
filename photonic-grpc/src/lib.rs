@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use failure::Error;
+use anyhow::Error;
 
 use photonic_core::attr::AttrValueType;
 use photonic_core::input::{InputValueType, InputSender};
