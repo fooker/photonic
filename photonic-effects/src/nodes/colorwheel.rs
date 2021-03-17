@@ -1,10 +1,12 @@
 use failure::Error;
+use serde::Deserialize;
 
 use photonic_core::buffer::*;
 use photonic_core::color::HSVColor;
 use photonic_core::scene::NodeBuilder;
 use photonic_core::node::NodeDecl;
 
+#[derive(Deserialize)]
 pub struct ColorwheelNodeDecl {
     pub offset: f64,
     pub scale: f64,

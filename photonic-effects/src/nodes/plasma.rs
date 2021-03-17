@@ -78,10 +78,12 @@ impl<Range, Scale, Speed, E> NodeDecl for PlasmaNodeDecl<Range, Scale, Speed, E>
     }
 }
 
-impl<'a, Range, Scale, Speed, E> RenderType<'a> for PlasmaNode<Range, Scale, Speed, E>
-    where E: AttrValue + Lerp {
-    type Element = E;
-    type Render = PlasmaRenderer<'a, Self::Element>;
+impl<'a, Range, Scale, Speed, E> RenderType<'a, Self> for PlasmaNode<Range, Scale, Speed, E>
+    where Range: Attr<self::Range<E>>,
+          Scale: Attr<f64>,
+          Speed: Attr<f64>,
+          E: AttrValue + Lerp {
+    type Render = PlasmaRenderer<'a, E>;
 }
 
 impl<Range, Scale, Speed, E> Node for PlasmaNode<Range, Scale, Speed, E>
@@ -91,6 +93,8 @@ impl<Range, Scale, Speed, E> Node for PlasmaNode<Range, Scale, Speed, E>
           E: AttrValue + Lerp {
     const KIND: &'static str = "plasma";
 
+    type Element = E;
+
     fn update(&mut self, duration: Duration) {
         self.range.update(duration);
         self.scale.update(duration);
@@ -99,7 +103,7 @@ impl<Range, Scale, Speed, E> Node for PlasmaNode<Range, Scale, Speed, E>
         self.time += duration.as_secs_f64() * self.speed.get();
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return PlasmaRenderer {
             noise: &self.perlin,
             range: self.range.get(),

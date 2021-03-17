@@ -4,7 +4,7 @@ use failure::Error;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
 use photonic_core::buffer::Buffer;
-use photonic_core::color::{Black, Shade};
+use photonic_core::color::{Black, Shade, ComponentWise};
 use photonic_core::node::{Node, NodeDecl, RenderType, Render};
 use photonic_core::scene::{NodeBuilder, NodeHandle};
 
@@ -15,20 +15,20 @@ pub struct AfterglowNodeDecl<Source, Decay>
     pub decay: Decay,
 }
 
-pub struct AfterglowNode<Source, Decay, E>
-    where Source: Node<Element=E> {
+pub struct AfterglowNode<Source, Decay>
+    where Source: Node {
     source: Source,
     decay: Decay,
 
-    buffer: Buffer<E>,
+    buffer: Buffer<Source::Element>,
 }
 
 impl<Source, Decay> NodeDecl for AfterglowNodeDecl<Source, Decay>
     where Source: NodeDecl,
           Decay: BoundAttrDecl<f64>,
-          Source::Element: Black + Shade + Ord + Copy + 'static {
+          Source::Element: Black + Shade + ComponentWise + Copy + 'static {
     type Element = Source::Element;
-    type Target = AfterglowNode<Source::Target, Decay::Target, Source::Element>;
+    type Target = AfterglowNode<Source::Target, Decay::Target>;
 
     fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
@@ -39,18 +39,20 @@ impl<Source, Decay> NodeDecl for AfterglowNodeDecl<Source, Decay>
     }
 }
 
-impl<'a, Source, Decay, E> RenderType<'a> for AfterglowNode<Source, Decay, E>
-    where Source: Node<Element=E>,
-          E: Black + Shade + Ord + Copy + 'static{
-    type Element = E;
-    type Render = &'a Buffer<E>;
+impl<'a, Source, Decay> RenderType<'a, Self> for AfterglowNode<Source, Decay>
+    where Source: Node,
+          Decay: self::Attr<f64>,
+          Source::Element: Black + Shade + ComponentWise + Copy + 'static{
+    type Render = &'a Buffer<Source::Element>;
 }
 
-impl<Source, Decay, E> Node for AfterglowNode<Source, Decay, E>
-    where Source: Node<Element=E>,
+impl<Source, Decay> Node for AfterglowNode<Source, Decay>
+    where Source: Node,
           Decay: self::Attr<f64>,
-          E: Black + Shade + Ord + Copy + 'static {
+          Source::Element: Black + Shade + ComponentWise + Copy + 'static {
     const KIND: &'static str = "afterglow";
+
+    type Element = Source::Element;
 
     fn update(&mut self, duration: Duration) {
         self.source.update(duration);
@@ -62,11 +64,12 @@ impl<Source, Decay, E> Node for AfterglowNode<Source, Decay, E>
         });
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         let source = self.source.render();
 
         self.buffer.update(|i, e| {
-            std::cmp::max(*e, source.get(i))
+            return source.get(i)
+                .component_wise(e, |a, b| { f64::max(a, b) });
         });
 
         return &self.buffer;

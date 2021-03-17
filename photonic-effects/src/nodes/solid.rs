@@ -37,9 +37,8 @@ pub struct SolidNode<E> {
     solid: E,
 }
 
-impl<'a, E> RenderType<'a> for SolidNode<E>
+impl<'a, E> RenderType<'a, Self> for SolidNode<E>
     where E: Copy + 'static {
-    type Element = E;
     type Render = SolidRenderer<'a, E>;
 }
 
@@ -47,9 +46,11 @@ impl<E> Node for SolidNode<E>
     where E: Copy + 'static {
     const KIND: &'static str = "solid";
 
+    type Element = E;
+
     fn update(&mut self, _duration: Duration) {}
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return SolidRenderer(&self.solid);
     }
 }

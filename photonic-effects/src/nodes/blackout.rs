@@ -59,18 +59,20 @@ impl<Source, Active, E> NodeDecl for BlackoutNodeDecl<Source, Active>
     }
 }
 
-impl<'a, Source, Active> RenderType<'a> for BlackoutNode<Source, Active>
-    where Source: RenderType<'a>,
+impl<'a, Source, Active> RenderType<'a, Self> for BlackoutNode<Source, Active>
+    where Source: Node,
+          Active: self::Attr<bool>,
           Source::Element: Lerp + Black {
-    type Element = Source::Element;
-    type Render = BlackoutRenderer<Source::Render>;
+    type Render = BlackoutRenderer<<Source as RenderType<'a, Source>>::Render>;
 }
 
-impl<Source, Active, E> Node for BlackoutNode<Source, Active>
-    where Source: Node<Element=E>,
+impl<Source, Active> Node for BlackoutNode<Source, Active>
+    where Source: Node,
           Active: self::Attr<bool>,
-          E: Lerp + Black {
+          Source::Element: Lerp + Black {
     const KIND: &'static str = "blackout";
+
+    type Element = Source::Element;
 
     fn update(&mut self, duration: Duration) {
         self.source.update(duration);
@@ -78,7 +80,7 @@ impl<Source, Active, E> Node for BlackoutNode<Source, Active>
         self.active.update(duration);
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return BlackoutRenderer {
             source: self.source.render(),
             active: self.active.get(),

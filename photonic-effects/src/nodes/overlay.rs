@@ -66,22 +66,24 @@ impl<Base, Overlay, Blend, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay, B
     }
 }
 
-impl<'a, Base, Overlay, Blend> RenderType<'a> for OverlayNode<Base, Overlay, Blend>
-    where Base: RenderType<'a>,
-          Overlay: RenderType<'a>,
+impl<'a, Base, Overlay, Blend> RenderType<'a, Self> for OverlayNode<Base, Overlay, Blend>
+    where Base: Node,
+          Overlay: Node,
+          Blend: Attr<f64>,
           Base::Element: Lerp,
           Overlay::Element: Into<Base::Element> {
-    type Element = Base::Element;
-    type Render = OverlayRenderer<Base::Render, Overlay::Render>;
+    type Render = OverlayRenderer<<Base as RenderType<'a, Base>>::Render, <Overlay as RenderType<'a, Overlay>>::Render>;
 }
 
-impl<Base, Overlay, Blend, EB, EO> Node for OverlayNode<Base, Overlay, Blend>
-    where Base: Node<Element=EB>,
-          Overlay: Node<Element=EO>,
+impl<Base, Overlay, Blend> Node for OverlayNode<Base, Overlay, Blend>
+    where Base: Node,
+          Overlay: Node,
           Blend: Attr<f64>,
-          EB: Lerp,
-          EO: Into<EB> {
+          Base::Element: Lerp,
+          Overlay::Element: Into<Base::Element> {
     const KIND: &'static str = "overlay";
+
+    type Element = Base::Element;
 
     fn update(&mut self, duration: Duration) {
         self.base.update(duration);
@@ -90,7 +92,7 @@ impl<Base, Overlay, Blend, EB, EO> Node for OverlayNode<Base, Overlay, Blend>
         self.blend.update(duration);
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return OverlayRenderer {
             base: self.base.render(),
             overlay: self.overlay.render(),

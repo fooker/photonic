@@ -102,8 +102,10 @@ impl<Rate, Color, Decay> NodeDecl for RaindropsNodeDecl<Rate, Color, Decay>
     }
 }
 
-impl<'a, Rate, Color, Decay> RenderType<'a> for RaindropsNode<Rate, Color, Decay> {
-    type Element = HSLColor;
+impl<'a, Rate, Color, Decay> RenderType<'a, Self> for RaindropsNode<Rate, Color, Decay>
+    where Rate: Attr<f64>,
+          Color: Attr<Range<HSLColor>>,
+          Decay: Attr<Range<f64>> {
     type Render = RaindropsRenderer<'a>;
 }
 
@@ -112,6 +114,8 @@ impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
           Color: Attr<Range<HSLColor>>,
           Decay: Attr<Range<f64>> {
     const KIND: &'static str = "raindrops";
+
+    type Element = HSLColor;
 
     fn update(&mut self, duration: Duration) {
         self.rate.update(duration);
@@ -128,7 +132,7 @@ impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
         }
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return RaindropsRenderer(&self.raindrops);
     }
 }

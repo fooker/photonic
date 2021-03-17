@@ -92,18 +92,20 @@ impl<Source, Fade, E> NodeDecl for SwitchNodeDecl<Source, Fade>
     }
 }
 
-impl<'a, Source, Fade> RenderType<'a> for SwitchNode<Source, Fade>
-    where Source: RenderType<'a>,
+impl<'a, Source, Fade> RenderType<'a, Self> for SwitchNode<Source, Fade>
+    where Source: Node,
+          Fade: Attr<i64>,
           Source::Element: Lerp {
-    type Element = Source::Element;
-    type Render = SwitchRenderer<Source::Render>;
+    type Render = SwitchRenderer<<Source as RenderType<'a, Source>>::Render>;
 }
 
-impl<Source, Fade, E> Node for SwitchNode<Source, Fade>
-    where Source: Node<Element=E>,
+impl<Source, Fade> Node for SwitchNode<Source, Fade>
+    where Source: Node,
           Fade: Attr<i64>,
-          E: Lerp {
+          Source::Element: Lerp {
     const KIND: &'static str = "switch";
+
+    type Element = Source::Element;
 
     fn update(&mut self, duration: Duration) {
         for source in &mut self.sources {
@@ -130,7 +132,7 @@ impl<Source, Fade, E> Node for SwitchNode<Source, Fade>
         }
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         if self.source == self.target {
             return SwitchRenderer::Full(self.sources[self.source].render());
         } else {

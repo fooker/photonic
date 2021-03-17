@@ -61,18 +61,20 @@ impl<Source, Brightness, E> NodeDecl for BrightnessNodeDecl<Source, Brightness>
     }
 }
 
-impl<'a, Source, Brightness> RenderType<'a> for BrightnessNode<Source, Brightness>
-    where Source: RenderType<'a>,
+impl<'a, Source, Brightness> RenderType<'a, Self> for BrightnessNode<Source, Brightness>
+    where Source: Node,
+          Brightness: self::Attr<f64>,
           Source::Element: Lerp + Black {
-    type Element = Source::Element;
-    type Render = BrightnessRenderer<Source::Render>;
+    type Render = BrightnessRenderer<<Source as RenderType<'a, Source>>::Render>;
 }
 
-impl<Source, Brightness, E> Node for BrightnessNode<Source, Brightness>
-    where Source: Node<Element=E>,
+impl<Source, Brightness> Node for BrightnessNode<Source, Brightness>
+    where Source: Node,
           Brightness: self::Attr<f64>,
-          E: Lerp + Black {
+          Source::Element: Lerp + Black {
     const KIND: &'static str = "brightness";
+
+    type Element = Source::Element;
 
     fn update(&mut self, duration: Duration) {
         self.source.update(duration);
@@ -80,7 +82,7 @@ impl<Source, Brightness, E> Node for BrightnessNode<Source, Brightness>
         self.brightness.update(duration);
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return BrightnessRenderer {
             source: self.source.render(),
             brightness: self.brightness.get(),

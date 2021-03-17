@@ -62,20 +62,22 @@ impl<Source, Value, F, E> NodeDecl for DistortionNodeDecl<Source, Value, F>
     }
 }
 
-impl<'a, Source, Value, F> RenderType<'a> for DistortionNode<Source, Value, F>
-    where Source: RenderType<'a>,
+impl<'a, Source, Value, F> RenderType<'a, Self> for DistortionNode<Source, Value, F>
+    where Source: Node,
+          Value: self::Attr<f64>,
           Source::Element: Lerp,
-          F: Fn(&Source::Element, f64) -> Source::Element + 'a {
-    type Element = Source::Element;
-    type Render = DistortionRenderer<'a, Source::Render, F>;
+          F: Fn(&Source::Element, f64) -> Source::Element + 'static {
+    type Render = DistortionRenderer<'a, <Source as RenderType<'a, Source>>::Render, F>;
 }
 
-impl<Source, Value, E, F> Node for DistortionNode<Source, Value, F>
-    where Source: Node<Element=E>,
+impl<Source, Value, F> Node for DistortionNode<Source, Value, F>
+    where Source: Node,
           Value: self::Attr<f64>,
-          E: Lerp,
-          F: Fn(&E, f64) -> E + 'static {
+          Source::Element: Lerp,
+          F: Fn(&Source::Element, f64) -> Source::Element + 'static {
     const KIND: &'static str = "distortion";
+
+    type Element = Source::Element;
 
     fn update(&mut self, duration: Duration) {
         self.source.update(duration);
@@ -85,7 +87,7 @@ impl<Source, Value, E, F> Node for DistortionNode<Source, Value, F>
         self.time += duration.as_secs_f64();
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return DistortionRenderer {
             source: self.source.render(),
             distortion: &self.distortion,

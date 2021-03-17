@@ -1,19 +1,21 @@
 use std::io::{stdout, Write};
 
 use failure::Error;
-
 use palette::Component;
-use photonic_core::color::RGBColor;
-use photonic_core::output::{OutputDecl, Output};
-use photonic_core::node::Render;
+use serde::Deserialize;
 
+use photonic_core::color::RGBColor;
+use photonic_core::node::Render;
+use photonic_core::output::{Output, OutputDecl};
+
+#[derive(Deserialize)]
 pub struct ConsoleOutputDecl {
-    pub whaterfall: bool,
+    pub waterfall: bool,
 }
 
 pub struct ConsoleOutput {
     size: usize,
-    whaterfall: bool,
+    waterfall: bool,
 }
 
 impl OutputDecl for ConsoleOutputDecl {
@@ -23,7 +25,7 @@ impl OutputDecl for ConsoleOutputDecl {
     fn materialize(self, size: usize) -> Result<Self::Target, Error> {
         return Ok(Self::Target {
             size,
-            whaterfall: self.whaterfall,
+            waterfall: self.waterfall,
         });
     }
 }
@@ -31,7 +33,9 @@ impl OutputDecl for ConsoleOutputDecl {
 impl Output for ConsoleOutput {
     type Element = RGBColor;
 
-    fn render<E: Into<Self::Element>>(&mut self, render: &dyn Render<Element=E>) {
+    const KIND: &'static str = "console";
+
+    fn render(&mut self, render: &dyn Render<Element=Self::Element>) {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
@@ -42,7 +46,7 @@ impl Output for ConsoleOutput {
         }
 
         write!(&mut buf, "\x1b[0m").unwrap();
-        if self.whaterfall {
+        if self.waterfall {
             write!(&mut buf, "\n").unwrap();
         } else {
             write!(&mut buf, "\r").unwrap();

@@ -60,8 +60,10 @@ impl<Hue, Block, Speed> NodeDecl for AlertNodeDecl<Hue, Block, Speed>
     }
 }
 
-impl<'a, Hue, Block, Speed> RenderType<'a> for AlertNode<Hue, Block, Speed> {
-    type Element = HSVColor;
+impl<'a, Hue, Block, Speed> RenderType<'a, Self> for AlertNode<Hue, Block, Speed>
+    where Hue: Attr<f64>,
+          Block: Attr<i64>,
+          Speed: Attr<f64> {
     type Render = AlertRenderer;
 }
 
@@ -71,6 +73,8 @@ impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
           Speed: Attr<f64> {
     const KIND: &'static str = "alert";
 
+    type Element = HSVColor;
+
     fn update(&mut self, duration: Duration) {
         self.block.update(duration);
         self.speed.update(duration);
@@ -78,7 +82,7 @@ impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
         self.time += duration.as_secs_f64() * self.speed.get();
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return AlertRenderer {
             hue: self.hue.get(),
             block_size: self.block.get() as usize,

@@ -7,8 +7,8 @@ use failure::Error;
 use num::{One, Zero};
 
 use crate::color::{HSLColor, HSVColor, RGBColor};
-use crate::scene::AttrBuilder;
 use crate::math::Lerp;
+use crate::scene::AttrBuilder;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AttrValueType {
@@ -29,7 +29,7 @@ pub enum Update<V>
     Changed(V),
 }
 
-impl <V> Update<V>
+impl<V> Update<V>
     where V: AttrValue {
     pub fn value(self) -> V {
         return match self {

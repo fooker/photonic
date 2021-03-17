@@ -75,9 +75,8 @@ impl<A, F> NodeDecl for ReceiverNodeDecl<A, F>
     }
 }
 
-impl<'a, F> RenderType<'a> for ReceiverNode<F>
+impl<'a, F> RenderType<'a, Self> for ReceiverNode<F>
     where F: Format + 'static {
-    type Element = F::Element;
     type Render = &'a Buffer<F::Element>;
 }
 
@@ -85,7 +84,9 @@ impl<F> Node for ReceiverNode<F>
     where F: Format + 'static {
     const KIND: &'static str = "udp";
 
-    fn update(&mut self, _duration: &Duration) {
+    type Element = F::Element;
+
+    fn update(&mut self, _duration: Duration) {
         // Read all packets available without blocking but only use last one
         loop {
             match self.socket.recv(&mut self.buffer) {
@@ -100,7 +101,7 @@ impl<F> Node for ReceiverNode<F>
             .for_each(|(o, b)| *o = F::load(b));
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return &self.output;
     }
 }

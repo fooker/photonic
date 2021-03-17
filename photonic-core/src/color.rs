@@ -7,6 +7,7 @@ pub type HSLColor = palette::Hsl<palette::encoding::Srgb, f64>;
 pub trait Mix = palette::Mix<Scalar=f64>;
 pub trait Shade = palette::Shade<Scalar=f64>;
 pub trait Saturate = palette::Saturate<Scalar=f64>;
+pub trait ComponentWise = palette::ComponentWise<Scalar=f64>;
 
 pub trait Black {
     fn black() -> Self;

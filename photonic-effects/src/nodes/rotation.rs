@@ -62,18 +62,20 @@ impl<Source, Speed, E> NodeDecl for RotationNodeDecl<Source, Speed>
     }
 }
 
-impl<'a, Source, Speed> RenderType<'a> for RotationNode<Source, Speed>
-    where Source: RenderType<'a>,
+impl<'a, Source, Speed> RenderType<'a, Self> for RotationNode<Source, Speed>
+    where Source: Node,
+          Speed: Attr<f64>,
           Source::Element: Lerp {
-    type Element = Source::Element;
-    type Render = RotationRenderer<Source::Render>;
+    type Render = RotationRenderer<<Source as RenderType<'a, Source>>::Render>;
 }
 
-impl<Source, Speed, E> Node for RotationNode<Source, Speed>
-    where Source: Node<Element=E>,
+impl<Source, Speed> Node for RotationNode<Source, Speed>
+    where Source: Node,
           Speed: Attr<f64>,
-          E: Lerp {
+          Source::Element: Lerp {
     const KIND: &'static str = "rotation";
+
+    type Element = Source::Element;
 
     fn update(&mut self, duration: Duration) {
         self.source.update(duration);
@@ -81,7 +83,7 @@ impl<Source, Speed, E> Node for RotationNode<Source, Speed>
         self.offset += self.speed.update(duration).value() * duration.as_secs_f64();
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return RotationRenderer {
             source: self.source.render(),
             size: self.size,

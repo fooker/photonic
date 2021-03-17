@@ -76,15 +76,16 @@ impl NodeDecl for ExecNodeDecl {
     }
 }
 
-impl<'a> RenderType<'a> for ExecNode {
-    type Element = RGBColor;
+impl<'a> RenderType<'a, Self> for ExecNode {
     type Render = ExecRenderer<'a>;
 }
 
 impl Node for ExecNode {
     const KIND: &'static str = "exec";
 
-    fn update(&mut self, duration: &Duration) {
+    type Element = RGBColor;
+
+    fn update(&mut self, duration: Duration) {
         let stdin = self.child.stdin.as_mut()
             .expect("StdIn missing");
 
@@ -102,7 +103,7 @@ impl Node for ExecNode {
             .expect("Failed to write to child process");
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return ExecRenderer {
             shm: &self.shm,
         };

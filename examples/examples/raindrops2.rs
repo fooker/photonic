@@ -69,7 +69,7 @@ async fn main() -> Result<!, Error> {
         range: None
     })?;
 
-    let (main, registry) = scene.run(blackout, ConsoleOutputDecl {
+    let (main, registry) = scene.run(blackout.transform(Into::into), ConsoleOutputDecl {
         waterfall: true
     })?;
 

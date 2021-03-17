@@ -1,4 +1,5 @@
 use failure::Error;
+
 use crate::node::Render;
 
 pub trait OutputDecl {
@@ -14,5 +15,5 @@ pub trait Output {
 
     const KIND: &'static str;
 
-    fn render<E: Into<Self::Element>>(&mut self, render: &dyn Render<Element=E>);
+    fn render(&mut self, render: &dyn Render<Element=Self::Element>);
 }

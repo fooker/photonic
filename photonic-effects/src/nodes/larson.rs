@@ -76,8 +76,10 @@ impl<Hue, Speed, Width> NodeDecl for LarsonNodeDecl<Hue, Speed, Width>
     }
 }
 
-impl<Hue, Speed, Width> RenderType<'_> for LarsonNode<Hue, Speed, Width> {
-    type Element = HSVColor;
+impl<Hue, Speed, Width> RenderType<'_, Self> for LarsonNode<Hue, Speed, Width>
+    where Hue: Attr<f64>,
+          Speed: Attr<f64>,
+          Width: Attr<f64> {
     type Render = LarsonRenderer;
 }
 
@@ -86,6 +88,8 @@ impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
           Speed: Attr<f64>,
           Width: Attr<f64> {
     const KIND: &'static str = "larson";
+
+    type Element = HSVColor;
 
     fn update(&mut self, duration: Duration) {
         self.speed.update(duration);
@@ -111,7 +115,7 @@ impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
         }
     }
 
-    fn render(&mut self) -> <Self as RenderType>::Render {
+    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return LarsonRenderer {
             hue: self.hue.get(),
             width: self.width.get(),

@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -6,10 +5,11 @@ use failure::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 use crate::input::{Input, InputValue};
-use crate::interface::{AttrInfo, NodeInfo, Registry, InputInfo};
-use crate::node::{NodeDecl, Node};
+use crate::interface::{AttrInfo, InputInfo, NodeInfo, Registry};
+use crate::node::{Node, NodeDecl, Render, RenderType, MapNodeDecl};
 use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
+use std::borrow::Cow;
 
 pub struct SceneBuilder {
     /// The size of the scene
@@ -156,7 +156,6 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
 
     pub fn input<V>(&mut self, name: &str, input: InputHandle<V>) -> Result<Input<V>, Error>
         where V: InputValue {
-
         let info = InputInfo {
             name: input.name,
             // kind: "", // TODO
@@ -171,13 +170,26 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
     }
 }
 
-pub struct NodeHandle<Node>
-    where Node: NodeDecl {
+pub struct NodeHandle<Decl>
+    where Decl: NodeDecl {
     /// The scene-wide unique name of the node
     pub name: String,
 
     /// The declaration of the node
-    pub decl: Node,
+    pub decl: Decl,
+}
+
+impl<Decl> NodeHandle<Decl>
+    where Decl: NodeDecl,
+          Decl::Element: 'static {
+    pub fn transform<R, F>(self, transform: F) -> NodeHandle<MapNodeDecl<Decl, F>>
+        where F: Fn(Decl::Element) -> R + 'static,
+              R: 'static {
+        return NodeHandle {
+            name: self.name,
+            decl: self.decl.map(transform),
+        };
+    }
 }
 
 pub struct InputHandle<V>
@@ -197,8 +209,8 @@ impl<V> InputHandle<V>
     }
 }
 
-impl <V> Into<Input<V>> for InputHandle<V>
-where V: InputValue {
+impl<V> Into<Input<V>> for InputHandle<V>
+    where V: InputValue {
     fn into(self) -> Input<V> {
         return self.input;
     }
@@ -219,23 +231,22 @@ impl Scene {
         return self.size;
     }
 
-    pub fn node<'a, Node, E>(&mut self, name: impl Into<Cow<'a, str>>, decl: Node) -> Result<NodeHandle<Node>, Error>
-        where Node: NodeDecl<Element=E> {
+    pub fn node<Node>(&mut self, name: impl Into<Cow<'static, str>>, decl: Node) -> Result<NodeHandle<Node>, Error>
+        where Node: NodeDecl {
         return Ok(NodeHandle {
             name: name.into().into_owned(),
             decl,
         });
     }
 
-    pub fn input<'a, V>(&mut self, name: impl Into<Cow<'a, str>>) -> Result<InputHandle<V>, Error>
+    pub fn input<V>(&mut self, name: impl Into<Cow<'static, str>>) -> Result<InputHandle<V>, Error>
         where V: InputValue {
         return Ok(InputHandle::new(name.into().into_owned()));
     }
 
-    pub fn run<Node, Output, EN, EO>(self, root: NodeHandle<Node>, decl: Output) -> Result<(Loop<Node::Target, Output::Target>, Arc<Registry>), Error>
-        where Node: NodeDecl<Element=EN>,
-              Output: OutputDecl<Element=EO>,
-              EN: Into<EO> {
+    pub fn run<Root, Output>(self, root: NodeHandle<Root>, decl: Output) -> Result<(Loop<Root::Target, Output::Target>, Arc<Registry>), Error>
+        where Root: NodeDecl,
+              Output: OutputDecl<Element=Root::Element> {
         let mut builder = SceneBuilder {
             size: self.size,
         };
@@ -260,10 +271,9 @@ pub struct Loop<Root, Output> {
     output: Output,
 }
 
-impl<Root, Output, EN, EO> Loop<Root, Output>
-    where Root: self::Node<Element=EN>,
-          Output: self::Output<Element=EO>,
-          EN: Into<EO> {
+impl<Root, Output> Loop<Root, Output>
+    where Root: self::Node,
+          Output: self::Output<Element=Root::Element> {
     pub async fn run(mut self, fps: usize) -> Result<!, Error> {
         let mut timer = FrameTimer::new(fps);
 
