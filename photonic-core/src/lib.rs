@@ -14,3 +14,11 @@ pub mod animation;
 pub mod input;
 pub mod interface;
 pub mod timer;
+
+pub use scene::{Scene,Loop,NodeHandle,InputHandle};
+pub use node::{Node, NodeDecl};
+pub use output::{Output, OutputDecl};
+pub use buffer::Buffer;
+pub use attr::{UnboundAttrDecl, BoundAttrDecl, Attr};
+pub use input::Input;
+pub use interface::Registry;

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 pub use ezing::*;
-use num::Float;
+pub use num::Float;
 
 use crate::math::Lerp;
 
