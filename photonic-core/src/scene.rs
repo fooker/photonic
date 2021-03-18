@@ -6,10 +6,9 @@ use anyhow::Error;
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 use crate::input::{Input, InputValue};
 use crate::interface::{AttrInfo, InputInfo, NodeInfo, Registry};
-use crate::node::{Node, NodeDecl, Render, RenderType, MapNodeDecl};
+use crate::node::{Node, NodeDecl, MapNodeDecl};
 use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
-use std::borrow::Cow;
 
 pub struct SceneBuilder {
     /// The size of the scene
@@ -231,17 +230,17 @@ impl Scene {
         return self.size;
     }
 
-    pub fn node<Node>(&mut self, name: impl Into<Cow<'static, str>>, decl: Node) -> Result<NodeHandle<Node>, Error>
+    pub fn node<Node>(&mut self, name: &str, decl: Node) -> Result<NodeHandle<Node>, Error>
         where Node: NodeDecl {
         return Ok(NodeHandle {
-            name: name.into().into_owned(),
+            name: name.to_owned(),
             decl,
         });
     }
 
-    pub fn input<V>(&mut self, name: impl Into<Cow<'static, str>>) -> Result<InputHandle<V>, Error>
+    pub fn input<V>(&mut self, name: &str) -> Result<InputHandle<V>, Error>
         where V: InputValue {
-        return Ok(InputHandle::new(name.into().into_owned()));
+        return Ok(InputHandle::new(name.to_owned()));
     }
 
     pub fn run<Root, Output>(self, root: NodeHandle<Root>, decl: Output) -> Result<(Loop<Root::Target, Output::Target>, Arc<Registry>), Error>

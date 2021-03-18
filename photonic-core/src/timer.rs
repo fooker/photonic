@@ -4,7 +4,7 @@ use crate::input::Input;
 use std::thread::JoinHandle;
 
 pub struct Ticker {
-    thread: JoinHandle<()>,
+    _thread: JoinHandle<()>,
 }
 
 impl Ticker {
@@ -21,7 +21,7 @@ impl Ticker {
         });
 
         return (Ticker {
-            thread,
+            _thread: thread,
         }, input);
     }
 }

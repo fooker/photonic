@@ -1,5 +1,4 @@
 use std::time::Duration;
-use std::marker::PhantomData;
 
 use anyhow::Error;
 
