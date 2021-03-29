@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
 
+[features]
+boxed = []
+
 [dependencies]
 palette = "0.4"
 regex = "0.2"

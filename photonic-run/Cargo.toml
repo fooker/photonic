@@ -1,0 +1,26 @@
+[package]
+name = "photonic-run"
+version = "0.1.0"
+authors = ["Dustin Frisch <fooker@lab.sh>"]
+edition = "2018"
+
+[dependencies]
+photonic-core = { path = "../photonic-core", features = ["boxed"]}
+photonic-effects = { path = "../photonic-effects" }
+photonic-console = { path = "../photonic-console" }
+
+serde = { version = "1.0.123", features = ["derive"] }
+serde_json = "1.0.62"
+serde_yaml = "0.8.17"
+
+humantime-serde = "1"
+
+anyhow = "1"
+
+num = "0.2"
+rand = "0.6"
+
+clap = "3.0.0-beta.2"
+tokio = { version = "1.1.1", features = [ "macros", "rt-multi-thread" ] }
+
+csscolorparser = "0.4.0"

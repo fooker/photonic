@@ -15,6 +15,9 @@ pub mod input;
 pub mod interface;
 pub mod timer;
 
+#[cfg(feature = "boxed")]
+pub mod boxed;
+
 pub use scene::{Scene,Loop,NodeHandle,InputHandle};
 pub use node::{Node, NodeDecl};
 pub use output::{Output, OutputDecl};
