@@ -1,114 +1,81 @@
 use std::collections::HashMap;
-use std::str::FromStr;
-use std::thread;
+use std::sync::Arc;
 
 use anyhow::Error;
-use rumqtt::{MqttClient, MqttOptions, Notification, QoS, ReconnectOptions};
+use async_trait::async_trait;
+use mqtt_async_client::client::{Client, KeepAlive, QoS, Subscribe, SubscribeTopic};
 
-use photonic_core::input::{Input, InputValue};
+use photonic_core::input::InputSender;
+use photonic_core::interface::Interface;
+use photonic_core::Introspection;
 
-pub struct MqttHandleBuilder {
-    id: String,
-    host: String,
-    port: u16,
-
-    realm: Option<String>,
-
-    endpoints: HashMap<String, Box<dyn FnMut(String) + Send>>,
+pub struct MqttInterface {
+    client: Client,
+    realm: String,
 }
 
-impl MqttHandleBuilder {
-    pub fn new<Id, Host>(id: Id, host: Host, port: u16) -> Self
-        where Id: Into<String>,
-              Host: Into<String> {
-        return Self {
-            id: id.into(),
-            host: host.into(),
-            port,
-            realm: None,
-            endpoints: HashMap::new(),
-        };
-    }
+impl MqttInterface {
+    pub fn connect(host: String,
+                   port: u16,
+                   realm: String) -> Result<Self, Error> {
+        let client = Client::builder()
+            .set_automatic_connect(true)
+            .set_host(host)
+            .set_port(port)
+            .set_keep_alive(KeepAlive::from_secs(1))
+            .build()?;
 
-    pub fn with_realm<Realm>(mut self, realm: Realm) -> Self
-        where Realm: Into<String> {
-        self.realm = Some(realm.into());
-        return self;
-    }
-
-    pub fn endpoint<T, F, Topic>(&mut self, topic: Topic, f: F) -> Input<T>
-        where T: InputValue,
-              F: Fn(String) -> Option<T> + Send + 'static,
-              Topic: Into<String> {
-        let input = Input::new();
-        let mut sink = input.sink();
-
-        let mut topic = topic.into();
-        if let Some(ref realm) = self.realm {
-            topic = format!("{}/{}", realm, topic);
-        };
-
-        self.endpoints.insert(topic, Box::new(move |msg| {
-            if let Some(msg) = f(msg) {
-                sink.send(msg);
-            }
-        }));
-
-        return input;
-    }
-
-    pub fn trigger<Topic>(&mut self, topic: Topic) -> Input<()>
-        where Topic: Into<String> {
-        return self.endpoint(topic, move |_| { Some(()) });
-    }
-
-    pub fn value<T, Topic>(&mut self, topic: Topic) -> Input<T>
-        where T: FromStr + InputValue,
-              Topic: Into<String> {
-        return self.endpoint(topic, move |s| {
-            return T::from_str(&s).ok();
+        return Ok(Self {
+            client,
+            realm,
         });
     }
+}
 
-    pub fn start(self) -> Result<MqttHandle, Error> {
-        let opts = MqttOptions::new(self.id, self.host, self.port)
-            .set_clean_session(true)
-            .set_reconnect_opts(ReconnectOptions::Always(5));
+#[async_trait]
+impl Interface for MqttInterface {
+    async fn listen(mut self, introspection: Arc<Introspection>) -> Result<(), Error> {
+        self.client.connect().await?;
 
-        let (mut client, notifications) = MqttClient::start(opts)
-            .map_err(|err| Error::msg(err.to_string()))?; // TODO: Better error conversion
+        let topics = introspection.inputs.iter()
+            .map(|(name, input)| (format!("{}/{}/set", self.realm, name), input.clone()))
+            .collect::<HashMap<_, _>>();
 
-        for endpoint in self.endpoints.keys() {
-            client.subscribe(endpoint.to_owned(), QoS::AtLeastOnce)
-                .expect("Failed to subscribe");
-        }
+        self.client.subscribe(Subscribe::new(topics.keys()
+            .map(|topic| SubscribeTopic {
+                topic_path: topic.clone(),
+                qos: QoS::AtLeastOnce,
+            }).collect())).await?
+            .any_failures()?;
 
-        let mut endpoints = self.endpoints;
-        let worker = thread::spawn(move || {
-            for notification in notifications {
-                if let Notification::Publish(publish) = notification {
-                    if let Some(endpoint) = endpoints.get_mut(&publish.topic_name) {
-                        let message = String::from_utf8(publish.payload.to_vec()).unwrap(); // TODO: Error handling
-                        endpoint(message);
+        loop {
+            let read = self.client.read_subscriptions().await?;
+
+            if let Some(input) = topics.get(read.topic()) {
+                match &input.sender {
+                    InputSender::Trigger(sink) => {
+                        sink.send(())
+                    }
+
+                    InputSender::Boolean(sink) => {
+                        if let Ok(val) = serde_json::from_slice(read.payload()) {
+                            sink.send(val);
+                        }
+                    }
+
+                    InputSender::Integer(sink) => {
+                        if let Ok(val) = serde_json::from_slice(read.payload()) {
+                            sink.send(val);
+                        }
+                    }
+
+                    InputSender::Decimal(sink) => {
+                        if let Ok(val) = serde_json::from_slice(read.payload()) {
+                            sink.send(val);
+                        }
                     }
                 }
             }
-        });
-
-        return Ok(MqttHandle {
-            client,
-            worker,
-        });
-    }
-}
-
-pub struct MqttHandle {
-    client: MqttClient,
-    worker: thread::JoinHandle<()>,
-}
-
-impl Drop for MqttHandle {
-    fn drop(&mut self) {
-        // TODO: Close down the client...
+        }
     }
 }

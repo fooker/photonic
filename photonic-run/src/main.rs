@@ -1,22 +1,29 @@
 #![feature(never_type)]
 
 use std::fs::File;
+use std::net::SocketAddr;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 use anyhow::{Error, format_err};
 use clap::Clap;
 
 use photonic_run::builder::Builder;
 use photonic_run::config;
-use std::net::SocketAddr;
-use std::str::FromStr;
+use photonic_core::Introspection;
+use std::sync::Arc;
 
 enum Interface {
     GRPC(SocketAddr),
-    MQTT(String),
+    MQTT {
+        host: String,
+        port: u16,
+        realm: String,
+    },
     Varlink(SocketAddr),
 }
 
+// TODO: Let clap do the hard work
 impl FromStr for Interface {
     type Err = Error;
 
@@ -26,10 +33,32 @@ impl FromStr for Interface {
 
         return Ok(match k {
             "grpc" => Self::GRPC(v.parse()?),
-            "mqtt" => Self::MQTT(v.parse()?),
+            "mqtt" => {
+                let (addr, realm) = v.split_once("@")
+                    .ok_or(format_err!("Invalid MQTT interface format: HOST:PORT@REALM expected."))?;
+
+                let (host, port) = addr.split_once(":")
+                    .ok_or(format_err!("Invalid MQTT interface format: HOST:PORT@REALM expected."))?;
+
+                Self::MQTT {
+                    host: host.to_owned(),
+                    port: port.parse()?,
+                    realm: realm.to_owned(),
+                }
+            },
             "varlink" => Self::Varlink(v.parse()?),
             _ => return Err(format_err!("Unknown interface type: {}", k))
         });
+    }
+}
+
+impl Interface {
+    fn serve(self, introspection: Arc<Introspection>) -> Result<(), Error> {
+        return match self {
+            Self::GRPC(addr) => introspection.serve(photonic_grpc::GrpcInterface::bind(addr)),
+            Self::MQTT { host, port, realm } => introspection.serve(photonic_mqtt::MqttInterface::connect(host, port, realm)?),
+            Self::Varlink(addr) => todo!(),
+        }
     }
 }
 
@@ -43,7 +72,7 @@ struct CLI {
     fps: usize,
 
     #[clap(short, long)]
-    interface: Vec<Interface>
+    interface: Vec<Interface>,
 }
 
 #[tokio::main]
@@ -55,13 +84,7 @@ async fn main() -> Result<!, Error> {
     let (main, introspection) = Builder::build(scene)?;
 
     for interface in cli.interface {
-        let interface = match interface {
-            Interface::GRPC(addr) => photonic_grpc::GrpcInterface::bind(addr),
-            Interface::MQTT(addr) => todo!(),
-            Interface::Varlink(addr) => todo!(),
-        };
-
-        introspection.clone().serve(interface)?;
+        interface.serve(introspection.clone())?
     }
 
     return main.run(cli.fps).await;
