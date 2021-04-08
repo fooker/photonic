@@ -1650,6 +1650,7 @@ dependencies = [
  "photonic-console",
  "photonic-core",
  "photonic-effects",
+ "photonic-grpc",
  "rand 0.6.5",
  "serde",
  "serde_json",

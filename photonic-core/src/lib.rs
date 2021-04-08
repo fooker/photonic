@@ -24,4 +24,4 @@ pub use output::{Output, OutputDecl};
 pub use buffer::Buffer;
 pub use attr::{UnboundAttrDecl, BoundAttrDecl, Attr};
 pub use input::Input;
-pub use interface::Registry;
+pub use interface::Introspection;

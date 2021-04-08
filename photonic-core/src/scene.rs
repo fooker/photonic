@@ -5,7 +5,7 @@ use anyhow::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 use crate::input::{Input, InputValue};
-use crate::interface::{AttrInfo, InputInfo, NodeInfo, Registry};
+use crate::interface::{AttrInfo, InputInfo, NodeInfo, Introspection};
 use crate::node::{Node, NodeDecl, MapNodeDecl};
 use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
@@ -243,7 +243,7 @@ impl Scene {
         return Ok(InputHandle::new(name.to_owned()));
     }
 
-    pub fn run<Root, Output>(self, root: NodeHandle<Root>, decl: Output) -> Result<(Loop<Root::Target, Output::Target>, Arc<Registry>), Error>
+    pub fn run<Root, Output>(self, root: NodeHandle<Root>, decl: Output) -> Result<(Loop<Root::Target, Output::Target>, Arc<Introspection>), Error>
         where Root: NodeDecl,
               Output: OutputDecl<Element=Root::Element> {
         let mut builder = SceneBuilder {
@@ -256,7 +256,7 @@ impl Scene {
         // Materialize the output
         let output = decl.materialize(self.size())?;
 
-        let registry = Registry::from(Arc::new(root_info));
+        let registry = Introspection::from(Arc::new(root_info));
 
         return Ok((Loop {
             root: root_node,

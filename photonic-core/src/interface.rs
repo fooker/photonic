@@ -49,14 +49,14 @@ pub struct InputInfo {
     pub sender: InputSender,
 }
 
-pub struct Registry {
+pub struct Introspection {
     pub root: Arc<NodeInfo>,
 
     pub nodes: HashMap<String, Arc<NodeInfo>>,
     pub inputs: HashMap<String, Arc<InputInfo>>,
 }
 
-impl Registry {
+impl Introspection {
     pub fn from(root: Arc<NodeInfo>) -> Arc<Self> {
         let nodes = root.iter()
             .map(|node| (node.name.clone(), node.clone()))
@@ -85,5 +85,5 @@ impl Registry {
 
 #[async_trait]
 pub trait Interface {
-    async fn listen(self, registry: Arc<Registry>) -> Result<(), Error>;
+    async fn listen(self, introspection: Arc<Introspection>) -> Result<(), Error>;
 }

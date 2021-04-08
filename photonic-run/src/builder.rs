@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Error};
 
-use photonic_core::{boxed, color, InputHandle, NodeHandle, Scene, Loop, Registry};
+use photonic_core::{boxed, color, InputHandle, NodeHandle, Scene, Loop, Introspection};
 use photonic_core::input::InputValue;
 
 use crate::config;
@@ -20,7 +20,7 @@ impl Builder {
         return Self { scene };
     }
 
-    pub fn build(config: config::Scene) -> Result<(Loop<boxed::BoxedNode<color::RGBColor>, boxed::BoxedOutput<color::RGBColor>>, Arc<Registry>), Error> {
+    pub fn build(config: config::Scene) -> Result<(Loop<boxed::BoxedNode<color::RGBColor>, boxed::BoxedOutput<color::RGBColor>>, Arc<Introspection>), Error> {
         let mut builder = Self::new(config.size);
 
         let root = builder.node("root", config.root)?;

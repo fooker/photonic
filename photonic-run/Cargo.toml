@@ -8,6 +8,7 @@ edition = "2018"
 photonic-core = { path = "../photonic-core", features = ["boxed"]}
 photonic-effects = { path = "../photonic-effects" }
 photonic-console = { path = "../photonic-console" }
+photonic-grpc = { path = "../photonic-grpc" }
 
 serde = { version = "1.0.123", features = ["derive"] }
 serde_json = "1.0.62"

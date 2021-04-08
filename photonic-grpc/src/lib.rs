@@ -6,7 +6,7 @@ use anyhow::Error;
 
 use photonic_core::attr::AttrValueType;
 use photonic_core::input::{InputValueType, InputSender};
-use photonic_core::interface::{AttrInfo, InputInfo, Interface, NodeInfo, Registry};
+use photonic_core::interface::{AttrInfo, InputInfo, Interface, NodeInfo, Introspection};
 use photonic_grpc_proto as proto;
 use photonic_grpc_proto::{InputSendRequest, InputSendResponse};
 use tonic::{Response, Status, Request};
@@ -74,16 +74,16 @@ fn into_input_vt(vt: InputValueType) -> proto::input_info::ValueType {
 }
 
 struct InterfaceService {
-    registry: Arc<Registry>,
+    introspection: Arc<Introspection>,
 }
 
 #[tonic::async_trait]
 impl proto::interface_server::Interface for InterfaceService {
     async fn node_list(&self, _: tonic::Request<proto::NodeListRequest>) -> Result<tonic::Response<proto::NodeListResponse>, tonic::Status> {
-        let names = self.registry.nodes.keys().cloned().collect();
+        let names = self.introspection.nodes.keys().cloned().collect();
 
         return Ok(tonic::Response::new(proto::NodeListResponse {
-            root: self.registry.root.name.clone(),
+            root: self.introspection.root.name.clone(),
             names,
         }));
     }
@@ -92,8 +92,8 @@ impl proto::interface_server::Interface for InterfaceService {
         let request = request.get_ref();
 
         let node = request.name.as_ref().map_or_else(
-            || Some(&self.registry.root),
-            |name| self.registry.nodes.get(name));
+            || Some(&self.introspection.root),
+            |name| self.introspection.nodes.get(name));
 
         return Ok(tonic::Response::new(proto::NodeInfoResponse {
             node: node.map(|node| into_node(node.as_ref())),
@@ -103,7 +103,7 @@ impl proto::interface_server::Interface for InterfaceService {
     async fn input_send(&self, request: Request<InputSendRequest>) -> Result<Response<InputSendResponse>, Status> {
         let request = request.get_ref();
 
-        let input = self.registry.inputs.get(&request.name);
+        let input = self.introspection.inputs.get(&request.name);
         if let Some(input) = input {
             if let Some(ref value) = request.value {
                 match (&input.sender, value) {
@@ -148,9 +148,9 @@ impl GrpcInterface {
 
 #[async_trait]
 impl Interface for GrpcInterface {
-    async fn listen(self, registry: Arc<Registry>) -> Result<(), Error> {
+    async fn listen(self, introspection: Arc<Introspection>) -> Result<(), Error> {
         let service = InterfaceService {
-            registry,
+            introspection,
         };
 
         tonic::transport::Server::builder()
