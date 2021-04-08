@@ -1,8 +1,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use crossbeam::atomic::AtomicCell;
 use anyhow::Error;
+use crossbeam::atomic::AtomicCell;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl, Update};
 use crate::scene::{AttrBuilder, InputHandle};
@@ -22,28 +22,38 @@ pub trait InputValue: Send + Copy + 'static {
 }
 
 pub enum Poll<V>
-    where V: InputValue {
+where
+    V: InputValue,
+{
     Pending,
     Ready(V),
 }
 
 pub struct Input<V>
-    where V: InputValue {
+where
+    V: InputValue,
+{
     value: Arc<AtomicCell<Poll<V>>>,
 }
 
 #[derive(Clone)]
 pub struct Sink<V>
-    where V: InputValue {
+where
+    V: InputValue,
+{
     value: Arc<AtomicCell<Poll<V>>>,
 }
 
 impl<V> Input<V>
-    where V: InputValue {
+where
+    V: InputValue,
+{
     pub fn new() -> Self {
         let value = Arc::new(AtomicCell::new(Poll::Pending));
 
-        return Self { value: value.clone() };
+        return Self {
+            value: value.clone(),
+        };
     }
 
     pub fn poll(&mut self) -> Poll<V> {
@@ -51,12 +61,16 @@ impl<V> Input<V>
     }
 
     pub fn sink(&self) -> Sink<V> {
-        return Sink { value: self.value.clone() };
+        return Sink {
+            value: self.value.clone(),
+        };
     }
 }
 
 impl<V> Sink<V>
-    where V: InputValue {
+where
+    V: InputValue,
+{
     pub fn send(&self, next: V) {
         self.value.store(Poll::Ready(next));
     }
@@ -103,17 +117,23 @@ pub enum InputSender {
 
 impl std::fmt::Debug for InputSender {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        return write!(f, "({})", match self {
-            Self::Trigger(_) => "trigger",
-            Self::Boolean(_) => "boolean",
-            Self::Integer(_) => "integer",
-            Self::Decimal(_) => "decimal",
-        });
+        return write!(
+            f,
+            "({})",
+            match self {
+                Self::Trigger(_) => "trigger",
+                Self::Boolean(_) => "boolean",
+                Self::Integer(_) => "integer",
+                Self::Decimal(_) => "decimal",
+            }
+        );
     }
 }
 
 impl<V> InputHandle<V>
-    where V: InputValue + AttrValue {
+where
+    V: InputValue + AttrValue,
+{
     pub fn attr(self, initial: V) -> InputAttrDecl<V> {
         return InputAttrDecl {
             input: self.into(),
@@ -123,13 +143,17 @@ impl<V> InputHandle<V>
 }
 
 pub struct InputAttrDecl<V>
-    where V: InputValue + AttrValue {
+where
+    V: InputValue + AttrValue,
+{
     input: InputHandle<V>,
     initial: V,
 }
 
 pub struct BoundInputAttr<V>
-    where V: AttrValue + InputValue + Bounded {
+where
+    V: AttrValue + InputValue + Bounded,
+{
     bounds: Bounds<V>,
 
     input: Input<V>,
@@ -137,7 +161,9 @@ pub struct BoundInputAttr<V>
 }
 
 impl<V> Attr<V> for BoundInputAttr<V>
-    where V: AttrValue + InputValue + Bounded {
+where
+    V: AttrValue + InputValue + Bounded,
+{
     const KIND: &'static str = "input";
 
     fn get(&self) -> V {
@@ -159,10 +185,16 @@ impl<V> Attr<V> for BoundInputAttr<V>
 }
 
 impl<V> BoundAttrDecl<V> for InputAttrDecl<V>
-    where V: AttrValue + InputValue + Bounded {
+where
+    V: AttrValue + InputValue + Bounded,
+{
     type Target = BoundInputAttr<V>;
 
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+    fn materialize(
+        self,
+        bounds: Bounds<V>,
+        builder: &mut AttrBuilder,
+    ) -> Result<Self::Target, Error> {
         let input = builder.input("input", self.input)?;
 
         let initial = bounds.ensure(self.initial)?;
@@ -176,13 +208,17 @@ impl<V> BoundAttrDecl<V> for InputAttrDecl<V>
 }
 
 pub struct UnboundInputAttr<V>
-    where V: AttrValue + InputValue {
+where
+    V: AttrValue + InputValue,
+{
     input: Input<V>,
     current: V,
 }
 
 impl<V> Attr<V> for UnboundInputAttr<V>
-    where V: AttrValue + InputValue {
+where
+    V: AttrValue + InputValue,
+{
     const KIND: &'static str = "manual";
 
     fn get(&self) -> V {
@@ -200,7 +236,9 @@ impl<V> Attr<V> for UnboundInputAttr<V>
 }
 
 impl<V> UnboundAttrDecl<V> for InputAttrDecl<V>
-    where V: AttrValue + InputValue {
+where
+    V: AttrValue + InputValue,
+{
     type Target = UnboundInputAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {

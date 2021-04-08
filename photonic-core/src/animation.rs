@@ -21,30 +21,26 @@ impl<F: Float> Easing<F> {
     }
 
     pub fn with(func: fn(F) -> F, speed: Duration) -> Self {
-        return Self {
-            func,
-            speed,
-        };
+        return Self { func, speed };
     }
 }
 
 pub struct Animation<F>
-    where F: Lerp {
+where
+    F: Lerp,
+{
     state: State<F>,
 }
 
 impl<F> Animation<F>
-    where F: Lerp + Copy {
+where
+    F: Lerp + Copy,
+{
     pub fn idle() -> Self {
-        return Self {
-            state: State::Idle,
-        };
+        return Self { state: State::Idle };
     }
 
-    pub fn start(&mut self,
-                 easing: Easing<f64>,
-                 source: F,
-                 target: F) {
+    pub fn start(&mut self, easing: Easing<f64>, source: F, target: F) {
         self.state = State::Running(Running {
             easing,
             source,
@@ -71,19 +67,25 @@ impl<F> Animation<F>
 }
 
 pub enum Transition<F>
-    where F: Lerp {
+where
+    F: Lerp,
+{
     Idle,
     Running(F),
 }
 
 enum State<F>
-    where F: Lerp {
+where
+    F: Lerp,
+{
     Idle,
     Running(Running<F>),
 }
 
 struct Running<F>
-    where F: Lerp {
+where
+    F: Lerp,
+{
     easing: Easing<f64>,
     source: F,
     target: F,
@@ -91,7 +93,9 @@ struct Running<F>
 }
 
 impl<F> Running<F>
-    where F: Lerp + Copy {
+where
+    F: Lerp + Copy,
+{
     fn update(&mut self, duration: Duration) -> Option<F> {
         if self.position > 1.0 {
             return None;
@@ -101,6 +105,7 @@ impl<F> Running<F>
         return Some(Lerp::lerp(
             self.source,
             self.target,
-            (self.easing.func)(f64::min(1.0, self.position))));
+            (self.easing.func)(f64::min(1.0, self.position)),
+        ));
     }
 }

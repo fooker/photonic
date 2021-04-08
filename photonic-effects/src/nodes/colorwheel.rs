@@ -3,8 +3,8 @@ use serde::Deserialize;
 
 use photonic_core::buffer::*;
 use photonic_core::color::HSVColor;
-use photonic_core::scene::NodeBuilder;
 use photonic_core::node::NodeDecl;
+use photonic_core::scene::NodeBuilder;
 
 #[derive(Deserialize)]
 pub struct ColorwheelNodeDecl {
@@ -19,12 +19,9 @@ impl NodeDecl for ColorwheelNodeDecl {
     fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
         let delta = 360.0 / size as f64 * self.scale;
 
-        let buffer = Buffer::from_generator(size,
-                                            |i| HSVColor::new(
-                                                self.offset + i as f64 * delta,
-                                                1.0,
-                                                1.0,
-                                            ));
+        let buffer = Buffer::from_generator(size, |i| {
+            HSVColor::new(self.offset + i as f64 * delta, 1.0, 1.0)
+        });
 
         return Ok(buffer);
     }

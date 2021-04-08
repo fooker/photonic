@@ -1,5 +1,5 @@
-use async_trait::async_trait;
 use anyhow::Error;
+use async_trait::async_trait;
 
 use photonic_grpc_proto as proto;
 use photonic_grpc_proto::attr_info::ValueType;
@@ -13,7 +13,9 @@ pub struct GrpcClient {
 
 impl Into<NodeInfo> for proto::NodeInfo {
     fn into(self) -> NodeInfo {
-        let attrs = self.attrs.into_iter()
+        let attrs = self
+            .attrs
+            .into_iter()
             .map(|(key, attr)| (key, attr.into()))
             .collect();
 
@@ -30,7 +32,9 @@ impl Into<AttrInfo> for proto::AttrInfo {
     fn into(self) -> AttrInfo {
         let value_type = self.value_type().into();
 
-        let attrs = self.attrs.into_iter()
+        let attrs = self
+            .attrs
+            .into_iter()
             .map(|(key, attr)| (key, attr.into()))
             .collect();
 
@@ -59,9 +63,7 @@ impl Into<AttrValueType> for proto::attr_info::ValueType {
 impl super::Client for GrpcClient {
     async fn connect(cfg: String) -> Result<Self, Error> {
         let client = proto::interface_client::InterfaceClient::connect(cfg).await?;
-        return Ok(Self {
-            client,
-        });
+        return Ok(Self { client });
     }
 
     async fn nodes(&mut self) -> Result<Vec<String>, Error> {
@@ -73,9 +75,10 @@ impl super::Client for GrpcClient {
     }
 
     async fn node(&mut self, name: Option<String>) -> Result<Option<NodeInfo>, Error> {
-        let response = self.client.node_info(proto::NodeInfoRequest {
-            name: name.clone(),
-        }).await?;
+        let response = self
+            .client
+            .node_info(proto::NodeInfoRequest { name: name.clone() })
+            .await?;
 
         let node = response.into_inner().node;
 
@@ -85,15 +88,23 @@ impl super::Client for GrpcClient {
     async fn send(&mut self, name: String, value: SendValue) -> Result<(), Error> {
         let value = match value {
             SendValue::Trigger => proto::input_send_request::Value::Trigger(proto::TriggerValue {}),
-            SendValue::Boolean { value } => proto::input_send_request::Value::Boolean(proto::BooleanValue { value }),
-            SendValue::Integer { value } => proto::input_send_request::Value::Integer(proto::IntegerValue { value }),
-            SendValue::Decimal { value } => proto::input_send_request::Value::Decimal(proto::DecimalValue { value }),
+            SendValue::Boolean { value } => {
+                proto::input_send_request::Value::Boolean(proto::BooleanValue { value })
+            }
+            SendValue::Integer { value } => {
+                proto::input_send_request::Value::Integer(proto::IntegerValue { value })
+            }
+            SendValue::Decimal { value } => {
+                proto::input_send_request::Value::Decimal(proto::DecimalValue { value })
+            }
         };
 
-        self.client.input_send(proto::InputSendRequest {
-            name,
-            value: Some(value),
-        }).await?;
+        self.client
+            .input_send(proto::InputSendRequest {
+                name,
+                value: Some(value),
+            })
+            .await?;
 
         return Ok(());
     }

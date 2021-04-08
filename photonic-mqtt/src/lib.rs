@@ -15,9 +15,7 @@ pub struct MqttInterface {
 }
 
 impl MqttInterface {
-    pub fn connect(host: String,
-                   port: u16,
-                   realm: String) -> Result<Self, Error> {
+    pub fn connect(host: String, port: u16, realm: String) -> Result<Self, Error> {
         let client = Client::builder()
             .set_automatic_connect(true)
             .set_host(host)
@@ -25,10 +23,7 @@ impl MqttInterface {
             .set_keep_alive(KeepAlive::from_secs(1))
             .build()?;
 
-        return Ok(Self {
-            client,
-            realm,
-        });
+        return Ok(Self { client, realm });
     }
 }
 
@@ -37,15 +32,23 @@ impl Interface for MqttInterface {
     async fn listen(mut self, introspection: Arc<Introspection>) -> Result<(), Error> {
         self.client.connect().await?;
 
-        let topics = introspection.inputs.iter()
+        let topics = introspection
+            .inputs
+            .iter()
             .map(|(name, input)| (format!("{}/{}/set", self.realm, name), input.clone()))
             .collect::<HashMap<_, _>>();
 
-        self.client.subscribe(Subscribe::new(topics.keys()
-            .map(|topic| SubscribeTopic {
-                topic_path: topic.clone(),
-                qos: QoS::AtLeastOnce,
-            }).collect())).await?
+        self.client
+            .subscribe(Subscribe::new(
+                topics
+                    .keys()
+                    .map(|topic| SubscribeTopic {
+                        topic_path: topic.clone(),
+                        qos: QoS::AtLeastOnce,
+                    })
+                    .collect(),
+            ))
+            .await?
             .any_failures()?;
 
         loop {
@@ -53,9 +56,7 @@ impl Interface for MqttInterface {
 
             if let Some(input) = topics.get(read.topic()) {
                 match &input.sender {
-                    InputSender::Trigger(sink) => {
-                        sink.send(())
-                    }
+                    InputSender::Trigger(sink) => sink.send(()),
 
                     InputSender::Boolean(sink) => {
                         if let Ok(val) = serde_json::from_slice(read.payload()) {

@@ -1,14 +1,14 @@
 use std::time::Duration;
 
-use anyhow::{Error, format_err};
+use anyhow::{format_err, Error};
 use num::Num;
 use rand::distributions::uniform::SampleUniform;
 use serde::Deserialize;
 
-use photonic_core::{animation, boxed};
 use photonic_core::attr::{Bounded, Range};
 use photonic_core::color;
 use photonic_core::math::Lerp;
+use photonic_core::{animation, boxed};
 
 use crate::builder::Builder;
 use crate::config;
@@ -16,35 +16,41 @@ use crate::model::{AttrValueFactory, BoundAttrModel, UnboundAttrModel};
 
 #[derive(Deserialize)]
 pub struct ButtonModel<V>
-    where V: AttrValueFactory {
+where
+    V: AttrValueFactory,
+{
     pub value: (V::Model, V::Model),
     pub hold_time: Duration,
     pub trigger: config::Input,
 }
 
 impl<V> UnboundAttrModel<V> for ButtonModel<V>
-    where V: AttrValueFactory {
+where
+    V: AttrValueFactory,
+{
     fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
         return Ok(boxed::BoxedUnboundAttrDecl::wrap(
             photonic_effects::attrs::button::ButtonDecl {
-                value: (V::assemble(self.value.0)?,
-                        V::assemble(self.value.1)?),
+                value: (V::assemble(self.value.0)?, V::assemble(self.value.1)?),
                 hold_time: self.hold_time,
                 trigger: builder.input(self.trigger)?,
-            }));
+            },
+        ));
     }
 }
 
 impl<V> BoundAttrModel<V> for ButtonModel<V>
-    where V: AttrValueFactory + Bounded {
+where
+    V: AttrValueFactory + Bounded,
+{
     fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
         return Ok(boxed::BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::button::ButtonDecl {
-                value: (V::assemble(self.value.0)?,
-                        V::assemble(self.value.1)?),
+                value: (V::assemble(self.value.0)?, V::assemble(self.value.1)?),
                 hold_time: self.hold_time,
                 trigger: builder.input(self.trigger)?,
-            }));
+            },
+        ));
     }
 }
 
@@ -95,7 +101,9 @@ impl EasingModel {
     }
 
     pub fn resemble<F>(self) -> Result<animation::Easing<F>, Error>
-        where F: animation::Float {
+    where
+        F: animation::Float,
+    {
         return Ok(animation::Easing {
             func: Self::func(&self.func)
                 .ok_or_else(|| format_err!("Unknown easing function: {}", self.func))?,
@@ -111,63 +119,98 @@ pub struct FaderModel {
 }
 
 impl<V> UnboundAttrModel<V> for FaderModel
-    where V: AttrValueFactory {
-    default fn assemble(self, _builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
-        return Err(format_err!("Fader is not supported for Attributes of Type {}", std::any::type_name::<V>()))
+where
+    V: AttrValueFactory,
+{
+    default fn assemble(
+        self,
+        _builder: &mut Builder,
+    ) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
+        return Err(format_err!(
+            "Fader is not supported for Attributes of Type {}",
+            std::any::type_name::<V>()
+        ));
     }
 }
 
 impl<V> UnboundAttrModel<V> for FaderModel
-    where V: AttrValueFactory + Lerp {
+where
+    V: AttrValueFactory + Lerp,
+{
     fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
         return Ok(boxed::BoxedUnboundAttrDecl::wrap(
             photonic_effects::attrs::fader::FaderDecl {
                 input: builder.unbound_attr("input", self.input)?,
                 easing: self.easing.resemble()?,
-            }));
+            },
+        ));
     }
 }
 
 impl<V> BoundAttrModel<V> for FaderModel
-    where V: AttrValueFactory + Bounded {
-    default fn assemble(self, _builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
-        return Err(format_err!("Fader is not supported for Attributes of Type {}", std::any::type_name::<V>()))
+where
+    V: AttrValueFactory + Bounded,
+{
+    default fn assemble(
+        self,
+        _builder: &mut Builder,
+    ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
+        return Err(format_err!(
+            "Fader is not supported for Attributes of Type {}",
+            std::any::type_name::<V>()
+        ));
     }
 }
 
 impl<V> BoundAttrModel<V> for FaderModel
-    where V: AttrValueFactory + Bounded + Lerp {
+where
+    V: AttrValueFactory + Bounded + Lerp,
+{
     fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
         return Ok(boxed::BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::fader::FaderDecl {
                 input: builder.bound_attr("input", self.input)?,
                 easing: self.easing.resemble()?,
-            }));
+            },
+        ));
     }
 }
 
 #[derive(Deserialize)]
 pub struct LooperModel<V>
-    where V: AttrValueFactory {
+where
+    V: AttrValueFactory,
+{
     pub step: V::Model,
     pub trigger: config::Input,
 }
 
 impl<V> BoundAttrModel<V> for LooperModel<V>
-    where V: AttrValueFactory + Bounded {
-    default fn assemble(self, _builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
-        return Err(format_err!("Looper is not supported for Attributes of Type {}", std::any::type_name::<V>()))
+where
+    V: AttrValueFactory + Bounded,
+{
+    default fn assemble(
+        self,
+        _builder: &mut Builder,
+    ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
+        return Err(format_err!(
+            "Looper is not supported for Attributes of Type {}",
+            std::any::type_name::<V>()
+        ));
     }
 }
 
 impl<V> BoundAttrModel<V> for LooperModel<V>
-    where V: AttrValueFactory + Bounded + Num + PartialOrd {
+where
+    V: AttrValueFactory + Bounded + Num + PartialOrd,
+{
     fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
         return Ok(boxed::BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::looper::LooperDecl {
                 step: V::assemble(self.step)?,
                 trigger: builder.input(self.trigger)?,
-            }));
+            },
+        ));
     }
 }
 
@@ -177,65 +220,94 @@ pub struct RandomModel {
 }
 
 impl<V> BoundAttrModel<V> for RandomModel
-    where V: AttrValueFactory + Bounded {
-    default fn assemble(self, _builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
-        return Err(format_err!("Random is not supported for Attributes of Type {}", std::any::type_name::<V>()))
+where
+    V: AttrValueFactory + Bounded,
+{
+    default fn assemble(
+        self,
+        _builder: &mut Builder,
+    ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
+        return Err(format_err!(
+            "Random is not supported for Attributes of Type {}",
+            std::any::type_name::<V>()
+        ));
     }
 }
 
 impl<V> BoundAttrModel<V> for RandomModel
-    where V: AttrValueFactory + Bounded + SampleUniform {
+where
+    V: AttrValueFactory + Bounded + SampleUniform,
+{
     fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
         return Ok(boxed::BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::random::RandomDecl {
                 trigger: builder.input(self.trigger)?,
-            }));
+            },
+        ));
     }
 }
 
 #[derive(Deserialize)]
 pub struct SequenceModel<V>
-    where V: AttrValueFactory {
+where
+    V: AttrValueFactory,
+{
     pub values: Vec<V::Model>,
     pub next: Option<config::Input>,
     pub prev: Option<config::Input>,
 }
 
 impl<V> UnboundAttrModel<V> for SequenceModel<V>
-    where V: AttrValueFactory {
+where
+    V: AttrValueFactory,
+{
     fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
         return Ok(boxed::BoxedUnboundAttrDecl::wrap(
             photonic_effects::attrs::sequence::SequenceDecl {
-                values: self.values.into_iter().map(V::assemble).collect::<Result<Vec<_>, Error>>()?,
+                values: self
+                    .values
+                    .into_iter()
+                    .map(V::assemble)
+                    .collect::<Result<Vec<_>, Error>>()?,
                 next: self.next.map(|i| builder.input(i)).transpose()?,
                 prev: self.prev.map(|i| builder.input(i)).transpose()?,
-            }));
+            },
+        ));
     }
 }
 
 impl<V> BoundAttrModel<V> for SequenceModel<V>
-    where V: AttrValueFactory + Bounded {
+where
+    V: AttrValueFactory + Bounded,
+{
     fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
         return Ok(boxed::BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::sequence::SequenceDecl {
-                values: self.values.into_iter().map(V::assemble).collect::<Result<Vec<_>, Error>>()?,
+                values: self
+                    .values
+                    .into_iter()
+                    .map(V::assemble)
+                    .collect::<Result<Vec<_>, Error>>()?,
                 next: self.next.map(|i| builder.input(i)).transpose()?,
                 prev: self.prev.map(|i| builder.input(i)).transpose()?,
-            }));
+            },
+        ));
     }
 }
 
 #[derive(Deserialize)]
 pub struct RangeModel<V>(pub V::Model, pub V::Model)
-    where V: AttrValueFactory;
+where
+    V: AttrValueFactory;
 
 impl<V> AttrValueFactory for Range<V>
-    where V: AttrValueFactory {
+where
+    V: AttrValueFactory,
+{
     type Model = RangeModel<V>;
 
     fn assemble(model: Self::Model) -> Result<Self, Error> {
-        return Ok(Range(V::assemble(model.0)?,
-                        V::assemble(model.1)?));
+        return Ok(Range(V::assemble(model.0)?, V::assemble(model.1)?));
     }
 }
 

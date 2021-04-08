@@ -2,9 +2,11 @@ use std::time::Duration;
 
 use anyhow::Error;
 
-use photonic_core::scene::{AttrBuilder, InputHandle};
+use photonic_core::attr::{
+    Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl, Update,
+};
 use photonic_core::input::{Input, Poll};
-use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
+use photonic_core::scene::{AttrBuilder, InputHandle};
 
 #[derive(Clone, Copy, Debug)]
 enum State {
@@ -34,7 +36,9 @@ impl State {
 }
 
 pub struct Button<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     value_released: V,
     value_pressed: V,
 
@@ -46,7 +50,9 @@ pub struct Button<V>
 }
 
 impl<V> Attr<V> for Button<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     const KIND: &'static str = "button";
 
     fn get(&self) -> V {
@@ -78,16 +84,24 @@ impl<V> Attr<V> for Button<V>
 }
 
 pub struct ButtonDecl<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     pub value: (V, V),
     pub hold_time: Duration,
     pub trigger: InputHandle<()>,
 }
 
 impl<V> BoundAttrDecl<V> for ButtonDecl<V>
-    where V: AttrValue + Bounded {
+where
+    V: AttrValue + Bounded,
+{
     type Target = Button<V>;
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+    fn materialize(
+        self,
+        bounds: Bounds<V>,
+        builder: &mut AttrBuilder,
+    ) -> Result<Self::Target, Error> {
         return Ok(Button {
             value_released: bounds.ensure(self.value.0)?,
             value_pressed: bounds.ensure(self.value.1)?,
@@ -99,7 +113,9 @@ impl<V> BoundAttrDecl<V> for ButtonDecl<V>
 }
 
 impl<V> UnboundAttrDecl<V> for ButtonDecl<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     type Target = Button<V>;
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         return Ok(Button {

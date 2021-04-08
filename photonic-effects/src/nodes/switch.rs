@@ -2,11 +2,11 @@ use std::time::Duration;
 
 use anyhow::Error;
 
-use photonic_core::scene::{NodeBuilder, NodeHandle};
-use photonic_core::math::Lerp;
-use photonic_core::attr::{BoundAttrDecl, Attr, Update};
-use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 use photonic_core::animation::{Animation, Easing, Transition};
+use photonic_core::attr::{Attr, BoundAttrDecl, Update};
+use photonic_core::math::Lerp;
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 
 pub enum SwitchRenderer<Source> {
     Blending {
@@ -20,20 +20,24 @@ pub enum SwitchRenderer<Source> {
 }
 
 impl<Source> Render for SwitchRenderer<Source>
-    where Source: Render,
-          Source::Element: Lerp {
+where
+    Source: Render,
+    Source::Element: Lerp,
+{
     type Element = Source::Element;
 
     fn get(&self, index: usize) -> Self::Element {
         match self {
-            SwitchRenderer::Blending { source, target, blend } => {
+            SwitchRenderer::Blending {
+                source,
+                target,
+                blend,
+            } => {
                 let source = source.get(index);
                 let target = target.get(index);
 
                 // TODO: Blending modes
-                return Self::Element::lerp(source,
-                                           target,
-                                           *blend);
+                return Self::Element::lerp(source, target, *blend);
             }
 
             SwitchRenderer::Full(source) => {
@@ -44,9 +48,10 @@ impl<Source> Render for SwitchRenderer<Source>
 }
 
 pub struct SwitchNodeDecl<Source, Fade>
-    where Source: NodeDecl {
+where
+    Source: NodeDecl,
+{
     // TODO: Make sources an iterator?
-
     pub sources: Vec<NodeHandle<Source>>,
     pub fade: Fade,
     pub easing: Option<Easing<f64>>,
@@ -66,14 +71,18 @@ pub struct SwitchNode<Source, Fade> {
 }
 
 impl<Source, Fade, E> NodeDecl for SwitchNodeDecl<Source, Fade>
-    where Source: NodeDecl<Element=E>,
-          Fade: BoundAttrDecl<i64>,
-          E: Lerp {
+where
+    Source: NodeDecl<Element = E>,
+    Fade: BoundAttrDecl<i64>,
+    E: Lerp,
+{
     type Element = E;
     type Target = SwitchNode<Source::Target, Fade::Target>;
 
     fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
-        let sources = self.sources.into_iter()
+        let sources = self
+            .sources
+            .into_iter()
             .enumerate()
             .map(|(i, source)| builder.node(&format!("source-{}", i), source))
             .collect::<Result<Vec<_>, Error>>()?;
@@ -93,16 +102,20 @@ impl<Source, Fade, E> NodeDecl for SwitchNodeDecl<Source, Fade>
 }
 
 impl<'a, Source, Fade> RenderType<'a, Self> for SwitchNode<Source, Fade>
-    where Source: Node,
-          Fade: Attr<i64>,
-          Source::Element: Lerp {
+where
+    Source: Node,
+    Fade: Attr<i64>,
+    Source::Element: Lerp,
+{
     type Render = SwitchRenderer<<Source as RenderType<'a, Source>>::Render>;
 }
 
 impl<Source, Fade> Node for SwitchNode<Source, Fade>
-    where Source: Node,
-          Fade: Attr<i64>,
-          Source::Element: Lerp {
+where
+    Source: Node,
+    Fade: Attr<i64>,
+    Source::Element: Lerp,
+{
     const KIND: &'static str = "switch";
 
     type Element = Source::Element;
@@ -140,8 +153,10 @@ impl<Source, Fade> Node for SwitchNode<Source, Fade>
 
             // We guarantee to have two distinct indices in bounds
             let (source, target) = unsafe {
-                (&mut *sources.offset(self.source as isize),
-                 &mut *sources.offset(self.target as isize))
+                (
+                    &mut *sources.offset(self.source as isize),
+                    &mut *sources.offset(self.target as isize),
+                )
             };
 
             return SwitchRenderer::Blending {

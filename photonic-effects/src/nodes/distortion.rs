@@ -2,14 +2,16 @@ use std::time::Duration;
 
 use anyhow::Error;
 
-use photonic_core::scene::{NodeBuilder, NodeHandle};
+use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
 use photonic_core::math::Lerp;
-use photonic_core::attr::{BoundAttrDecl, Attr, Bounds};
-use photonic_core::node::{RenderType, Node, NodeDecl, Render};
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 
 pub struct DistortionRenderer<'a, Source, F>
-    where Source: Render,
-          F: Fn(&Source::Element, f64) -> Source::Element {
+where
+    Source: Render,
+    F: Fn(&Source::Element, f64) -> Source::Element,
+{
     source: Source,
     distortion: &'a F,
     value: f64,
@@ -17,9 +19,11 @@ pub struct DistortionRenderer<'a, Source, F>
 }
 
 impl<'a, Source, F> Render for DistortionRenderer<'a, Source, F>
-    where Source: Render,
-          Source::Element: Lerp,
-          F: Fn(&Source::Element, f64) -> Source::Element {
+where
+    Source: Render,
+    Source::Element: Lerp,
+    F: Fn(&Source::Element, f64) -> Source::Element,
+{
     type Element = Source::Element;
 
     fn get(&self, index: usize) -> Self::Element {
@@ -30,7 +34,9 @@ impl<'a, Source, F> Render for DistortionRenderer<'a, Source, F>
 }
 
 pub struct DistortionNodeDecl<Source, Value, F>
-    where Source: NodeDecl {
+where
+    Source: NodeDecl,
+{
     pub source: NodeHandle<Source>,
     pub value: Value,
     pub distortion: F,
@@ -45,10 +51,12 @@ pub struct DistortionNode<Source, Value, F> {
 }
 
 impl<Source, Value, F, E> NodeDecl for DistortionNodeDecl<Source, Value, F>
-    where Source: NodeDecl<Element=E>,
-          Value: BoundAttrDecl<f64>,
-          E: Lerp,
-          F: Fn(&E, f64) -> E + 'static {
+where
+    Source: NodeDecl<Element = E>,
+    Value: BoundAttrDecl<f64>,
+    E: Lerp,
+    F: Fn(&E, f64) -> E + 'static,
+{
     type Element = E;
     type Target = DistortionNode<Source::Target, Value::Target, F>;
 
@@ -63,18 +71,22 @@ impl<Source, Value, F, E> NodeDecl for DistortionNodeDecl<Source, Value, F>
 }
 
 impl<'a, Source, Value, F> RenderType<'a, Self> for DistortionNode<Source, Value, F>
-    where Source: Node,
-          Value: self::Attr<f64>,
-          Source::Element: Lerp,
-          F: Fn(&Source::Element, f64) -> Source::Element + 'static {
+where
+    Source: Node,
+    Value: self::Attr<f64>,
+    Source::Element: Lerp,
+    F: Fn(&Source::Element, f64) -> Source::Element + 'static,
+{
     type Render = DistortionRenderer<'a, <Source as RenderType<'a, Source>>::Render, F>;
 }
 
 impl<Source, Value, F> Node for DistortionNode<Source, Value, F>
-    where Source: Node,
-          Value: self::Attr<f64>,
-          Source::Element: Lerp,
-          F: Fn(&Source::Element, f64) -> Source::Element + 'static {
+where
+    Source: Node,
+    Value: self::Attr<f64>,
+    Source::Element: Lerp,
+    F: Fn(&Source::Element, f64) -> Source::Element + 'static,
+{
     const KIND: &'static str = "distortion";
 
     type Element = Source::Element;

@@ -1,14 +1,13 @@
+use crate::client::Client;
 use anyhow::Error;
 use clap::Clap;
-use crate::client::Client;
 use erased_serde::Serialize;
 
 pub mod client;
 
 #[derive(Clap)]
-#[clap(name="photonic", author, about, version)]
+#[clap(name = "photonic", author, about, version)]
 pub struct Opts {
-
     #[clap(subcommand)]
     pub command: Command,
 }
@@ -24,7 +23,7 @@ pub enum Command {
 
         #[clap(subcommand)]
         value: SendValue,
-    }
+    },
 }
 
 #[derive(Clap)]

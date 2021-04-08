@@ -35,7 +35,9 @@ impl Lerp for f32 {
 }
 
 pub fn minmax<F>(a: F, b: F) -> (F, F)
-    where F: PartialOrd {
+where
+    F: PartialOrd,
+{
     if a < b {
         return (a, b);
     } else {
@@ -44,7 +46,9 @@ pub fn minmax<F>(a: F, b: F) -> (F, F)
 }
 
 pub fn clamp<F>(f: F, r: (F, F)) -> F
-    where F: PartialOrd {
+where
+    F: PartialOrd,
+{
     if f <= r.0 {
         return r.0;
     }
@@ -57,7 +61,9 @@ pub fn clamp<F>(f: F, r: (F, F)) -> F
 }
 
 pub fn clamp_opt<F>(f: F, r: (Option<F>, Option<F>)) -> F
-    where F: PartialOrd {
+where
+    F: PartialOrd,
+{
     if let Some(r) = r.0 {
         if f <= r {
             return r;
@@ -81,7 +87,6 @@ pub fn wrap(f: f64, s: usize) -> f64 {
 pub fn remap(v: f64, s: (f64, f64), t: (f64, f64)) -> f64 {
     return (v - s.0) / (s.1 - s.0) * (t.1 - t.0) + t.0;
 }
-
 
 #[cfg(test)]
 mod test {
@@ -134,8 +139,8 @@ mod test {
         assert_approx_eq!(remap(0.1, (0.0, 0.1), (0.0, 1.0)), 1.0);
         assert_approx_eq!(remap(1.0, (0.0, 0.1), (0.0, 1.0)), 10.0);
 
-        assert_approx_eq!(remap( 0.0, (-1.0, 1.0), (0.0, 10.0)), 5.0);
-        assert_approx_eq!(remap( 1.0, (-1.0, 1.0), (0.0, 10.0)), 10.0);
+        assert_approx_eq!(remap(0.0, (-1.0, 1.0), (0.0, 10.0)), 5.0);
+        assert_approx_eq!(remap(1.0, (-1.0, 1.0), (0.0, 10.0)), 10.0);
         assert_approx_eq!(remap(-1.0, (-1.0, 1.0), (0.0, 10.0)), 0.0);
     }
 }

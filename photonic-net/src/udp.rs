@@ -4,11 +4,11 @@ use std::time::Duration;
 
 use anyhow::Error;
 
+use palette::Component;
 use photonic_core::buffer::Buffer;
 use photonic_core::color::{Black, RGBColor};
+use photonic_core::node::{Node, NodeDecl, RenderType};
 use photonic_core::scene::*;
-use palette::Component;
-use photonic_core::node::{RenderType, NodeDecl, Node};
 
 pub trait Format {
     type Element: Copy;
@@ -27,7 +27,9 @@ impl Format for RGBColor {
 }
 
 pub struct ReceiverNode<F>
-    where F: Format {
+where
+    F: Format,
+{
     socket: UdpSocket,
     buffer: Box<[u8]>,
 
@@ -37,16 +39,20 @@ pub struct ReceiverNode<F>
 }
 
 pub struct ReceiverNodeDecl<A, F>
-    where A: ToSocketAddrs,
-          F: Format {
+where
+    A: ToSocketAddrs,
+    F: Format,
+{
     address: A,
     format: PhantomData<F>,
 }
 
 impl<A, F> ReceiverNodeDecl<A, F>
-    where A: ToSocketAddrs,
-          F: Format,
-          F::Element: Black {
+where
+    A: ToSocketAddrs,
+    F: Format,
+    F::Element: Black,
+{
     pub fn bind(address: A) -> Self {
         return Self {
             address,
@@ -56,9 +62,11 @@ impl<A, F> ReceiverNodeDecl<A, F>
 }
 
 impl<A, F> NodeDecl for ReceiverNodeDecl<A, F>
-    where A: ToSocketAddrs,
-          F: Format + 'static,
-          F::Element: Black + 'static {
+where
+    A: ToSocketAddrs,
+    F: Format + 'static,
+    F::Element: Black + 'static,
+{
     type Element = F::Element;
     type Target = ReceiverNode<F>;
 
@@ -76,12 +84,16 @@ impl<A, F> NodeDecl for ReceiverNodeDecl<A, F>
 }
 
 impl<'a, F> RenderType<'a, Self> for ReceiverNode<F>
-    where F: Format + 'static {
+where
+    F: Format + 'static,
+{
     type Render = &'a Buffer<F::Element>;
 }
 
 impl<F> Node for ReceiverNode<F>
-    where F: Format + 'static {
+where
+    F: Format + 'static,
+{
     const KIND: &'static str = "udp";
 
     type Element = F::Element;
@@ -96,8 +108,7 @@ impl<F> Node for ReceiverNode<F>
             }
         }
 
-        Iterator::zip(self.output.iter_mut(),
-                      self.buffer.chunks(F::ELEMENT_SIZE))
+        Iterator::zip(self.output.iter_mut(), self.buffer.chunks(F::ELEMENT_SIZE))
             .for_each(|(o, b)| *o = F::load(b));
     }
 

@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use anyhow::Error;
 
+use photonic_core::attr::{Attr, BoundAttrDecl, UnboundAttrDecl};
 use photonic_core::color::HSVColor;
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::NodeBuilder;
-use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr};
-use photonic_core::node::{RenderType, Node, NodeDecl, Render};
 
 pub struct LarsonRenderer {
     hue: f64,
@@ -19,7 +19,10 @@ impl Render for LarsonRenderer {
     fn get(&self, index: usize) -> Self::Element {
         // Calculate value as the linear distance between the pixel and the current
         // position scaled from 0.0 for ±width/2 to 1.0 for center
-        let value = f64::max(0.0, ((self.width / 2.0) - f64::abs((index as f64) - self.position)) / (self.width / 2.0));
+        let value = f64::max(
+            0.0,
+            ((self.width / 2.0) - f64::abs((index as f64) - self.position)) / (self.width / 2.0),
+        );
 
         return HSVColor::new(self.hue, 1.0, value);
     }
@@ -57,9 +60,10 @@ pub struct LarsonNode<Hue, Speed, Width> {
 }
 
 impl<Hue, Speed, Width> NodeDecl for LarsonNodeDecl<Hue, Speed, Width>
-    where Hue: BoundAttrDecl<f64>,
-          Speed: UnboundAttrDecl<f64>,
-          Width: BoundAttrDecl<f64>
+where
+    Hue: BoundAttrDecl<f64>,
+    Speed: UnboundAttrDecl<f64>,
+    Width: BoundAttrDecl<f64>,
 {
     type Element = HSVColor;
     type Target = LarsonNode<Hue::Target, Speed::Target, Width::Target>;
@@ -77,16 +81,20 @@ impl<Hue, Speed, Width> NodeDecl for LarsonNodeDecl<Hue, Speed, Width>
 }
 
 impl<Hue, Speed, Width> RenderType<'_, Self> for LarsonNode<Hue, Speed, Width>
-    where Hue: Attr<f64>,
-          Speed: Attr<f64>,
-          Width: Attr<f64> {
+where
+    Hue: Attr<f64>,
+    Speed: Attr<f64>,
+    Width: Attr<f64>,
+{
     type Render = LarsonRenderer;
 }
 
 impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
-    where Hue: Attr<f64>,
-          Speed: Attr<f64>,
-          Width: Attr<f64> {
+where
+    Hue: Attr<f64>,
+    Speed: Attr<f64>,
+    Width: Attr<f64>,
+{
     const KIND: &'static str = "larson";
 
     type Element = HSVColor;

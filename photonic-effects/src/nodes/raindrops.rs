@@ -3,12 +3,12 @@ use std::time::Duration;
 use anyhow::Error;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 
-use photonic_core::color::{HSLColor, Black};
-use photonic_core::scene::NodeBuilder;
+use photonic_core::attr::{Attr, BoundAttrDecl, Bounds, Range, UnboundAttrDecl};
+use photonic_core::color::{Black, HSLColor};
 use photonic_core::math;
 use photonic_core::math::Lerp;
-use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr, Range, Bounds};
-use photonic_core::node::{RenderType, Node, NodeDecl, Render};
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
+use photonic_core::scene::NodeBuilder;
 
 #[derive(Clone)]
 struct Raindrop {
@@ -42,23 +42,19 @@ impl Random {
         Self(SmallRng::from_entropy())
     }
 
-    pub fn rate(&mut self,
-                value: f64,
-                duration: Duration) -> bool {
-        return self.0.gen_bool(math::clamp(duration.as_secs_f64() * value, (0.0, 1.0)));
+    pub fn rate(&mut self, value: f64, duration: Duration) -> bool {
+        return self
+            .0
+            .gen_bool(math::clamp(duration.as_secs_f64() * value, (0.0, 1.0)));
     }
 
-    pub fn color(&mut self,
-                 c1: HSLColor,
-                 c2: HSLColor) -> HSLColor {
+    pub fn color(&mut self, c1: HSLColor, c2: HSLColor) -> HSLColor {
         let v = self.0.gen();
         return Lerp::lerp(c1, c2, v);
     }
 
     #[allow(clippy::float_cmp)]
-    pub fn range(&mut self,
-                 min: f64,
-                 max: f64) -> f64 {
+    pub fn range(&mut self, min: f64, max: f64) -> f64 {
         let values = math::minmax(min, max);
         if values.0 == values.1 {
             return values.0;
@@ -85,9 +81,11 @@ pub struct RaindropsNode<Rate, Color, Decay> {
 }
 
 impl<Rate, Color, Decay> NodeDecl for RaindropsNodeDecl<Rate, Color, Decay>
-    where Rate: BoundAttrDecl<f64>,
-          Color: UnboundAttrDecl<Range<HSLColor>>,
-          Decay: BoundAttrDecl<Range<f64>> {
+where
+    Rate: BoundAttrDecl<f64>,
+    Color: UnboundAttrDecl<Range<HSLColor>>,
+    Decay: BoundAttrDecl<Range<f64>>,
+{
     type Element = HSLColor;
     type Target = RaindropsNode<Rate::Target, Color::Target, Decay::Target>;
 
@@ -95,7 +93,14 @@ impl<Rate, Color, Decay> NodeDecl for RaindropsNodeDecl<Rate, Color, Decay>
         return Ok(Self::Target {
             rate: builder.bound_attr("rate", self.rate, Bounds::normal())?,
             color: builder.unbound_attr("color", self.color)?,
-            decay: builder.bound_attr("decay", self.decay, Bounds { min: Range(0.0, 0.0), max: Range(1.0, 1.0) })?,
+            decay: builder.bound_attr(
+                "decay",
+                self.decay,
+                Bounds {
+                    min: Range(0.0, 0.0),
+                    max: Range(1.0, 1.0),
+                },
+            )?,
             raindrops: vec![Raindrop::default(); size],
             random: Random::new(),
         });
@@ -103,16 +108,20 @@ impl<Rate, Color, Decay> NodeDecl for RaindropsNodeDecl<Rate, Color, Decay>
 }
 
 impl<'a, Rate, Color, Decay> RenderType<'a, Self> for RaindropsNode<Rate, Color, Decay>
-    where Rate: Attr<f64>,
-          Color: Attr<Range<HSLColor>>,
-          Decay: Attr<Range<f64>> {
+where
+    Rate: Attr<f64>,
+    Color: Attr<Range<HSLColor>>,
+    Decay: Attr<Range<f64>>,
+{
     type Render = RaindropsRenderer<'a>;
 }
 
 impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
-    where Rate: Attr<f64>,
-          Color: Attr<Range<HSLColor>>,
-          Decay: Attr<Range<f64>> {
+where
+    Rate: Attr<f64>,
+    Color: Attr<Range<HSLColor>>,
+    Decay: Attr<Range<f64>>,
+{
     const KIND: &'static str = "raindrops";
 
     type Element = HSLColor;
@@ -127,7 +136,10 @@ impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
                 raindrop.color = self.random.color(self.color.get().0, self.color.get().1);
                 raindrop.decay = self.random.range(self.decay.get().0, self.decay.get().1);
             } else {
-                raindrop.color.lightness = f64::max(0.0, raindrop.color.lightness * 1.0 - raindrop.decay * duration.as_secs_f64());
+                raindrop.color.lightness = f64::max(
+                    0.0,
+                    raindrop.color.lightness * 1.0 - raindrop.decay * duration.as_secs_f64(),
+                );
             }
         }
     }

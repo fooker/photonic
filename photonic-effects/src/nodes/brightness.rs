@@ -2,11 +2,11 @@ use std::time::Duration;
 
 use anyhow::Error;
 
+use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
 use photonic_core::color::Black;
-use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math::Lerp;
-use photonic_core::attr::{BoundAttrDecl, Attr, Bounds};
-use photonic_core::node::{RenderType, Node, NodeDecl, Render};
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 
 pub struct BrightnessRenderer<Source> {
     source: Source,
@@ -16,8 +16,10 @@ pub struct BrightnessRenderer<Source> {
 }
 
 impl<Source> Render for BrightnessRenderer<Source>
-    where Source: Render,
-          Source::Element: Lerp + Black {
+where
+    Source: Render,
+    Source::Element: Lerp + Black,
+{
     type Element = Source::Element;
 
     fn get(&self, index: usize) -> Self::Element {
@@ -32,8 +34,10 @@ impl<Source> Render for BrightnessRenderer<Source>
 }
 
 pub struct BrightnessNodeDecl<Source, Brightness>
-    where Source: NodeDecl,
-          Brightness: BoundAttrDecl<f64> {
+where
+    Source: NodeDecl,
+    Brightness: BoundAttrDecl<f64>,
+{
     pub source: NodeHandle<Source>,
     pub brightness: Brightness,
     pub range: Option<(usize, usize)>,
@@ -46,9 +50,11 @@ pub struct BrightnessNode<Source, Brightness> {
 }
 
 impl<Source, Brightness, E> NodeDecl for BrightnessNodeDecl<Source, Brightness>
-    where Source: NodeDecl<Element=E>,
-          Brightness: BoundAttrDecl<f64>,
-          E: Lerp + Black {
+where
+    Source: NodeDecl<Element = E>,
+    Brightness: BoundAttrDecl<f64>,
+    E: Lerp + Black,
+{
     type Element = E;
     type Target = BrightnessNode<Source::Target, Brightness::Target>;
 
@@ -62,16 +68,20 @@ impl<Source, Brightness, E> NodeDecl for BrightnessNodeDecl<Source, Brightness>
 }
 
 impl<'a, Source, Brightness> RenderType<'a, Self> for BrightnessNode<Source, Brightness>
-    where Source: Node,
-          Brightness: self::Attr<f64>,
-          Source::Element: Lerp + Black {
+where
+    Source: Node,
+    Brightness: self::Attr<f64>,
+    Source::Element: Lerp + Black,
+{
     type Render = BrightnessRenderer<<Source as RenderType<'a, Source>>::Render>;
 }
 
 impl<Source, Brightness> Node for BrightnessNode<Source, Brightness>
-    where Source: Node,
-          Brightness: self::Attr<f64>,
-          Source::Element: Lerp + Black {
+where
+    Source: Node,
+    Brightness: self::Attr<f64>,
+    Source::Element: Lerp + Black,
+{
     const KIND: &'static str = "brightness";
 
     type Element = Source::Element;

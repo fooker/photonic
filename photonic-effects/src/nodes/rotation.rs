@@ -2,11 +2,11 @@ use std::time::Duration;
 
 use anyhow::Error;
 
-use photonic_core::scene::{NodeBuilder, NodeHandle};
+use photonic_core::attr::{Attr, UnboundAttrDecl};
 use photonic_core::math;
 use photonic_core::math::Lerp;
-use photonic_core::attr::{UnboundAttrDecl, Attr};
-use photonic_core::node::{RenderType, Node, NodeDecl, Render};
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 
 pub struct RotationRenderer<Source> {
     source: Source,
@@ -15,8 +15,10 @@ pub struct RotationRenderer<Source> {
 }
 
 impl<Source> Render for RotationRenderer<Source>
-    where Source: Render,
-          Source::Element: Lerp {
+where
+    Source: Render,
+    Source::Element: Lerp,
+{
     type Element = Source::Element;
 
     fn get(&self, index: usize) -> Self::Element {
@@ -31,7 +33,9 @@ impl<Source> Render for RotationRenderer<Source>
 }
 
 pub struct RotationNodeDecl<Source, Speed>
-    where Source: NodeDecl {
+where
+    Source: NodeDecl,
+{
     source: NodeHandle<Source>,
     speed: Speed,
 }
@@ -46,9 +50,11 @@ pub struct RotationNode<Source, Speed> {
 }
 
 impl<Source, Speed, E> NodeDecl for RotationNodeDecl<Source, Speed>
-    where Source: NodeDecl<Element=E>,
-          Speed: UnboundAttrDecl<f64>,
-          E: Lerp {
+where
+    Source: NodeDecl<Element = E>,
+    Speed: UnboundAttrDecl<f64>,
+    E: Lerp,
+{
     type Element = E;
     type Target = RotationNode<Source::Target, Speed::Target>;
 
@@ -63,16 +69,20 @@ impl<Source, Speed, E> NodeDecl for RotationNodeDecl<Source, Speed>
 }
 
 impl<'a, Source, Speed> RenderType<'a, Self> for RotationNode<Source, Speed>
-    where Source: Node,
-          Speed: Attr<f64>,
-          Source::Element: Lerp {
+where
+    Source: Node,
+    Speed: Attr<f64>,
+    Source::Element: Lerp,
+{
     type Render = RotationRenderer<<Source as RenderType<'a, Source>>::Render>;
 }
 
 impl<Source, Speed> Node for RotationNode<Source, Speed>
-    where Source: Node,
-          Speed: Attr<f64>,
-          Source::Element: Lerp {
+where
+    Source: Node,
+    Speed: Attr<f64>,
+    Source::Element: Lerp,
+{
     const KIND: &'static str = "rotation";
 
     type Element = Source::Element;

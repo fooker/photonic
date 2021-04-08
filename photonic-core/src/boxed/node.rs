@@ -6,15 +6,24 @@ use crate::node::{Node, NodeDecl, Render, RenderType};
 use crate::scene::NodeBuilder;
 
 trait AsBoxedNodeDecl<Element> {
-    fn materialize(self: Box<Self>, size: usize, builder: &mut NodeBuilder) -> Result<BoxedNode<Element>, Error>;
+    fn materialize(
+        self: Box<Self>,
+        size: usize,
+        builder: &mut NodeBuilder,
+    ) -> Result<BoxedNode<Element>, Error>;
 }
 
 impl<T, Element> AsBoxedNodeDecl<Element> for T
-    where T: NodeDecl<Element=Element>,
-          T::Target: 'static {
-    fn materialize(self: Box<Self>, size: usize, builder: &mut NodeBuilder) -> Result<BoxedNode<Element>, Error> {
-        return T::materialize(*self, size, builder)
-            .map(BoxedNode::wrap);
+where
+    T: NodeDecl<Element = Element>,
+    T::Target: 'static,
+{
+    fn materialize(
+        self: Box<Self>,
+        size: usize,
+        builder: &mut NodeBuilder,
+    ) -> Result<BoxedNode<Element>, Error> {
+        return T::materialize(*self, size, builder).map(BoxedNode::wrap);
     }
 }
 
@@ -24,7 +33,9 @@ pub struct BoxedNodeDecl<Element> {
 
 impl<Element> BoxedNodeDecl<Element> {
     pub fn wrap<Decl>(decl: Decl) -> Self
-        where Decl: NodeDecl<Element=Element> + 'static {
+    where
+        Decl: NodeDecl<Element = Element> + 'static,
+    {
         return Self {
             decl: Box::new(decl),
         };
@@ -32,12 +43,16 @@ impl<Element> BoxedNodeDecl<Element> {
 }
 
 impl<Element> NodeDecl for BoxedNodeDecl<Element>
-    where Element: 'static {
+where
+    Element: 'static,
+{
     type Element = Element;
     type Target = BoxedNode<Element>;
 
     fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error>
-        where Self::Target: Sized {
+    where
+        Self::Target: Sized,
+    {
         return self.decl.materialize(size, builder);
     }
 }
@@ -47,8 +62,10 @@ trait AsBoxedRender<Element> {
 }
 
 impl<T, Element> AsBoxedRender<Element> for T
-    where T: Render,
-          <T as Render>::Element: Into<Element> {
+where
+    T: Render,
+    <T as Render>::Element: Into<Element>,
+{
     fn get(&self, index: usize) -> Element {
         return T::get(self, index).into();
     }
@@ -60,10 +77,12 @@ pub struct BoxedRender<'a, Element> {
 
 impl<'a, Element> BoxedRender<'a, Element> {
     pub fn wrap<Render>(render: Render) -> Self
-        where Render: self::Render + 'a,
-              Render::Element: Into<Element> {
+    where
+        Render: self::Render + 'a,
+        Render::Element: Into<Element>,
+    {
         return Self {
-            render: Box::new(render)
+            render: Box::new(render),
         };
     }
 }
@@ -82,8 +101,10 @@ trait AsBoxedNode<Element> {
 }
 
 impl<T, Element> AsBoxedNode<Element> for T
-    where T: Node,
-          T::Element: Into<Element> {
+where
+    T: Node,
+    T::Element: Into<Element>,
+{
     fn update(&mut self, duration: Duration) {
         T::update(self, duration);
     }
@@ -100,8 +121,10 @@ pub struct BoxedNode<Element> {
 
 impl<Element> BoxedNode<Element> {
     pub fn wrap<Node>(node: Node) -> Self
-        where Node: self::Node + 'static,
-              Node::Element: Into<Element> {
+    where
+        Node: self::Node + 'static,
+        Node::Element: Into<Element>,
+    {
         return Self {
             node: Box::new(node),
         };
@@ -109,15 +132,19 @@ impl<Element> BoxedNode<Element> {
 }
 
 impl<'a, Element> RenderType<'a, Self> for BoxedNode<Element>
-    where Element: 'static {
+where
+    Element: 'static,
+{
     type Render = BoxedRender<'a, Element>;
 }
 
 impl<Element> Node for BoxedNode<Element>
-    where Element: 'static {
-    const KIND: &'static str = "boxed";
-
+where
+    Element: 'static,
+{
     type Element = Element;
+
+    const KIND: &'static str = "boxed";
 
     fn update(&mut self, duration: Duration) {
         self.node.update(duration);

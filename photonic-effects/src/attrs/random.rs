@@ -4,12 +4,14 @@ use anyhow::Error;
 use rand::distributions::uniform::SampleUniform;
 use rand::prelude::{FromEntropy, Rng, SmallRng};
 
-use photonic_core::scene::{AttrBuilder, InputHandle};
+use photonic_core::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, Update};
 use photonic_core::input::{Input, Poll};
-use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds};
+use photonic_core::scene::{AttrBuilder, InputHandle};
 
 pub struct Random<V>
-    where V: AttrValue + Bounded {
+where
+    V: AttrValue + Bounded,
+{
     bounds: Bounds<V>,
 
     current: V,
@@ -20,7 +22,9 @@ pub struct Random<V>
 }
 
 impl<V> Attr<V> for Random<V>
-    where V: AttrValue + SampleUniform + Bounded {
+where
+    V: AttrValue + SampleUniform + Bounded,
+{
     const KIND: &'static str = "random";
 
     fn get(&self) -> V {
@@ -42,9 +46,15 @@ pub struct RandomDecl {
 }
 
 impl<V> BoundAttrDecl<V> for RandomDecl
-    where V: AttrValue + SampleUniform + Bounded {
+where
+    V: AttrValue + SampleUniform + Bounded,
+{
     type Target = Random<V>;
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+    fn materialize(
+        self,
+        bounds: Bounds<V>,
+        builder: &mut AttrBuilder,
+    ) -> Result<Self::Target, Error> {
         let mut random = SmallRng::from_entropy();
 
         // Generate a random initial value

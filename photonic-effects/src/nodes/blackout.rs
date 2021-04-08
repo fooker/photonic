@@ -2,11 +2,11 @@ use std::time::Duration;
 
 use anyhow::Error;
 
+use photonic_core::attr::{Attr, UnboundAttrDecl};
 use photonic_core::color::Black;
-use photonic_core::scene::{NodeBuilder, NodeHandle};
 use photonic_core::math::Lerp;
-use photonic_core::attr::{UnboundAttrDecl, Attr};
-use photonic_core::node::{RenderType, Node, NodeDecl, Render};
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
+use photonic_core::scene::{NodeBuilder, NodeHandle};
 
 pub struct BlackoutRenderer<Source> {
     source: Source,
@@ -16,8 +16,10 @@ pub struct BlackoutRenderer<Source> {
 }
 
 impl<Source> Render for BlackoutRenderer<Source>
-    where Source: Render,
-          Source::Element: Lerp + Black {
+where
+    Source: Render,
+    Source::Element: Lerp + Black,
+{
     type Element = Source::Element;
 
     fn get(&self, index: usize) -> Self::Element {
@@ -25,13 +27,15 @@ impl<Source> Render for BlackoutRenderer<Source>
             Self::Element::black()
         } else {
             self.source.get(index)
-        }
+        };
     }
 }
 
 pub struct BlackoutNodeDecl<Source, Active>
-    where Source: NodeDecl,
-          Active: UnboundAttrDecl<bool> {
+where
+    Source: NodeDecl,
+    Active: UnboundAttrDecl<bool>,
+{
     pub source: NodeHandle<Source>,
     pub active: Active,
     pub range: Option<(usize, usize)>,
@@ -44,9 +48,11 @@ pub struct BlackoutNode<Source, Active> {
 }
 
 impl<Source, Active, E> NodeDecl for BlackoutNodeDecl<Source, Active>
-    where Source: NodeDecl<Element=E>,
-          Active: UnboundAttrDecl<bool>,
-          E: Lerp + Black {
+where
+    Source: NodeDecl<Element = E>,
+    Active: UnboundAttrDecl<bool>,
+    E: Lerp + Black,
+{
     type Element = E;
     type Target = BlackoutNode<Source::Target, Active::Target>;
 
@@ -60,16 +66,20 @@ impl<Source, Active, E> NodeDecl for BlackoutNodeDecl<Source, Active>
 }
 
 impl<'a, Source, Active> RenderType<'a, Self> for BlackoutNode<Source, Active>
-    where Source: Node,
-          Active: self::Attr<bool>,
-          Source::Element: Lerp + Black {
+where
+    Source: Node,
+    Active: self::Attr<bool>,
+    Source::Element: Lerp + Black,
+{
     type Render = BlackoutRenderer<<Source as RenderType<'a, Source>>::Render>;
 }
 
 impl<Source, Active> Node for BlackoutNode<Source, Active>
-    where Source: Node,
-          Active: self::Attr<bool>,
-          Source::Element: Lerp + Black {
+where
+    Source: Node,
+    Active: self::Attr<bool>,
+    Source::Element: Lerp + Black,
+{
     const KIND: &'static str = "blackout";
 
     type Element = Source::Element;

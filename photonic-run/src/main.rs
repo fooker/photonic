@@ -5,12 +5,12 @@ use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use anyhow::{Error, format_err};
+use anyhow::{format_err, Error};
 use clap::Clap;
 
+use photonic_core::Introspection;
 use photonic_run::builder::Builder;
 use photonic_run::config;
-use photonic_core::Introspection;
 use std::sync::Arc;
 
 enum Interface {
@@ -28,26 +28,29 @@ impl FromStr for Interface {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (k, v) = s.split_once(":")
-            .ok_or(format_err!("Invalid interface format. TYPE:CONFIG expected."))?;
+        let (k, v) = s.split_once(":").ok_or(format_err!(
+            "Invalid interface format. TYPE:CONFIG expected."
+        ))?;
 
         return Ok(match k {
             "grpc" => Self::GRPC(v.parse()?),
             "mqtt" => {
-                let (addr, realm) = v.split_once("@")
-                    .ok_or(format_err!("Invalid MQTT interface format: HOST:PORT@REALM expected."))?;
+                let (addr, realm) = v.split_once("@").ok_or(format_err!(
+                    "Invalid MQTT interface format: HOST:PORT@REALM expected."
+                ))?;
 
-                let (host, port) = addr.split_once(":")
-                    .ok_or(format_err!("Invalid MQTT interface format: HOST:PORT@REALM expected."))?;
+                let (host, port) = addr.split_once(":").ok_or(format_err!(
+                    "Invalid MQTT interface format: HOST:PORT@REALM expected."
+                ))?;
 
                 Self::MQTT {
                     host: host.to_owned(),
                     port: port.parse()?,
                     realm: realm.to_owned(),
                 }
-            },
+            }
             "varlink" => Self::Varlink(v.parse()?),
-            _ => return Err(format_err!("Unknown interface type: {}", k))
+            _ => return Err(format_err!("Unknown interface type: {}", k)),
         });
     }
 }
@@ -56,9 +59,11 @@ impl Interface {
     fn serve(self, introspection: Arc<Introspection>) -> Result<(), Error> {
         return match self {
             Self::GRPC(addr) => introspection.serve(photonic_grpc::GrpcInterface::bind(addr)),
-            Self::MQTT { host, port, realm } => introspection.serve(photonic_mqtt::MqttInterface::connect(host, port, realm)?),
+            Self::MQTT { host, port, realm } => {
+                introspection.serve(photonic_mqtt::MqttInterface::connect(host, port, realm)?)
+            }
             Self::Varlink(addr) => todo!(),
-        }
+        };
     }
 }
 

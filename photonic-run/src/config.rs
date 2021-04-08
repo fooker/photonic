@@ -52,5 +52,5 @@ pub enum Attr {
         initial: Value,
     },
 
-    Fixed(Value)
+    Fixed(Value),
 }

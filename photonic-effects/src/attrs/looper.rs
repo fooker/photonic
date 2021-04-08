@@ -3,12 +3,14 @@ use std::time::Duration;
 use anyhow::Error;
 use num::traits::Num;
 
-use photonic_core::attr::{AttrValue, Attr, Update, BoundAttrDecl, Bounded, Bounds};
-use photonic_core::scene::{AttrBuilder, InputHandle};
+use photonic_core::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, Update};
 use photonic_core::input::{Input, Poll};
+use photonic_core::scene::{AttrBuilder, InputHandle};
 
 pub struct Looper<V>
-    where V: AttrValue + Num {
+where
+    V: AttrValue + Num,
+{
     min: V,
     max: V,
     step: V,
@@ -19,7 +21,9 @@ pub struct Looper<V>
 }
 
 impl<V> Attr<V> for Looper<V>
-    where V: AttrValue + Num {
+where
+    V: AttrValue + Num,
+{
     const KIND: &'static str = "looper";
 
     fn get(&self) -> V {
@@ -37,18 +41,28 @@ impl<V> Attr<V> for Looper<V>
 }
 
 pub struct LooperDecl<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     pub step: V,
     pub trigger: InputHandle<()>,
 }
 
 impl<V> BoundAttrDecl<V> for LooperDecl<V>
-    where V: AttrValue + Bounded + Num + PartialOrd {
+where
+    V: AttrValue + Bounded + Num + PartialOrd,
+{
     type Target = Looper<V>;
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+    fn materialize(
+        self,
+        bounds: Bounds<V>,
+        builder: &mut AttrBuilder,
+    ) -> Result<Self::Target, Error> {
         let (min, max) = bounds.into();
 
-        let step = if self.step >= V::zero() { self.step } else {
+        let step = if self.step >= V::zero() {
+            self.step
+        } else {
             (self.step % (max - min + V::one())) + (max - min + V::one())
         };
 

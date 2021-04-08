@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use anyhow::Error;
 
-use photonic_core::math;
-use photonic_core::node::{RenderType, Node, NodeDecl, Render};
+use photonic_core::attr::{Attr, BoundAttrDecl, UnboundAttrDecl};
 use photonic_core::color::HSVColor;
-use photonic_core::attr::{BoundAttrDecl, UnboundAttrDecl, Attr};
+use photonic_core::math;
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::NodeBuilder;
 
 pub struct AlertRenderer {
@@ -20,11 +20,7 @@ impl Render for AlertRenderer {
     fn get(&self, index: usize) -> Self::Element {
         let x = (index / self.block_size) % 2 == 0;
 
-        return HSVColor::new(
-            self.hue,
-            1.0,
-            if x { self.value } else { 1.0 - self.value },
-        );
+        return HSVColor::new(self.hue, 1.0, if x { self.value } else { 1.0 - self.value });
     }
 }
 
@@ -43,9 +39,11 @@ pub struct AlertNode<Hue, Block, Speed> {
 }
 
 impl<Hue, Block, Speed> NodeDecl for AlertNodeDecl<Hue, Block, Speed>
-    where Hue: BoundAttrDecl<f64>,
-          Block: BoundAttrDecl<i64>,
-          Speed: UnboundAttrDecl<f64> {
+where
+    Hue: BoundAttrDecl<f64>,
+    Block: BoundAttrDecl<i64>,
+    Speed: UnboundAttrDecl<f64>,
+{
     type Element = HSVColor;
     type Target = AlertNode<Hue::Target, Block::Target, Speed::Target>;
 
@@ -61,16 +59,20 @@ impl<Hue, Block, Speed> NodeDecl for AlertNodeDecl<Hue, Block, Speed>
 }
 
 impl<'a, Hue, Block, Speed> RenderType<'a, Self> for AlertNode<Hue, Block, Speed>
-    where Hue: Attr<f64>,
-          Block: Attr<i64>,
-          Speed: Attr<f64> {
+where
+    Hue: Attr<f64>,
+    Block: Attr<i64>,
+    Speed: Attr<f64>,
+{
     type Render = AlertRenderer;
 }
 
 impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
-    where Hue: Attr<f64>,
-          Block: Attr<i64>,
-          Speed: Attr<f64> {
+where
+    Hue: Attr<f64>,
+    Block: Attr<i64>,
+    Speed: Attr<f64>,
+{
     const KIND: &'static str = "alert";
 
     type Element = HSVColor;
@@ -86,8 +88,11 @@ impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
         return AlertRenderer {
             hue: self.hue.get(),
             block_size: self.block.get() as usize,
-            value: math::remap(math::clamp(f64::sin(self.time * std::f64::consts::PI), (-1.0, 1.0)),
-                               (-1.0, 1.0), (0.0, 1.0)),
+            value: math::remap(
+                math::clamp(f64::sin(self.time * std::f64::consts::PI), (-1.0, 1.0)),
+                (-1.0, 1.0),
+                (0.0, 1.0),
+            ),
         };
     }
 }

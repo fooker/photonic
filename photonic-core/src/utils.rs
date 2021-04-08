@@ -1,7 +1,9 @@
 use std::time::{Duration, Instant};
 
 pub fn combine_opts<V, F>(v1: Option<V>, v2: Option<V>, f: F) -> Option<V>
-    where F: FnOnce(V, V) -> V {
+where
+    F: FnOnce(V, V) -> V,
+{
     match (v1, v2) {
         (Some(v1), Some(v2)) => Some(f(v1, v2)),
         (Some(v1), None) => Some(v1),
@@ -49,9 +51,17 @@ impl FrameStats {
         }
     }
 
-    pub fn cycles(&self) -> usize { self.cycles }
-    pub fn min_time(&self) -> Duration { self.min_time }
-    pub fn max_time(&self) -> Duration { self.max_time }
+    pub fn cycles(&self) -> usize {
+        self.cycles
+    }
+
+    pub fn min_time(&self) -> Duration {
+        self.min_time
+    }
+
+    pub fn max_time(&self) -> Duration {
+        self.max_time
+    }
 
     pub fn min_fps(&self) -> f64 {
         return 1.0f64 / self.max_time.as_secs_f64();
@@ -103,15 +113,19 @@ impl FrameTimer {
 }
 
 pub struct TreeIterator<E, F, I>
-    where F: Fn(&E) -> I,
-          I: Iterator<Item=E>  {
+where
+    F: Fn(&E) -> I,
+    I: Iterator<Item = E>,
+{
     sprawl: F,
     stack: Vec<E>,
 }
 
 impl<E, F, I> TreeIterator<E, F, I>
-    where F: Fn(&E) -> I,
-          I: Iterator<Item=E> {
+where
+    F: Fn(&E) -> I,
+    I: Iterator<Item = E>,
+{
     pub fn new(root: E, sprawl: F) -> Self {
         return Self {
             sprawl,
@@ -121,8 +135,10 @@ impl<E, F, I> TreeIterator<E, F, I>
 }
 
 impl<E, F, I> Iterator for TreeIterator<E, F, I>
-    where F: Fn(&E) -> I,
-          I: Iterator<Item=E>  {
+where
+    F: Fn(&E) -> I,
+    I: Iterator<Item = E>,
+{
     type Item = E;
 
     fn next(&mut self) -> Option<Self::Item> {

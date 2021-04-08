@@ -35,14 +35,21 @@ impl Output for ConsoleOutput {
 
     const KIND: &'static str = "console";
 
-    fn render(&mut self, render: &dyn Render<Element=Self::Element>) {
+    fn render(&mut self, render: &dyn Render<Element = Self::Element>) {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
         for i in 0..self.size {
             let rgb: RGBColor = render.get(i).into();
             let (r, g, b) = rgb.into_components();
-            write!(&mut buf, "\x1b[48;2;{:03};{:03};{:03}m ", r.convert::<u8>(), g.convert::<u8>(), b.convert::<u8>()).unwrap();
+            write!(
+                &mut buf,
+                "\x1b[48;2;{:03};{:03};{:03}m ",
+                r.convert::<u8>(),
+                g.convert::<u8>(),
+                b.convert::<u8>()
+            )
+            .unwrap();
         }
 
         write!(&mut buf, "\x1b[0m").unwrap();

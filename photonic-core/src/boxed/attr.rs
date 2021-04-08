@@ -10,26 +10,36 @@ trait AsBoxedUnboundAttrDecl<V> {
 }
 
 trait AsBoxedBoundAttrDecl<V> {
-    fn materialize(self: Box<Self>, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<BoxedAttr<V>, Error>;
+    fn materialize(
+        self: Box<Self>,
+        bounds: Bounds<V>,
+        builder: &mut AttrBuilder,
+    ) -> Result<BoxedAttr<V>, Error>;
 }
 
 impl<T, V> AsBoxedUnboundAttrDecl<V> for T
-    where T: UnboundAttrDecl<V>,
-          T::Target: 'static,
-          V: AttrValue {
+where
+    T: UnboundAttrDecl<V>,
+    T::Target: 'static,
+    V: AttrValue,
+{
     fn materialize(self: Box<Self>, builder: &mut AttrBuilder) -> Result<BoxedAttr<V>, Error> {
-        return T::materialize(*self, builder)
-            .map(BoxedAttr::wrap);
+        return T::materialize(*self, builder).map(BoxedAttr::wrap);
     }
 }
 
 impl<T, V> AsBoxedBoundAttrDecl<V> for T
-    where T: BoundAttrDecl<V>,
-          T::Target: 'static,
-          V: AttrValue + Bounded {
-    fn materialize(self: Box<Self>, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<BoxedAttr<V>, Error> {
-        return T::materialize(*self, bounds, builder)
-            .map(BoxedAttr::wrap);
+where
+    T: BoundAttrDecl<V>,
+    T::Target: 'static,
+    V: AttrValue + Bounded,
+{
+    fn materialize(
+        self: Box<Self>,
+        bounds: Bounds<V>,
+        builder: &mut AttrBuilder,
+    ) -> Result<BoxedAttr<V>, Error> {
+        return T::materialize(*self, bounds, builder).map(BoxedAttr::wrap);
     }
 }
 
@@ -42,9 +52,13 @@ pub struct BoxedBoundAttrDecl<V> {
 }
 
 impl<V> BoxedUnboundAttrDecl<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     pub fn wrap<Decl>(decl: Decl) -> Self
-        where Decl: UnboundAttrDecl<V> + 'static {
+    where
+        Decl: UnboundAttrDecl<V> + 'static,
+    {
         return Self {
             decl: Box::new(decl),
         };
@@ -52,9 +66,13 @@ impl<V> BoxedUnboundAttrDecl<V>
 }
 
 impl<V> BoxedBoundAttrDecl<V>
-    where V: AttrValue + Bounded {
+where
+    V: AttrValue + Bounded,
+{
     pub fn wrap<Decl>(decl: Decl) -> Self
-        where Decl: BoundAttrDecl<V> + 'static {
+    where
+        Decl: BoundAttrDecl<V> + 'static,
+    {
         return Self {
             decl: Box::new(decl),
         };
@@ -62,7 +80,9 @@ impl<V> BoxedBoundAttrDecl<V>
 }
 
 impl<V> UnboundAttrDecl<V> for BoxedUnboundAttrDecl<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     type Target = BoxedAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
@@ -71,23 +91,33 @@ impl<V> UnboundAttrDecl<V> for BoxedUnboundAttrDecl<V>
 }
 
 impl<V> BoundAttrDecl<V> for BoxedBoundAttrDecl<V>
-    where V: AttrValue + Bounded {
+where
+    V: AttrValue + Bounded,
+{
     type Target = BoxedAttr<V>;
 
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+    fn materialize(
+        self,
+        bounds: Bounds<V>,
+        builder: &mut AttrBuilder,
+    ) -> Result<Self::Target, Error> {
         return self.decl.materialize(bounds, builder);
     }
 }
 
 trait AsBoxedAttr<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     fn get(&self) -> V;
     fn update(&mut self, duration: Duration) -> Update<V>;
 }
 
 impl<T, V> AsBoxedAttr<V> for T
-    where T: Attr<V>,
-          V: AttrValue {
+where
+    T: Attr<V>,
+    V: AttrValue,
+{
     fn get(&self) -> V {
         return T::get(self);
     }
@@ -102,9 +132,13 @@ pub struct BoxedAttr<V> {
 }
 
 impl<V> BoxedAttr<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     pub fn wrap<Attr>(attr: Attr) -> Self
-        where Attr: self::Attr<V> + 'static {
+    where
+        Attr: self::Attr<V> + 'static,
+    {
         return Self {
             attr: Box::new(attr),
         };
@@ -112,7 +146,9 @@ impl<V> BoxedAttr<V>
 }
 
 impl<V> Attr<V> for BoxedAttr<V>
-    where V: AttrValue {
+where
+    V: AttrValue,
+{
     const KIND: &'static str = "boxed";
 
     fn get(&self) -> V {

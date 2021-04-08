@@ -3,8 +3,6 @@ fn main() {
     config.protoc_arg("--experimental_allow_proto3_optional");
 
     tonic_build::configure()
-        .compile_with_config(config,
-                             &["proto/interface.proto"],
-                             &["proto"])
+        .compile_with_config(config, &["proto/interface.proto"], &["proto"])
         .unwrap();
 }

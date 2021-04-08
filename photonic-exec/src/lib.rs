@@ -1,16 +1,16 @@
 use std::process::{Child, Command, Stdio};
-use std::time::Duration;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::time::Duration;
 
+use anyhow::{format_err, Error};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use anyhow::{Error, format_err};
-use shared_memory::{SharedMemRaw, SharedMemCast, ReadRaw};
+use shared_memory::{ReadRaw, SharedMemCast, SharedMemRaw};
 
-use photonic_core::color::*;
-use photonic_core::scene::*;
 use palette::Component;
+use photonic_core::color::*;
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
+use photonic_core::scene::*;
 use std::io::Write;
-use photonic_core::node::{RenderType, Render, NodeDecl, Node};
 
 #[repr(C, packed)]
 struct Element {
@@ -30,7 +30,11 @@ impl<'a> Render for ExecRenderer<'a> {
 
     fn get(&self, index: usize) -> Self::Element {
         let element = &unsafe { self.shm.get_raw_slice::<Element>() }[index];
-        return Self::Element::from_components((element.r.convert(), element.g.convert(), element.b.convert()));
+        return Self::Element::from_components((
+            element.r.convert(),
+            element.g.convert(),
+            element.b.convert(),
+        ));
     }
 }
 
@@ -50,14 +54,20 @@ impl NodeDecl for ExecNodeDecl {
     type Target = ExecNode;
 
     fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
-        let command = shlex::split(&self.command)
-            .ok_or(format_err!("Invalid command: {}", &self.command))?;
-        let (command, args) = command.split_first()
-            .ok_or(format_err!("Empty command"))?;
+        let command =
+            shlex::split(&self.command).ok_or(format_err!("Invalid command: {}", &self.command))?;
+        let (command, args) = command.split_first().ok_or(format_err!("Empty command"))?;
 
         // Create shared memory region for color buffer
-        let shm = SharedMemRaw::create(&format!("photonic-{}-{}", std::process::id(), ID.fetch_add(1, Ordering::SeqCst)), size * 3)
-            .expect("Failed to create SHM");
+        let shm = SharedMemRaw::create(
+            &format!(
+                "photonic-{}-{}",
+                std::process::id(),
+                ID.fetch_add(1, Ordering::SeqCst)
+            ),
+            size * 3,
+        )
+        .expect("Failed to create SHM");
 
         // Spawn a child process
         let child = Command::new(command)
@@ -69,10 +79,7 @@ impl NodeDecl for ExecNodeDecl {
             .stderr(Stdio::inherit())
             .spawn()?;
 
-        return Ok(Self::Target {
-            child,
-            shm,
-        });
+        return Ok(Self::Target { child, shm });
     }
 }
 
@@ -86,26 +93,21 @@ impl Node for ExecNode {
     type Element = RGBColor;
 
     fn update(&mut self, duration: Duration) {
-        let stdin = self.child.stdin.as_mut()
-            .expect("StdIn missing");
+        let stdin = self.child.stdin.as_mut().expect("StdIn missing");
 
-        let stdout = self.child.stdout.as_mut()
-            .expect("StdOut missing");
+        let stdout = self.child.stdout.as_mut().expect("StdOut missing");
 
         // Send the duration to the child process
-        stdin.write_u64::<BigEndian>(duration.as_millis() as u64)
+        stdin
+            .write_u64::<BigEndian>(duration.as_millis() as u64)
             .expect("Failed to write to child process");
-        stdin.flush()
-            .expect("Failed to flush to child process");
+        stdin.flush().expect("Failed to flush to child process");
 
         // Wait for any char from the child to signal it's ready
-        stdout.read_u8()
-            .expect("Failed to write to child process");
+        stdout.read_u8().expect("Failed to write to child process");
     }
 
     fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return ExecRenderer {
-            shm: &self.shm,
-        };
+        return ExecRenderer { shm: &self.shm };
     }
 }

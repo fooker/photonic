@@ -5,8 +5,8 @@ use anyhow::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 use crate::input::{Input, InputValue};
-use crate::interface::{AttrInfo, InputInfo, NodeInfo, Introspection};
-use crate::node::{Node, NodeDecl, MapNodeDecl};
+use crate::interface::{AttrInfo, InputInfo, Introspection, NodeInfo};
+use crate::node::{MapNodeDecl, Node, NodeDecl};
 use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
 
@@ -17,7 +17,9 @@ pub struct SceneBuilder {
 
 impl SceneBuilder {
     pub fn node<Node>(&mut self, decl: NodeHandle<Node>) -> Result<(NodeInfo, Node::Target), Error>
-        where Node: NodeDecl {
+    where
+        Node: NodeDecl,
+    {
         let mut builder = NodeBuilder {
             scene: self,
             name: decl.name.clone(),
@@ -47,7 +49,9 @@ pub struct NodeBuilder<'b> {
 
 impl<'b> NodeBuilder<'b> {
     pub fn node<Node>(&mut self, name: &str, decl: NodeHandle<Node>) -> Result<Node::Target, Error>
-        where Node: NodeDecl {
+    where
+        Node: NodeDecl,
+    {
         let (info, node) = self.scene.node(decl)?;
 
         // TODO: Assert for duplicated keys
@@ -56,9 +60,16 @@ impl<'b> NodeBuilder<'b> {
         return Ok(node);
     }
 
-    pub fn bound_attr<V, Attr>(&mut self, name: &str, decl: Attr, bounds: impl Into<Bounds<V>>) -> Result<Attr::Target, Error>
-        where V: AttrValue + Bounded,
-              Attr: BoundAttrDecl<V> {
+    pub fn bound_attr<V, Attr>(
+        &mut self,
+        name: &str,
+        decl: Attr,
+        bounds: impl Into<Bounds<V>>,
+    ) -> Result<Attr::Target, Error>
+    where
+        V: AttrValue + Bounded,
+        Attr: BoundAttrDecl<V>,
+    {
         let bounds = bounds.into();
 
         let mut builder = AttrBuilder {
@@ -80,8 +91,10 @@ impl<'b> NodeBuilder<'b> {
     }
 
     pub fn unbound_attr<V, Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target, Error>
-        where V: AttrValue,
-              Attr: UnboundAttrDecl<V> {
+    where
+        V: AttrValue,
+        Attr: UnboundAttrDecl<V>,
+    {
         let mut builder = AttrBuilder {
             node: self,
             info: AttrInfo {
@@ -109,9 +122,16 @@ pub struct AttrBuilder<'b, 'p> {
 }
 
 impl<'b, 'p> AttrBuilder<'b, 'p> {
-    pub fn bound_attr<V, Attr>(&mut self, name: &str, decl: Attr, bounds: impl Into<Bounds<V>>) -> Result<Attr::Target, Error>
-        where V: AttrValue + Bounded,
-              Attr: BoundAttrDecl<V> {
+    pub fn bound_attr<V, Attr>(
+        &mut self,
+        name: &str,
+        decl: Attr,
+        bounds: impl Into<Bounds<V>>,
+    ) -> Result<Attr::Target, Error>
+    where
+        V: AttrValue + Bounded,
+        Attr: BoundAttrDecl<V>,
+    {
         let bounds = bounds.into();
 
         let mut builder = AttrBuilder {
@@ -133,8 +153,10 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
     }
 
     pub fn unbound_attr<V, Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target, Error>
-        where V: AttrValue,
-              Attr: UnboundAttrDecl<V> {
+    where
+        V: AttrValue,
+        Attr: UnboundAttrDecl<V>,
+    {
         let mut builder = AttrBuilder {
             node: self.node,
             info: AttrInfo {
@@ -154,7 +176,9 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
     }
 
     pub fn input<V>(&mut self, name: &str, input: InputHandle<V>) -> Result<Input<V>, Error>
-        where V: InputValue {
+    where
+        V: InputValue,
+    {
         let info = InputInfo {
             name: input.name,
             // kind: "", // TODO
@@ -170,7 +194,9 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
 }
 
 pub struct NodeHandle<Decl>
-    where Decl: NodeDecl {
+where
+    Decl: NodeDecl,
+{
     /// The scene-wide unique name of the node
     pub name: String,
 
@@ -179,11 +205,15 @@ pub struct NodeHandle<Decl>
 }
 
 impl<Decl> NodeHandle<Decl>
-    where Decl: NodeDecl,
-          Decl::Element: 'static {
+where
+    Decl: NodeDecl,
+    Decl::Element: 'static,
+{
     pub fn transform<R, F>(self, transform: F) -> NodeHandle<MapNodeDecl<Decl, F>>
-        where F: Fn(Decl::Element) -> R + 'static,
-              R: 'static {
+    where
+        F: Fn(Decl::Element) -> R + 'static,
+        R: 'static,
+    {
         return NodeHandle {
             name: self.name,
             decl: self.decl.map(transform),
@@ -192,7 +222,9 @@ impl<Decl> NodeHandle<Decl>
 }
 
 pub struct InputHandle<V>
-    where V: InputValue {
+where
+    V: InputValue,
+{
     /// The scene-wide unique name of the input
     pub name: String,
 
@@ -200,7 +232,9 @@ pub struct InputHandle<V>
 }
 
 impl<V> InputHandle<V>
-    where V: InputValue {
+where
+    V: InputValue,
+{
     pub fn new(name: String) -> Self {
         let input = Input::new();
 
@@ -209,7 +243,9 @@ impl<V> InputHandle<V>
 }
 
 impl<V> Into<Input<V>> for InputHandle<V>
-    where V: InputValue {
+where
+    V: InputValue,
+{
     fn into(self) -> Input<V> {
         return self.input;
     }
@@ -221,9 +257,7 @@ pub struct Scene {
 
 impl Scene {
     pub fn new(size: usize) -> Self {
-        return Self {
-            size,
-        };
+        return Self { size };
     }
 
     pub fn size(&self) -> usize {
@@ -231,7 +265,9 @@ impl Scene {
     }
 
     pub fn node<Node>(&mut self, name: &str, decl: Node) -> Result<NodeHandle<Node>, Error>
-        where Node: NodeDecl {
+    where
+        Node: NodeDecl,
+    {
         return Ok(NodeHandle {
             name: name.to_owned(),
             decl,
@@ -239,16 +275,22 @@ impl Scene {
     }
 
     pub fn input<V>(&mut self, name: &str) -> Result<InputHandle<V>, Error>
-        where V: InputValue {
+    where
+        V: InputValue,
+    {
         return Ok(InputHandle::new(name.to_owned()));
     }
 
-    pub fn run<Root, Output>(self, root: NodeHandle<Root>, decl: Output) -> Result<(Loop<Root::Target, Output::Target>, Arc<Introspection>), Error>
-        where Root: NodeDecl,
-              Output: OutputDecl<Element=Root::Element> {
-        let mut builder = SceneBuilder {
-            size: self.size,
-        };
+    pub fn run<Root, Output>(
+        self,
+        root: NodeHandle<Root>,
+        decl: Output,
+    ) -> Result<(Loop<Root::Target, Output::Target>, Arc<Introspection>), Error>
+    where
+        Root: NodeDecl,
+        Output: OutputDecl<Element = Root::Element>,
+    {
+        let mut builder = SceneBuilder { size: self.size };
 
         // Materialize the node tree using a builder tracking the info object creation
         let (root_info, root_node) = builder.node(root)?;
@@ -258,10 +300,13 @@ impl Scene {
 
         let registry = Introspection::from(Arc::new(root_info));
 
-        return Ok((Loop {
-            root: root_node,
-            output,
-        }, registry));
+        return Ok((
+            Loop {
+                root: root_node,
+                output,
+            },
+            registry,
+        ));
     }
 }
 
@@ -271,8 +316,10 @@ pub struct Loop<Root, Output> {
 }
 
 impl<Root, Output> Loop<Root, Output>
-    where Root: self::Node,
-          Output: self::Output<Element=Root::Element> {
+where
+    Root: self::Node,
+    Output: self::Output<Element = Root::Element>,
+{
     pub async fn run(mut self, fps: usize) -> Result<!, Error> {
         let mut timer = FrameTimer::new(fps);
 
@@ -288,7 +335,12 @@ impl<Root, Output> Loop<Root, Output>
             self.output.render(&render);
 
             if let Some(stats) = stats.update(duration, fps) {
-                eprintln!("Stats: min={:3.2}, max={:3.2}, avg={:3.2}", stats.min_fps(), stats.max_fps(), stats.avg_fps())
+                eprintln!(
+                    "Stats: min={:3.2}, max={:3.2}, avg={:3.2}",
+                    stats.min_fps(),
+                    stats.max_fps(),
+                    stats.avg_fps()
+                )
             }
         }
     }

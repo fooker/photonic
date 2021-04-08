@@ -1,14 +1,14 @@
 use std::marker::PhantomData;
 
-use anyhow::{Error, format_err};
+use anyhow::{format_err, Error};
 use serde_json::Value;
 
-use photonic_core::{boxed, color, NodeDecl};
 use photonic_core::attr::Bounded;
+use photonic_core::{boxed, color, NodeDecl};
 
+use crate::builder::Builder;
 use crate::model::{AttrValueFactory, BoundAttrModel, NodeModel, OutputModel, UnboundAttrModel};
 use crate::models;
-use crate::builder::Builder;
 
 pub struct Registry<T> {
     phantom: PhantomData<T>,
@@ -17,9 +17,18 @@ pub struct Registry<T> {
 pub type OutputRegistry = Registry<boxed::BoxedOutputDecl<color::RGBColor>>;
 
 impl OutputRegistry {
-    pub fn manufacture(kind: &str, config: Value, builder: &mut Builder) -> Result<boxed::BoxedOutputDecl<color::RGBColor>, Error> {
-        fn factory<T>(config: Value, builder: &mut Builder) -> Result<boxed::BoxedOutputDecl<color::RGBColor>, Error>
-            where T: OutputModel {
+    pub fn manufacture(
+        kind: &str,
+        config: Value,
+        builder: &mut Builder,
+    ) -> Result<boxed::BoxedOutputDecl<color::RGBColor>, Error> {
+        fn factory<T>(
+            config: Value,
+            builder: &mut Builder,
+        ) -> Result<boxed::BoxedOutputDecl<color::RGBColor>, Error>
+        where
+            T: OutputModel,
+        {
             let model: T = serde_json::from_value(config)?;
             let decl = T::assemble(model, builder)?;
             return Ok(boxed::BoxedOutputDecl::wrap(decl));
@@ -35,9 +44,18 @@ impl OutputRegistry {
 pub type NodeRegistry = Registry<boxed::BoxedNodeDecl<color::RGBColor>>;
 
 impl NodeRegistry {
-    pub fn manufacture(kind: &str, config: Value, builder: &mut Builder) -> Result<boxed::BoxedNodeDecl<color::RGBColor>, Error> {
-        fn factory<T>(config: Value, builder: &mut Builder) -> Result<boxed::BoxedNodeDecl<color::RGBColor>, Error>
-            where T: NodeModel + 'static {
+    pub fn manufacture(
+        kind: &str,
+        config: Value,
+        builder: &mut Builder,
+    ) -> Result<boxed::BoxedNodeDecl<color::RGBColor>, Error> {
+        fn factory<T>(
+            config: Value,
+            builder: &mut Builder,
+        ) -> Result<boxed::BoxedNodeDecl<color::RGBColor>, Error>
+        where
+            T: NodeModel + 'static,
+        {
             let model: T = serde_json::from_value(config)?;
             let decl = T::assemble(model, builder)?;
             return Ok(boxed::BoxedNodeDecl::wrap(decl.map(Into::into)));
@@ -57,13 +75,23 @@ impl NodeRegistry {
 
 pub type UnboundAttrRegistry<V> = Registry<boxed::BoxedUnboundAttrDecl<V>>;
 
-
 impl<V> UnboundAttrRegistry<V>
-    where V: AttrValueFactory {
-    pub fn manufacture(kind: &str, config: Value, builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
-        fn factory<T, V>(config: Value, builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error>
-            where T: UnboundAttrModel<V> + 'static,
-                  V: AttrValueFactory {
+where
+    V: AttrValueFactory,
+{
+    pub fn manufacture(
+        kind: &str,
+        config: Value,
+        builder: &mut Builder,
+    ) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
+        fn factory<T, V>(
+            config: Value,
+            builder: &mut Builder,
+        ) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error>
+        where
+            T: UnboundAttrModel<V> + 'static,
+            V: AttrValueFactory,
+        {
             let model: T = serde_json::from_value(config)?;
             let decl = T::assemble(model, builder)?;
             return Ok(boxed::BoxedUnboundAttrDecl::wrap(decl));
@@ -74,7 +102,7 @@ impl<V> UnboundAttrRegistry<V>
             "fader" => factory::<models::attrs::FaderModel, V>,
             "sequence" => factory::<models::attrs::SequenceModel<V>, V>,
 
-            _ => return Err(format_err!("Unknown unbound attribute type: {}", kind))
+            _ => return Err(format_err!("Unknown unbound attribute type: {}", kind)),
         })(config, builder);
     }
 }
@@ -82,11 +110,22 @@ impl<V> UnboundAttrRegistry<V>
 pub type BoundAttrRegistry<V> = Registry<boxed::BoxedBoundAttrDecl<V>>;
 
 impl<V> BoundAttrRegistry<V>
-    where V: AttrValueFactory + Bounded {
-    pub fn manufacture(kind: &str, config: Value, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
-        fn factory<T, V>(config: Value, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error>
-            where T: BoundAttrModel<V> + 'static,
-                  V: AttrValueFactory + Bounded {
+where
+    V: AttrValueFactory + Bounded,
+{
+    pub fn manufacture(
+        kind: &str,
+        config: Value,
+        builder: &mut Builder,
+    ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
+        fn factory<T, V>(
+            config: Value,
+            builder: &mut Builder,
+        ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error>
+        where
+            T: BoundAttrModel<V> + 'static,
+            V: AttrValueFactory + Bounded,
+        {
             let model: T = serde_json::from_value(config)?;
             let decl = T::assemble(model, builder)?;
             return Ok(boxed::BoxedBoundAttrDecl::wrap(decl));
@@ -98,7 +137,7 @@ impl<V> BoundAttrRegistry<V>
             "looper" => factory::<models::attrs::LooperModel<V>, V>,
             "random" => factory::<models::attrs::RandomModel, V>,
             "sequence" => factory::<models::attrs::SequenceModel<V>, V>,
-            _ => return Err(format_err!("Unknown bound attribute type: {}", kind))
+            _ => return Err(format_err!("Unknown bound attribute type: {}", kind)),
         })(config, builder);
     }
 }

@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use anyhow::Error;
+use async_trait::async_trait;
 
 use crate::attr::AttrValueType;
-use crate::input::{InputValueType, InputSender};
+use crate::input::{InputSender, InputValueType};
 use crate::utils::TreeIterator;
 
 #[derive(Debug)]
@@ -18,7 +18,7 @@ pub struct NodeInfo {
 }
 
 impl NodeInfo {
-    pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item=&'s Arc<Self>> + 's {
+    pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item = &'s Arc<Self>> + 's {
         return TreeIterator::new(self, |node| node.nodes.values());
     }
 }
@@ -34,7 +34,7 @@ pub struct AttrInfo {
 }
 
 impl AttrInfo {
-    pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item=&'s Arc<Self>> + 's {
+    pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item = &'s Arc<Self>> + 's {
         return TreeIterator::new(self, |node| node.attrs.values());
     }
 }
@@ -43,7 +43,6 @@ impl AttrInfo {
 pub struct InputInfo {
     pub name: String,
     // pub kind: &'static str,
-
     pub value_type: InputValueType,
 
     pub sender: InputSender,
@@ -58,11 +57,13 @@ pub struct Introspection {
 
 impl Introspection {
     pub fn from(root: Arc<NodeInfo>) -> Arc<Self> {
-        let nodes = root.iter()
+        let nodes = root
+            .iter()
             .map(|node| (node.name.clone(), node.clone()))
             .collect();
 
-        let inputs = root.iter()
+        let inputs = root
+            .iter()
             .flat_map(|node| node.attrs.values())
             .flat_map(|attr| attr.iter())
             .flat_map(|attr| attr.inputs.values())
@@ -77,7 +78,9 @@ impl Introspection {
     }
 
     pub fn serve<I>(self: Arc<Self>, iface: I) -> Result<(), Error>
-        where I: Interface + 'static {
+    where
+        I: Interface + 'static,
+    {
         tokio::spawn(iface.listen(self));
         return Ok(());
     }

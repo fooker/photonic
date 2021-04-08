@@ -26,18 +26,23 @@ const FPS: usize = 60;
 async fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
-    let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883)
-        .with_realm("photonic");
+    let mut mqtt = MqttHandleBuilder::new("photonic", "localhost", 1883).with_realm("photonic");
 
     let ticker = Ticker::new(Duration::from_secs(5));
     let raindrops_color = SequenceDecl {
         values: vec![
-            Range::new(HSLColor::new(245.31, 0.5, 0.5),
-                       HSLColor::new(333.47, 0.7, 0.5)),
-            Range::new(HSLColor::new(0.0, 0.45, 0.5),
-                       HSLColor::new(17.5, 0.55, 0.5)),
-            Range::new(HSLColor::new(187.5, 0.25, 0.5),
-                       HSLColor::new(223.92, 0.5, 0.5)),
+            Range::new(
+                HSLColor::new(245.31, 0.5, 0.5),
+                HSLColor::new(333.47, 0.7, 0.5),
+            ),
+            Range::new(
+                HSLColor::new(0.0, 0.45, 0.5),
+                HSLColor::new(17.5, 0.55, 0.5),
+            ),
+            Range::new(
+                HSLColor::new(187.5, 0.25, 0.5),
+                HSLColor::new(223.92, 0.5, 0.5),
+            ),
         ],
         next: ticker.1,
     };
@@ -46,17 +51,23 @@ async fn main() -> Result<!, Error> {
         easing: Easing::with(animation::linear, Duration::from_secs(4)),
     };
 
-    let raindrops = scene.node("raindrops:violet", RaindropsNodeDecl {
-        rate: 0.3_f64.fixed(),
-        color: raindrops_color,
-        decay: (0.96, 0.98).fixed(),
-    })?;
+    let raindrops = scene.node(
+        "raindrops:violet",
+        RaindropsNodeDecl {
+            rate: 0.3_f64.fixed(),
+            color: raindrops_color,
+            decay: (0.96, 0.98).fixed(),
+        },
+    )?;
 
-    let overlay_bell = scene.node("bell", LarsonNodeDecl {
-        hue: 0.0.fixed(),
-        speed: 50.0.fixed(),
-        width: 25.0.fixed(),
-    })?;
+    let overlay_bell = scene.node(
+        "bell",
+        LarsonNodeDecl {
+            hue: 0.0.fixed(),
+            speed: 50.0.fixed(),
+            width: 25.0.fixed(),
+        },
+    )?;
 
     let overlay_bell_button = ButtonDecl {
         value: (0.0, 1.0),
@@ -68,30 +79,31 @@ async fn main() -> Result<!, Error> {
         easing: Easing::with(animation::linear, Duration::from_secs(2)),
     };
 
-    let effect = scene.node("bell:overlay", OverlayNodeDecl {
-        base: raindrops,
-        overlay: overlay_bell,
-        blend: overlay_bell_button,
-    })?;
+    let effect = scene.node(
+        "bell:overlay",
+        OverlayNodeDecl {
+            base: raindrops,
+            overlay: overlay_bell,
+            blend: overlay_bell_button,
+        },
+    )?;
 
-//    let effect = scene.node("effect", PlasmaNodeDecl {
-//        h: ((0.0.into(), 360.0.into()), 50.0.into()),
-//        s: ((0.8.into(), 1.0.into()), 20.0.into()),
-//        v: ((1.0.into(), 1.0.into()), 1.0.into()),
-//        speed: 25.0.into(),
-//    })?;
-//
-//    let effect = scene.node("effect", AlertNodeDecl {
-//        hue: 0.0.into(),
-//        block_size: 8.into(),
-//        speed: 1.0.into(),
-//    })?;
-//
-//    let effect = scene.node("effect", UdpReciverNodeDecl::<_, RGBColor>::bind("127.0.0.1:7331"))?;
+    //    let effect = scene.node("effect", PlasmaNodeDecl {
+    //        h: ((0.0.into(), 360.0.into()), 50.0.into()),
+    //        s: ((0.8.into(), 1.0.into()), 20.0.into()),
+    //        v: ((1.0.into(), 1.0.into()), 1.0.into()),
+    //        speed: 25.0.into(),
+    //    })?;
+    //
+    //    let effect = scene.node("effect", AlertNodeDecl {
+    //        hue: 0.0.into(),
+    //        block_size: 8.into(),
+    //        speed: 1.0.into(),
+    //    })?;
+    //
+    //    let effect = scene.node("effect", UdpReciverNodeDecl::<_, RGBColor>::bind("127.0.0.1:7331"))?;
 
-    let (main, _) = scene.run(effect, ConsoleOutputDecl {
-        waterfall: true
-    })?;
+    let (main, _) = scene.run(effect, ConsoleOutputDecl { waterfall: true })?;
 
     mqtt.start()?;
 

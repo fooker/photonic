@@ -1,23 +1,27 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use anyhow::Error;
+use async_trait::async_trait;
 
 use photonic_core::attr::AttrValueType;
-use photonic_core::input::{InputValueType, InputSender};
-use photonic_core::interface::{AttrInfo, InputInfo, Interface, NodeInfo, Introspection};
+use photonic_core::input::{InputSender, InputValueType};
+use photonic_core::interface::{AttrInfo, InputInfo, Interface, Introspection, NodeInfo};
 use photonic_grpc_proto as proto;
-use photonic_grpc_proto::{InputSendRequest, InputSendResponse};
-use tonic::{Response, Status, Request};
 use photonic_grpc_proto::input_send_request::Value;
+use photonic_grpc_proto::{InputSendRequest, InputSendResponse};
+use tonic::{Request, Response, Status};
 
 fn into_node(node: &NodeInfo) -> proto::NodeInfo {
-    let nodes = node.nodes.iter()
+    let nodes = node
+        .nodes
+        .iter()
         .map(|(k, v)| (k.clone(), v.name.clone()))
         .collect();
 
-    let attrs = node.attrs.iter()
+    let attrs = node
+        .attrs
+        .iter()
         .map(|(k, v)| (k.clone(), into_attr(v.as_ref())))
         .collect();
 
@@ -30,11 +34,15 @@ fn into_node(node: &NodeInfo) -> proto::NodeInfo {
 }
 
 fn into_attr(attr: &AttrInfo) -> proto::AttrInfo {
-    let attrs = attr.attrs.iter()
+    let attrs = attr
+        .attrs
+        .iter()
         .map(|(k, v)| (k.clone(), into_attr(v.as_ref())))
         .collect();
 
-    let inputs = attr.inputs.iter()
+    let inputs = attr
+        .inputs
+        .iter()
         .map(|(k, v)| (k.clone(), v.name.clone()))
         .collect();
 
@@ -79,7 +87,10 @@ struct InterfaceService {
 
 #[tonic::async_trait]
 impl proto::interface_server::Interface for InterfaceService {
-    async fn node_list(&self, _: tonic::Request<proto::NodeListRequest>) -> Result<tonic::Response<proto::NodeListResponse>, tonic::Status> {
+    async fn node_list(
+        &self,
+        _: tonic::Request<proto::NodeListRequest>,
+    ) -> Result<tonic::Response<proto::NodeListResponse>, tonic::Status> {
         let names = self.introspection.nodes.keys().cloned().collect();
 
         return Ok(tonic::Response::new(proto::NodeListResponse {
@@ -88,35 +99,54 @@ impl proto::interface_server::Interface for InterfaceService {
         }));
     }
 
-    async fn node_info(&self, request: tonic::Request<proto::NodeInfoRequest>) -> Result<tonic::Response<proto::NodeInfoResponse>, tonic::Status> {
+    async fn node_info(
+        &self,
+        request: tonic::Request<proto::NodeInfoRequest>,
+    ) -> Result<tonic::Response<proto::NodeInfoResponse>, tonic::Status> {
         let request = request.get_ref();
 
         let node = request.name.as_ref().map_or_else(
             || Some(&self.introspection.root),
-            |name| self.introspection.nodes.get(name));
+            |name| self.introspection.nodes.get(name),
+        );
 
         return Ok(tonic::Response::new(proto::NodeInfoResponse {
             node: node.map(|node| into_node(node.as_ref())),
         }));
     }
 
-    async fn input_send(&self, request: Request<InputSendRequest>) -> Result<Response<InputSendResponse>, Status> {
+    async fn input_send(
+        &self,
+        request: Request<InputSendRequest>,
+    ) -> Result<Response<InputSendResponse>, Status> {
         let request = request.get_ref();
 
         let input = self.introspection.inputs.get(&request.name);
         if let Some(input) = input {
             if let Some(ref value) = request.value {
                 match (&input.sender, value) {
-                    (InputSender::Trigger(sender), proto::input_send_request::Value::Trigger(value)) => {
+                    (
+                        InputSender::Trigger(sender),
+                        proto::input_send_request::Value::Trigger(value),
+                    ) => {
                         sender.send(());
                     }
-                    (InputSender::Boolean(sender), proto::input_send_request::Value::Boolean(value)) => {
+                    (
+                        InputSender::Boolean(sender),
+                        proto::input_send_request::Value::Boolean(value),
+                    ) => {
                         sender.send(value.value);
                     }
-                    (InputSender::Integer(sender), proto::input_send_request::Value::Integer(value)) => {
+                    (
+                        InputSender::Integer(sender),
+                        proto::input_send_request::Value::Integer(value),
+                    ) => {
                         sender.send(value.value);
                     }
-                    (InputSender::Decimal(sender), proto::input_send_request::Value::Decimal(value)) => {
+                    (
+                        InputSender::Decimal(sender),
+                        proto::input_send_request::Value::Decimal(value),
+                    ) => {
                         sender.send(value.value);
                     }
                     (_, _) => {
@@ -127,7 +157,10 @@ impl proto::interface_server::Interface for InterfaceService {
                 return Err(Status::invalid_argument("Value missing"));
             }
         } else {
-            return Err(Status::not_found(format!("No such input: {}", request.name)));
+            return Err(Status::not_found(format!(
+                "No such input: {}",
+                request.name
+            )));
         }
 
         return Ok(tonic::Response::new(InputSendResponse {}));
@@ -140,18 +173,14 @@ pub struct GrpcInterface {
 
 impl GrpcInterface {
     pub fn bind(address: SocketAddr) -> Self {
-        return Self {
-            address,
-        };
+        return Self { address };
     }
 }
 
 #[async_trait]
 impl Interface for GrpcInterface {
     async fn listen(self, introspection: Arc<Introspection>) -> Result<(), Error> {
-        let service = InterfaceService {
-            introspection,
-        };
+        let service = InterfaceService { introspection };
 
         tonic::transport::Server::builder()
             .add_service(proto::interface_server::InterfaceServer::new(service))
