@@ -9,7 +9,6 @@ members = [
     "photonic-exec",
     "photonic-grpc",
     "photonic-grpc-proto",
-    "photonic-varlink",
     "photonic-cli",
     "photonic-run",
     "examples",
