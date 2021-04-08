@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: rustlang/rust:nightly
+      - image: cimg/rust:1.51.0
     steps:
       - checkout
       - run:
