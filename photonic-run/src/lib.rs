@@ -1,7 +1,6 @@
 #![feature(trait_alias)]
 #![feature(never_type)]
 #![feature(specialization)]
-
 #![allow(incomplete_features)]
 #![allow(clippy::needless_return)]
 

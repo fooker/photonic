@@ -3,9 +3,11 @@ use std::marker::PhantomData;
 use anyhow::{format_err, Result};
 use serde_json::Value;
 
-use photonic_core::{color, NodeDecl};
 use photonic_core::attr::Bounded;
-use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl};
+use photonic_core::boxed::{
+    BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl,
+};
+use photonic_core::{color, NodeDecl};
 
 use crate::builder::Builder;
 use crate::model::{AttrValueFactory, BoundAttrModel, NodeModel, OutputModel, UnboundAttrModel};
@@ -85,10 +87,7 @@ where
         config: Value,
         builder: &mut Builder,
     ) -> Result<BoxedUnboundAttrDecl<V>> {
-        fn factory<T, V>(
-            config: Value,
-            builder: &mut Builder,
-        ) -> Result<BoxedUnboundAttrDecl<V>>
+        fn factory<T, V>(config: Value, builder: &mut Builder) -> Result<BoxedUnboundAttrDecl<V>>
         where
             T: UnboundAttrModel<V> + 'static,
             V: AttrValueFactory,
@@ -119,10 +118,7 @@ where
         config: Value,
         builder: &mut Builder,
     ) -> Result<BoxedBoundAttrDecl<V>> {
-        fn factory<T, V>(
-            config: Value,
-            builder: &mut Builder,
-        ) -> Result<BoxedBoundAttrDecl<V>>
+        fn factory<T, V>(config: Value, builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>>
         where
             T: BoundAttrModel<V> + 'static,
             V: AttrValueFactory + Bounded,

@@ -193,11 +193,7 @@ where
 {
     type Target = BoundInputAttr<V>;
 
-    fn materialize(
-        self,
-        bounds: Bounds<V>,
-        builder: &mut AttrBuilder,
-    ) -> Result<Self::Target> {
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target> {
         let input = builder.input("input", self.input)?;
 
         let initial = bounds.ensure(self.initial)?;

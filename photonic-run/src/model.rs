@@ -3,7 +3,9 @@ use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 use photonic_core::attr::{AsFixedAttr, AttrValue, Bounded};
-use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl};
+use photonic_core::boxed::{
+    BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl,
+};
 use photonic_core::color;
 use photonic_core::input::InputValue;
 use photonic_core::node::NodeDecl;
@@ -59,10 +61,7 @@ pub trait UnboundAttrFactory: AttrValueFactory {
         input: config::Input,
         initial: Value,
     ) -> Result<BoxedUnboundAttrDecl<Self>>;
-    fn make_fixed(
-        builder: &mut Builder,
-        value: Value,
-    ) -> Result<BoxedUnboundAttrDecl<Self>>;
+    fn make_fixed(builder: &mut Builder, value: Value) -> Result<BoxedUnboundAttrDecl<Self>>;
 }
 
 pub trait BoundAttrFactory: AttrValueFactory + Bounded {
@@ -71,10 +70,7 @@ pub trait BoundAttrFactory: AttrValueFactory + Bounded {
         input: config::Input,
         initial: Value,
     ) -> Result<BoxedBoundAttrDecl<Self>>;
-    fn make_fixed(
-        builder: &mut Builder,
-        value: Value,
-    ) -> Result<BoxedBoundAttrDecl<Self>>;
+    fn make_fixed(builder: &mut Builder, value: Value) -> Result<BoxedBoundAttrDecl<Self>>;
 }
 
 pub trait AttrValueFactory: AttrValue + Sized {

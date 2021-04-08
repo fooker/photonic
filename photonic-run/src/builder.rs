@@ -2,9 +2,12 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 
-use photonic_core::{color, InputHandle, Introspection, Loop, NodeHandle, Scene};
-use photonic_core::boxed::{BoxedNode, BoxedOutput, BoxedNodeDecl, BoxedUnboundAttrDecl, BoxedBoundAttrDecl, BoxedOutputDecl};
+use photonic_core::boxed::{
+    BoxedBoundAttrDecl, BoxedNode, BoxedNodeDecl, BoxedOutput, BoxedOutputDecl,
+    BoxedUnboundAttrDecl,
+};
 use photonic_core::input::InputValue;
+use photonic_core::{color, InputHandle, Introspection, Loop, NodeHandle, Scene};
 
 use crate::config;
 use crate::model::{BoundAttrFactory, UnboundAttrFactory};
@@ -24,7 +27,10 @@ impl Builder {
     #[allow(clippy::type_complexity)]
     pub fn build(
         config: config::Scene,
-    ) -> Result<(Loop<BoxedNode<color::RGBColor>, BoxedOutput<color::RGBColor>>, Arc<Introspection>)> {
+    ) -> Result<(
+        Loop<BoxedNode<color::RGBColor>, BoxedOutput<color::RGBColor>>,
+        Arc<Introspection>,
+    )> {
         let mut builder = Self::new(config.size);
 
         let root = builder.node("root", config.root)?;
@@ -89,10 +95,7 @@ impl Builder {
         return self.scene.input(&config.input);
     }
 
-    pub fn output(
-        &mut self,
-        config: config::Output,
-    ) -> Result<BoxedOutputDecl<color::RGBColor>> {
+    pub fn output(&mut self, config: config::Output) -> Result<BoxedOutputDecl<color::RGBColor>> {
         return OutputRegistry::manufacture(&config.kind, config.config, self)
             .context(format!("Failed to build output: (type={})", config.kind));
     }

@@ -155,11 +155,7 @@ where
     V: AttrValue + Bounded,
 {
     type Target: Attr<V> + 'static;
-    fn materialize(
-        self,
-        bounds: Bounds<V>,
-        builder: &mut AttrBuilder,
-    ) -> Result<Self::Target>;
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target>;
 }
 
 pub struct FixedAttr<V>(V)
@@ -202,11 +198,7 @@ where
 {
     type Target = FixedAttr<V>;
 
-    fn materialize(
-        self,
-        bounds: Bounds<V>,
-        _builder: &mut AttrBuilder,
-    ) -> Result<Self::Target> {
+    fn materialize(self, bounds: Bounds<V>, _builder: &mut AttrBuilder) -> Result<Self::Target> {
         let value = bounds.ensure(self.0)?;
 
         return Ok(FixedAttr(value));
@@ -291,11 +283,7 @@ where
 {
     type Target = T::Target;
 
-    fn materialize(
-        self,
-        bounds: Bounds<V>,
-        builder: &mut AttrBuilder,
-    ) -> Result<Self::Target> {
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target> {
         return T::materialize(*self, bounds, builder);
     }
 }

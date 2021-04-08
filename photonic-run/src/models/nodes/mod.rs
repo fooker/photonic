@@ -1,9 +1,9 @@
 use anyhow::Result;
 use serde::Deserialize;
 
-use photonic_core::NodeDecl;
 use photonic_core::boxed::BoxedNodeDecl;
 use photonic_core::color;
+use photonic_core::NodeDecl;
 
 use crate::builder::Builder;
 use crate::config;
@@ -16,10 +16,7 @@ pub struct AfterglowConfig {
 }
 
 impl NodeModel for AfterglowConfig {
-    fn assemble(
-        self,
-        builder: &mut Builder,
-    ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>> {
         return Ok(BoxedNodeDecl::wrap(
             photonic_effects::nodes::afterglow::AfterglowNodeDecl {
                 source: builder.node("source", self.source)?,
@@ -37,10 +34,7 @@ pub struct AlertConfig {
 }
 
 impl NodeModel for AlertConfig {
-    fn assemble(
-        self,
-        builder: &mut Builder,
-    ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>> {
         return Ok(BoxedNodeDecl::wrap(
             photonic_effects::nodes::alert::AlertNodeDecl {
                 hue: builder.bound_attr("hue", self.hue)?,
@@ -60,10 +54,7 @@ pub struct BlackoutConfig {
 }
 
 impl NodeModel for BlackoutConfig {
-    fn assemble(
-        self,
-        builder: &mut Builder,
-    ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>> {
         return Ok(BoxedNodeDecl::wrap(
             photonic_effects::nodes::blackout::BlackoutNodeDecl {
                 source: builder.node("source", self.source)?,
@@ -82,10 +73,7 @@ pub struct BrightnessConfig {
 }
 
 impl NodeModel for BrightnessConfig {
-    fn assemble(
-        self,
-        builder: &mut Builder,
-    ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>> {
         return Ok(BoxedNodeDecl::wrap(
             photonic_effects::nodes::brightness::BrightnessNodeDecl {
                 source: builder.node("source", self.source)?,
@@ -104,10 +92,7 @@ pub struct RaindropsConfig {
 }
 
 impl NodeModel for RaindropsConfig {
-    fn assemble(
-        self,
-        builder: &mut Builder,
-    ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>> {
         return Ok(BoxedNodeDecl::wrap(
             photonic_effects::nodes::raindrops::RaindropsNodeDecl {
                 rate: builder.bound_attr("rate", self.rate)?,

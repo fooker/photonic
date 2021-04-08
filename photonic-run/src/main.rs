@@ -1,5 +1,4 @@
 #![allow(clippy::needless_return)]
-
 #![feature(never_type)]
 
 use std::fs::File;
@@ -8,7 +7,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use anyhow::{Error, format_err, Result};
+use anyhow::{format_err, Error, Result};
 use clap::Clap;
 
 use photonic_core::Introspection;
@@ -30,17 +29,20 @@ impl FromStr for Interface {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (k, v) = s.split_once(":")
+        let (k, v) = s
+            .split_once(":")
             .ok_or_else(|| format_err!("Invalid interface format. TYPE:CONFIG expected."))?;
 
         return Ok(match k {
             "grpc" => Self::Grpc(v.parse()?),
             "mqtt" => {
-                let (addr, realm) = v.split_once("@")
-                    .ok_or_else(|| format_err!("Invalid MQTT interface format: HOST:PORT@REALM expected."))?;
+                let (addr, realm) = v.split_once("@").ok_or_else(|| {
+                    format_err!("Invalid MQTT interface format: HOST:PORT@REALM expected.")
+                })?;
 
-                let (host, port) = addr.split_once(":")
-                    .ok_or_else(|| format_err!("Invalid MQTT interface format: HOST:PORT@REALM expected."))?;
+                let (host, port) = addr.split_once(":").ok_or_else(|| {
+                    format_err!("Invalid MQTT interface format: HOST:PORT@REALM expected.")
+                })?;
 
                 Self::Mqtt {
                     host: host.to_owned(),

@@ -8,7 +8,7 @@ use async_trait::async_trait;
 use tonic::{Request, Response, Status};
 
 use photonic_core::attr::AttrValueType;
-use photonic_core::input::{InputSender};
+use photonic_core::input::InputSender;
 use photonic_core::interface::{AttrInfo, Interface, Introspection, NodeInfo};
 use photonic_grpc_proto as proto;
 use photonic_grpc_proto::{InputSendRequest, InputSendResponse};

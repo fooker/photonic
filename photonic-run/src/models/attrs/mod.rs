@@ -123,10 +123,7 @@ impl<V> UnboundAttrModel<V> for FaderModel
 where
     V: AttrValueFactory,
 {
-    default fn assemble(
-        self,
-        _builder: &mut Builder,
-    ) -> Result<BoxedUnboundAttrDecl<V>> {
+    default fn assemble(self, _builder: &mut Builder) -> Result<BoxedUnboundAttrDecl<V>> {
         return Err(format_err!(
             "Fader is not supported for Attributes of Type {}",
             std::any::type_name::<V>()
@@ -152,10 +149,7 @@ impl<V> BoundAttrModel<V> for FaderModel
 where
     V: AttrValueFactory + Bounded,
 {
-    default fn assemble(
-        self,
-        _builder: &mut Builder,
-    ) -> Result<BoxedBoundAttrDecl<V>> {
+    default fn assemble(self, _builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>> {
         return Err(format_err!(
             "Fader is not supported for Attributes of Type {}",
             std::any::type_name::<V>()
@@ -190,10 +184,7 @@ impl<V> BoundAttrModel<V> for LooperModel<V>
 where
     V: AttrValueFactory + Bounded,
 {
-    default fn assemble(
-        self,
-        _builder: &mut Builder,
-    ) -> Result<BoxedBoundAttrDecl<V>> {
+    default fn assemble(self, _builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>> {
         return Err(format_err!(
             "Looper is not supported for Attributes of Type {}",
             std::any::type_name::<V>()
@@ -224,10 +215,7 @@ impl<V> BoundAttrModel<V> for RandomModel
 where
     V: AttrValueFactory + Bounded,
 {
-    default fn assemble(
-        self,
-        _builder: &mut Builder,
-    ) -> Result<BoxedBoundAttrDecl<V>> {
+    default fn assemble(self, _builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>> {
         return Err(format_err!(
             "Random is not supported for Attributes of Type {}",
             std::any::type_name::<V>()
