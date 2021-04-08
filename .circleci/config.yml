@@ -25,6 +25,12 @@ jobs:
             - target/debug/deps
           key: v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
       - run:
+          name: Formatting
+          command: cargo fmt --all -- --check
+      - run:
+          name: Linting
+          command: cargo clippy --all -- --check
+      - run:
           name: Run all tests
           command: cargo test --all
 
