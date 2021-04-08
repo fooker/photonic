@@ -1,4 +1,4 @@
-use anyhow::Error;
+use anyhow::Result;
 
 use crate::node::Render;
 
@@ -6,7 +6,7 @@ pub trait OutputDecl {
     type Element;
     type Target: Output<Element = Self::Element>;
 
-    fn materialize(self, size: usize) -> Result<Self::Target, Error>
+    fn materialize(self, size: usize) -> Result<Self::Target>
     where
         Self::Target: std::marker::Sized;
 }

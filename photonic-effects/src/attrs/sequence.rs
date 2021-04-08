@@ -99,8 +99,6 @@ where
 {
     type Target = Sequence<V>;
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
-        let values = self.values.into_iter().map(|v| v.into()).collect();
-
         let next = self
             .next
             .map(|input| builder.input("next", input))
@@ -111,7 +109,7 @@ where
             .transpose()?;
 
         return Ok(Sequence {
-            values,
+            values: self.values,
             position: 0,
             next,
             prev,

@@ -25,7 +25,7 @@ where
         let index = math::wrap((index as f64) - self.offset, self.size);
         let index = (index.trunc() as usize, index.fract());
 
-        let c1 = self.source.get((index.0 + 0) % self.size);
+        let c1 = self.source.get(index.0);
         let c2 = self.source.get((index.0 + 1) % self.size);
 
         return Self::Element::lerp(c1, c2, index.1);

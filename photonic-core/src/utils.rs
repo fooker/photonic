@@ -22,15 +22,6 @@ pub struct FrameStats {
 }
 
 impl FrameStats {
-    pub fn new() -> Self {
-        Self {
-            cycles: 0,
-            sum_time: Duration::new(0, 0),
-            min_time: Duration::new(std::u64::MAX, 0),
-            max_time: Duration::new(std::u64::MIN, 0),
-        }
-    }
-
     pub fn update(&mut self, duration: Duration, reset_cycles: usize) -> Option<Self> {
         self.cycles += 1;
         self.sum_time += duration;
@@ -73,6 +64,17 @@ impl FrameStats {
 
     pub fn avg_fps(&self) -> f64 {
         return 1.0f64 / (self.sum_time.as_secs_f64() / self.cycles as f64);
+    }
+}
+
+impl Default for FrameStats {
+    fn default() -> Self {
+        return Self {
+            cycles: 0,
+            sum_time: Duration::new(0, 0),
+            min_time: Duration::new(std::u64::MAX, 0),
+            max_time: Duration::new(std::u64::MIN, 0),
+        };
     }
 }
 

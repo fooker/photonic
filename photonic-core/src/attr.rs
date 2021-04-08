@@ -2,7 +2,7 @@ use std::fmt;
 use std::fmt::Display;
 use std::time::Duration;
 
-use anyhow::{ensure, Error};
+use anyhow::{ensure, Result};
 use num::{One, Zero};
 
 use crate::color::{HSLColor, HSVColor, RGBColor};
@@ -74,7 +74,7 @@ impl<V> Bounds<V>
 where
     V: Bounded,
 {
-    pub fn ensure(&self, value: V) -> Result<V, Error> {
+    pub fn ensure(&self, value: V) -> Result<V> {
         return value.checked(&self.min, &self.max);
     }
 }
@@ -114,12 +114,12 @@ where
     }
 }
 
-impl<V> Into<(V, V)> for Bounds<V>
+impl<V> From<Bounds<V>> for (V, V)
 where
     V: Bounded,
 {
-    fn into(self) -> (V, V) {
-        return (self.min, self.max);
+    fn from(bounds: Bounds<V>) -> Self {
+        return (bounds.min, bounds.max);
     }
 }
 
@@ -127,14 +127,14 @@ pub trait Bounded
 where
     Self: Sized,
 {
-    fn checked(self, min: &Self, max: &Self) -> Result<Self, Error>;
+    fn checked(self, min: &Self, max: &Self) -> Result<Self>;
 }
 
 impl<V> Bounded for V
 where
     V: PartialOrd + Display,
 {
-    fn checked(self, min: &Self, max: &Self) -> Result<Self, Error> {
+    fn checked(self, min: &Self, max: &Self) -> Result<Self> {
         ensure!(self >= *min, "Attribute '{}' below {}", self, min);
         ensure!(self <= *max, "Attribute '{}' above {}", self, max);
 
@@ -147,7 +147,7 @@ where
     V: AttrValue,
 {
     type Target: Attr<V> + 'static;
-    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error>;
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target>;
 }
 
 pub trait BoundAttrDecl<V>
@@ -159,7 +159,7 @@ where
         self,
         bounds: Bounds<V>,
         builder: &mut AttrBuilder,
-    ) -> Result<Self::Target, Error>;
+    ) -> Result<Self::Target>;
 }
 
 pub struct FixedAttr<V>(V)
@@ -191,7 +191,7 @@ where
 {
     type Target = FixedAttr<V>;
 
-    fn materialize(self, _builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _builder: &mut AttrBuilder) -> Result<Self::Target> {
         return Ok(FixedAttr(self.0));
     }
 }
@@ -206,7 +206,7 @@ where
         self,
         bounds: Bounds<V>,
         _builder: &mut AttrBuilder,
-    ) -> Result<Self::Target, Error> {
+    ) -> Result<Self::Target> {
         let value = bounds.ensure(self.0)?;
 
         return Ok(FixedAttr(value));
@@ -258,7 +258,7 @@ impl<V> Bounded for Range<V>
 where
     V: AttrValue + Bounded,
 {
-    fn checked(self, min: &Self, max: &Self) -> Result<Self, Error> {
+    fn checked(self, min: &Self, max: &Self) -> Result<Self> {
         return Ok(Self(
             self.0.checked(&min.0, &max.0)?,
             self.1.checked(&min.1, &max.1)?,
@@ -295,7 +295,7 @@ where
         self,
         bounds: Bounds<V>,
         builder: &mut AttrBuilder,
-    ) -> Result<Self::Target, Error> {
+    ) -> Result<Self::Target> {
         return T::materialize(*self, bounds, builder);
     }
 }
@@ -307,7 +307,7 @@ where
 {
     type Target = T::Target;
 
-    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target> {
         return T::materialize(*self, builder);
     }
 }

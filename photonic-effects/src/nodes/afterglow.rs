@@ -76,7 +76,7 @@ where
         let source = self.source.render();
 
         self.buffer.update(|i, e| {
-            return source.get(i).component_wise(e, |a, b| f64::max(a, b));
+            return source.get(i).component_wise(e, f64::max);
         });
 
         return &self.buffer;

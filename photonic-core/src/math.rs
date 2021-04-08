@@ -4,13 +4,13 @@ pub trait Lerp {
 
 impl Lerp for f64 {
     fn lerp(f1: Self, f2: Self, i: f64) -> Self {
-        assert!(0.0 <= i && i <= 1.0);
+        assert!((0.0..=1.0).contains(&i));
 
-        if i == 0.0 {
+        if i <= 0.0 {
             return f1;
         }
 
-        if i == 1.0 {
+        if i >= 1.0 {
             return f2;
         }
 
@@ -20,13 +20,13 @@ impl Lerp for f64 {
 
 impl Lerp for f32 {
     fn lerp(f1: Self, f2: Self, i: f64) -> Self {
-        assert!(0.0 <= i && i <= 1.0);
+        assert!((0.0..=1.0).contains(&i));
 
-        if i == 0.0 {
+        if i <= 0.0 {
             return f1;
         }
 
-        if i == 1.0 {
+        if i >= 1.0 {
             return f2;
         }
 
@@ -38,11 +38,7 @@ pub fn minmax<F>(a: F, b: F) -> (F, F)
 where
     F: PartialOrd,
 {
-    if a < b {
-        return (a, b);
-    } else {
-        return (b, a);
-    }
+    return if a < b { (a, b) } else { (b, a) };
 }
 
 pub fn clamp<F>(f: F, r: (F, F)) -> F

@@ -1,16 +1,18 @@
+#![allow(clippy::needless_return)]
+
+use std::io::Write;
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use anyhow::{format_err, Error};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use palette::Component;
 use shared_memory::{ReadRaw, SharedMemCast, SharedMemRaw};
 
-use palette::Component;
 use photonic_core::color::*;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::*;
-use std::io::Write;
 
 #[repr(C, packed)]
 struct Element {
@@ -54,9 +56,11 @@ impl NodeDecl for ExecNodeDecl {
     type Target = ExecNode;
 
     fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
-        let command =
-            shlex::split(&self.command).ok_or(format_err!("Invalid command: {}", &self.command))?;
-        let (command, args) = command.split_first().ok_or(format_err!("Empty command"))?;
+        let command = shlex::split(&self.command)
+            .ok_or_else(|| format_err!("Invalid command: {}", &self.command))?;
+        let (command, args) = command
+            .split_first()
+            .ok_or_else(|| format_err!("Empty command"))?;
 
         // Create shared memory region for color buffer
         let shm = SharedMemRaw::create(

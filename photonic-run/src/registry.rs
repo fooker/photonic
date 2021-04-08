@@ -1,10 +1,11 @@
 use std::marker::PhantomData;
 
-use anyhow::{format_err, Error};
+use anyhow::{format_err, Result};
 use serde_json::Value;
 
+use photonic_core::{color, NodeDecl};
 use photonic_core::attr::Bounded;
-use photonic_core::{boxed, color, NodeDecl};
+use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl};
 
 use crate::builder::Builder;
 use crate::model::{AttrValueFactory, BoundAttrModel, NodeModel, OutputModel, UnboundAttrModel};
@@ -14,24 +15,24 @@ pub struct Registry<T> {
     phantom: PhantomData<T>,
 }
 
-pub type OutputRegistry = Registry<boxed::BoxedOutputDecl<color::RGBColor>>;
+pub type OutputRegistry = Registry<BoxedOutputDecl<color::RGBColor>>;
 
 impl OutputRegistry {
     pub fn manufacture(
         kind: &str,
         config: Value,
         builder: &mut Builder,
-    ) -> Result<boxed::BoxedOutputDecl<color::RGBColor>, Error> {
+    ) -> Result<BoxedOutputDecl<color::RGBColor>> {
         fn factory<T>(
             config: Value,
             builder: &mut Builder,
-        ) -> Result<boxed::BoxedOutputDecl<color::RGBColor>, Error>
+        ) -> Result<BoxedOutputDecl<color::RGBColor>>
         where
             T: OutputModel,
         {
             let model: T = serde_json::from_value(config)?;
             let decl = T::assemble(model, builder)?;
-            return Ok(boxed::BoxedOutputDecl::wrap(decl));
+            return Ok(BoxedOutputDecl::wrap(decl));
         }
 
         return (match kind {
@@ -41,24 +42,24 @@ impl OutputRegistry {
     }
 }
 
-pub type NodeRegistry = Registry<boxed::BoxedNodeDecl<color::RGBColor>>;
+pub type NodeRegistry = Registry<BoxedNodeDecl<color::RGBColor>>;
 
 impl NodeRegistry {
     pub fn manufacture(
         kind: &str,
         config: Value,
         builder: &mut Builder,
-    ) -> Result<boxed::BoxedNodeDecl<color::RGBColor>, Error> {
+    ) -> Result<BoxedNodeDecl<color::RGBColor>> {
         fn factory<T>(
             config: Value,
             builder: &mut Builder,
-        ) -> Result<boxed::BoxedNodeDecl<color::RGBColor>, Error>
+        ) -> Result<BoxedNodeDecl<color::RGBColor>>
         where
             T: NodeModel + 'static,
         {
             let model: T = serde_json::from_value(config)?;
             let decl = T::assemble(model, builder)?;
-            return Ok(boxed::BoxedNodeDecl::wrap(decl.map(Into::into)));
+            return Ok(BoxedNodeDecl::wrap(decl.map(Into::into)));
         }
 
         return (match kind {
@@ -73,7 +74,7 @@ impl NodeRegistry {
     }
 }
 
-pub type UnboundAttrRegistry<V> = Registry<boxed::BoxedUnboundAttrDecl<V>>;
+pub type UnboundAttrRegistry<V> = Registry<BoxedUnboundAttrDecl<V>>;
 
 impl<V> UnboundAttrRegistry<V>
 where
@@ -83,18 +84,18 @@ where
         kind: &str,
         config: Value,
         builder: &mut Builder,
-    ) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
+    ) -> Result<BoxedUnboundAttrDecl<V>> {
         fn factory<T, V>(
             config: Value,
             builder: &mut Builder,
-        ) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error>
+        ) -> Result<BoxedUnboundAttrDecl<V>>
         where
             T: UnboundAttrModel<V> + 'static,
             V: AttrValueFactory,
         {
             let model: T = serde_json::from_value(config)?;
             let decl = T::assemble(model, builder)?;
-            return Ok(boxed::BoxedUnboundAttrDecl::wrap(decl));
+            return Ok(BoxedUnboundAttrDecl::wrap(decl));
         }
 
         return (match kind {
@@ -107,7 +108,7 @@ where
     }
 }
 
-pub type BoundAttrRegistry<V> = Registry<boxed::BoxedBoundAttrDecl<V>>;
+pub type BoundAttrRegistry<V> = Registry<BoxedBoundAttrDecl<V>>;
 
 impl<V> BoundAttrRegistry<V>
 where
@@ -117,18 +118,18 @@ where
         kind: &str,
         config: Value,
         builder: &mut Builder,
-    ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
+    ) -> Result<BoxedBoundAttrDecl<V>> {
         fn factory<T, V>(
             config: Value,
             builder: &mut Builder,
-        ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error>
+        ) -> Result<BoxedBoundAttrDecl<V>>
         where
             T: BoundAttrModel<V> + 'static,
             V: AttrValueFactory + Bounded,
         {
             let model: T = serde_json::from_value(config)?;
             let decl = T::assemble(model, builder)?;
-            return Ok(boxed::BoxedBoundAttrDecl::wrap(decl));
+            return Ok(BoxedBoundAttrDecl::wrap(decl));
         }
 
         return (match kind {

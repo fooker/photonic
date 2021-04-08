@@ -1,14 +1,15 @@
 use std::time::Duration;
 
-use anyhow::{format_err, Error};
+use anyhow::{format_err, Result};
 use num::Num;
 use rand::distributions::uniform::SampleUniform;
 use serde::Deserialize;
 
+use photonic_core::animation;
 use photonic_core::attr::{Bounded, Range};
+use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedUnboundAttrDecl};
 use photonic_core::color;
 use photonic_core::math::Lerp;
-use photonic_core::{animation, boxed};
 
 use crate::builder::Builder;
 use crate::config;
@@ -28,8 +29,8 @@ impl<V> UnboundAttrModel<V> for ButtonModel<V>
 where
     V: AttrValueFactory,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
-        return Ok(boxed::BoxedUnboundAttrDecl::wrap(
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedUnboundAttrDecl<V>> {
+        return Ok(BoxedUnboundAttrDecl::wrap(
             photonic_effects::attrs::button::ButtonDecl {
                 value: (V::assemble(self.value.0)?, V::assemble(self.value.1)?),
                 hold_time: self.hold_time,
@@ -43,8 +44,8 @@ impl<V> BoundAttrModel<V> for ButtonModel<V>
 where
     V: AttrValueFactory + Bounded,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
-        return Ok(boxed::BoxedBoundAttrDecl::wrap(
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>> {
+        return Ok(BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::button::ButtonDecl {
                 value: (V::assemble(self.value.0)?, V::assemble(self.value.1)?),
                 hold_time: self.hold_time,
@@ -100,7 +101,7 @@ impl EasingModel {
         };
     }
 
-    pub fn resemble<F>(self) -> Result<animation::Easing<F>, Error>
+    pub fn resemble<F>(self) -> Result<animation::Easing<F>>
     where
         F: animation::Float,
     {
@@ -125,7 +126,7 @@ where
     default fn assemble(
         self,
         _builder: &mut Builder,
-    ) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
+    ) -> Result<BoxedUnboundAttrDecl<V>> {
         return Err(format_err!(
             "Fader is not supported for Attributes of Type {}",
             std::any::type_name::<V>()
@@ -137,8 +138,8 @@ impl<V> UnboundAttrModel<V> for FaderModel
 where
     V: AttrValueFactory + Lerp,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
-        return Ok(boxed::BoxedUnboundAttrDecl::wrap(
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedUnboundAttrDecl<V>> {
+        return Ok(BoxedUnboundAttrDecl::wrap(
             photonic_effects::attrs::fader::FaderDecl {
                 input: builder.unbound_attr("input", self.input)?,
                 easing: self.easing.resemble()?,
@@ -154,7 +155,7 @@ where
     default fn assemble(
         self,
         _builder: &mut Builder,
-    ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
+    ) -> Result<BoxedBoundAttrDecl<V>> {
         return Err(format_err!(
             "Fader is not supported for Attributes of Type {}",
             std::any::type_name::<V>()
@@ -166,8 +167,8 @@ impl<V> BoundAttrModel<V> for FaderModel
 where
     V: AttrValueFactory + Bounded + Lerp,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
-        return Ok(boxed::BoxedBoundAttrDecl::wrap(
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>> {
+        return Ok(BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::fader::FaderDecl {
                 input: builder.bound_attr("input", self.input)?,
                 easing: self.easing.resemble()?,
@@ -192,7 +193,7 @@ where
     default fn assemble(
         self,
         _builder: &mut Builder,
-    ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
+    ) -> Result<BoxedBoundAttrDecl<V>> {
         return Err(format_err!(
             "Looper is not supported for Attributes of Type {}",
             std::any::type_name::<V>()
@@ -204,8 +205,8 @@ impl<V> BoundAttrModel<V> for LooperModel<V>
 where
     V: AttrValueFactory + Bounded + Num + PartialOrd,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
-        return Ok(boxed::BoxedBoundAttrDecl::wrap(
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>> {
+        return Ok(BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::looper::LooperDecl {
                 step: V::assemble(self.step)?,
                 trigger: builder.input(self.trigger)?,
@@ -226,7 +227,7 @@ where
     default fn assemble(
         self,
         _builder: &mut Builder,
-    ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
+    ) -> Result<BoxedBoundAttrDecl<V>> {
         return Err(format_err!(
             "Random is not supported for Attributes of Type {}",
             std::any::type_name::<V>()
@@ -238,8 +239,8 @@ impl<V> BoundAttrModel<V> for RandomModel
 where
     V: AttrValueFactory + Bounded + SampleUniform,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
-        return Ok(boxed::BoxedBoundAttrDecl::wrap(
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>> {
+        return Ok(BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::random::RandomDecl {
                 trigger: builder.input(self.trigger)?,
             },
@@ -261,14 +262,14 @@ impl<V> UnboundAttrModel<V> for SequenceModel<V>
 where
     V: AttrValueFactory,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error> {
-        return Ok(boxed::BoxedUnboundAttrDecl::wrap(
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedUnboundAttrDecl<V>> {
+        return Ok(BoxedUnboundAttrDecl::wrap(
             photonic_effects::attrs::sequence::SequenceDecl {
                 values: self
                     .values
                     .into_iter()
                     .map(V::assemble)
-                    .collect::<Result<Vec<_>, Error>>()?,
+                    .collect::<Result<Vec<_>>>()?,
                 next: self.next.map(|i| builder.input(i)).transpose()?,
                 prev: self.prev.map(|i| builder.input(i)).transpose()?,
             },
@@ -280,14 +281,14 @@ impl<V> BoundAttrModel<V> for SequenceModel<V>
 where
     V: AttrValueFactory + Bounded,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error> {
-        return Ok(boxed::BoxedBoundAttrDecl::wrap(
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>> {
+        return Ok(BoxedBoundAttrDecl::wrap(
             photonic_effects::attrs::sequence::SequenceDecl {
                 values: self
                     .values
                     .into_iter()
                     .map(V::assemble)
-                    .collect::<Result<Vec<_>, Error>>()?,
+                    .collect::<Result<Vec<_>>>()?,
                 next: self.next.map(|i| builder.input(i)).transpose()?,
                 prev: self.prev.map(|i| builder.input(i)).transpose()?,
             },
@@ -306,7 +307,7 @@ where
 {
     type Model = RangeModel<V>;
 
-    fn assemble(model: Self::Model) -> Result<Self, Error> {
+    fn assemble(model: Self::Model) -> Result<Self> {
         return Ok(Range(V::assemble(model.0)?, V::assemble(model.1)?));
     }
 }
@@ -314,7 +315,7 @@ where
 impl AttrValueFactory for color::RGBColor {
     type Model = String;
 
-    fn assemble(model: Self::Model) -> Result<Self, Error> {
+    fn assemble(model: Self::Model) -> Result<Self> {
         let color = csscolorparser::parse(&model)?.to_lrgba();
         return Ok(color::RGBColor::new(color.0, color.1, color.2));
     }
@@ -323,7 +324,7 @@ impl AttrValueFactory for color::RGBColor {
 impl AttrValueFactory for color::HSVColor {
     type Model = String;
 
-    fn assemble(model: Self::Model) -> Result<Self, Error> {
+    fn assemble(model: Self::Model) -> Result<Self> {
         let color = csscolorparser::parse(&model)?.to_hsva();
         return Ok(color::HSVColor::new(color.0, color.1, color.2));
     }
@@ -332,7 +333,7 @@ impl AttrValueFactory for color::HSVColor {
 impl AttrValueFactory for color::HSLColor {
     type Model = String;
 
-    fn assemble(model: Self::Model) -> Result<Self, Error> {
+    fn assemble(model: Self::Model) -> Result<Self> {
         let color = csscolorparser::parse(&model)?.to_hsla();
         return Ok(color::HSLColor::new(color.0, color.1, color.2));
     }

@@ -1,7 +1,10 @@
-use crate::client::Client;
+#![allow(clippy::needless_return)]
+
 use anyhow::Error;
 use clap::Clap;
 use erased_serde::Serialize;
+
+use crate::client::Client;
 
 pub mod client;
 

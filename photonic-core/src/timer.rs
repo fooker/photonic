@@ -9,7 +9,7 @@ pub struct Ticker {
 
 impl Ticker {
     pub fn new(duration: Duration) -> (Self, Input<()>) {
-        let input = Input::new();
+        let input = Input::default();
 
         let sink = input.sink();
 

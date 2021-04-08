@@ -2,6 +2,8 @@
 #![feature(unsize)]
 #![feature(trait_alias)]
 
+#![allow(clippy::needless_return)]
+
 pub mod animation;
 pub mod attr;
 pub mod buffer;

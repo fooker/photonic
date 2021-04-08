@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
 use crate::input::{Input, InputValue};
@@ -16,7 +16,7 @@ pub struct SceneBuilder {
 }
 
 impl SceneBuilder {
-    pub fn node<Node>(&mut self, decl: NodeHandle<Node>) -> Result<(NodeInfo, Node::Target), Error>
+    pub fn node<Node>(&mut self, decl: NodeHandle<Node>) -> Result<(NodeInfo, Node::Target)>
     where
         Node: NodeDecl,
     {
@@ -48,7 +48,7 @@ pub struct NodeBuilder<'b> {
 }
 
 impl<'b> NodeBuilder<'b> {
-    pub fn node<Node>(&mut self, name: &str, decl: NodeHandle<Node>) -> Result<Node::Target, Error>
+    pub fn node<Node>(&mut self, name: &str, decl: NodeHandle<Node>) -> Result<Node::Target>
     where
         Node: NodeDecl,
     {
@@ -65,7 +65,7 @@ impl<'b> NodeBuilder<'b> {
         name: &str,
         decl: Attr,
         bounds: impl Into<Bounds<V>>,
-    ) -> Result<Attr::Target, Error>
+    ) -> Result<Attr::Target>
     where
         V: AttrValue + Bounded,
         Attr: BoundAttrDecl<V>,
@@ -90,7 +90,7 @@ impl<'b> NodeBuilder<'b> {
         return Ok(attr);
     }
 
-    pub fn unbound_attr<V, Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target, Error>
+    pub fn unbound_attr<V, Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target>
     where
         V: AttrValue,
         Attr: UnboundAttrDecl<V>,
@@ -127,7 +127,7 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
         name: &str,
         decl: Attr,
         bounds: impl Into<Bounds<V>>,
-    ) -> Result<Attr::Target, Error>
+    ) -> Result<Attr::Target>
     where
         V: AttrValue + Bounded,
         Attr: BoundAttrDecl<V>,
@@ -152,7 +152,7 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
         return Ok(attr);
     }
 
-    pub fn unbound_attr<V, Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target, Error>
+    pub fn unbound_attr<V, Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target>
     where
         V: AttrValue,
         Attr: UnboundAttrDecl<V>,
@@ -175,7 +175,7 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
         return Ok(attr);
     }
 
-    pub fn input<V>(&mut self, name: &str, input: InputHandle<V>) -> Result<Input<V>, Error>
+    pub fn input<V>(&mut self, name: &str, input: InputHandle<V>) -> Result<Input<V>>
     where
         V: InputValue,
     {
@@ -236,18 +236,19 @@ where
     V: InputValue,
 {
     pub fn new(name: String) -> Self {
-        let input = Input::new();
-
-        return Self { name, input };
+        return Self {
+            name,
+            input: Input::default(),
+        };
     }
 }
 
-impl<V> Into<Input<V>> for InputHandle<V>
+impl<V> From<InputHandle<V>> for Input<V>
 where
     V: InputValue,
 {
-    fn into(self) -> Input<V> {
-        return self.input;
+    fn from(handle: InputHandle<V>) -> Self {
+        return handle.input;
     }
 }
 
@@ -264,7 +265,7 @@ impl Scene {
         return self.size;
     }
 
-    pub fn node<Node>(&mut self, name: &str, decl: Node) -> Result<NodeHandle<Node>, Error>
+    pub fn node<Node>(&mut self, name: &str, decl: Node) -> Result<NodeHandle<Node>>
     where
         Node: NodeDecl,
     {
@@ -274,18 +275,19 @@ impl Scene {
         });
     }
 
-    pub fn input<V>(&mut self, name: &str) -> Result<InputHandle<V>, Error>
+    pub fn input<V>(&mut self, name: &str) -> Result<InputHandle<V>>
     where
         V: InputValue,
     {
         return Ok(InputHandle::new(name.to_owned()));
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn run<Root, Output>(
         self,
         root: NodeHandle<Root>,
         decl: Output,
-    ) -> Result<(Loop<Root::Target, Output::Target>, Arc<Introspection>), Error>
+    ) -> Result<(Loop<Root::Target, Output::Target>, Arc<Introspection>)>
     where
         Root: NodeDecl,
         Output: OutputDecl<Element = Root::Element>,
@@ -320,10 +322,10 @@ where
     Root: self::Node,
     Output: self::Output<Element = Root::Element>,
 {
-    pub async fn run(mut self, fps: usize) -> Result<!, Error> {
+    pub async fn run(mut self, fps: usize) -> Result<!> {
         let mut timer = FrameTimer::new(fps);
 
-        let mut stats = FrameStats::new();
+        let mut stats = FrameStats::default();
 
         loop {
             let duration = timer.next().await;

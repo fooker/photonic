@@ -1,8 +1,9 @@
 #![cfg(target = "arm-unknown-linux-gnueabihf")]
+#![allow(clippy::needless_return)]
 
 use anyhow::Error;
-
 use palette::Component;
+
 use photonic_core::color::RGBColor;
 use photonic_core::output::{Output, OutputDecl};
 use photonic_core::scene::Render;

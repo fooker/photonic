@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use crate::scene::NodeBuilder;
 
@@ -22,11 +22,11 @@ pub trait NodeDecl {
     type Element;
     type Target: Node<Element = Self::Element> + 'static;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error>
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target>
     where
         Self::Target: std::marker::Sized;
 
-    fn map<'a, R, F>(self, f: F) -> MapNodeDecl<Self, F>
+    fn map<R, F>(self, f: F) -> MapNodeDecl<Self, F>
     where
         Self: Sized,
         F: Fn(Self::Element) -> R,
@@ -135,7 +135,7 @@ where
     type Element = R;
     type Target = MapNode<S::Target, F>;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error>
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target>
     where
         Self::Target: std::marker::Sized,
     {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::Error;
+use anyhow::Result;
 use async_trait::async_trait;
 
 use crate::attr::AttrValueType;
@@ -18,6 +18,7 @@ pub struct NodeInfo {
 }
 
 impl NodeInfo {
+    #[allow(clippy::needless_lifetimes)]
     pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item = &'s Arc<Self>> + 's {
         return TreeIterator::new(self, |node| node.nodes.values());
     }
@@ -34,6 +35,7 @@ pub struct AttrInfo {
 }
 
 impl AttrInfo {
+    #[allow(clippy::needless_lifetimes)]
     pub fn iter<'s>(self: &'s Arc<Self>) -> impl Iterator<Item = &'s Arc<Self>> + 's {
         return TreeIterator::new(self, |node| node.attrs.values());
     }
@@ -42,7 +44,6 @@ impl AttrInfo {
 #[derive(Debug)]
 pub struct InputInfo {
     pub name: String,
-    // pub kind: &'static str,
     pub value_type: InputValueType,
 
     pub sender: InputSender,
@@ -77,7 +78,7 @@ impl Introspection {
         });
     }
 
-    pub fn serve<I>(self: Arc<Self>, iface: I) -> Result<(), Error>
+    pub fn serve<I>(self: Arc<Self>, iface: I) -> Result<()>
     where
         I: Interface + 'static,
     {
@@ -88,5 +89,5 @@ impl Introspection {
 
 #[async_trait]
 pub trait Interface {
-    async fn listen(self, introspection: Arc<Introspection>) -> Result<(), Error>;
+    async fn listen(self, introspection: Arc<Introspection>) -> Result<()>;
 }

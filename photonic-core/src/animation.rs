@@ -101,7 +101,7 @@ where
             return None;
         }
 
-        self.position = self.position + duration.as_secs_f64() / self.easing.speed.as_secs_f64();
+        self.position += self.easing.speed.as_secs_f64() * duration.as_secs_f64();
         return Some(Lerp::lerp(
             self.source,
             self.target,

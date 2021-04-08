@@ -2,7 +2,6 @@ use anyhow::Error;
 use async_trait::async_trait;
 
 use photonic_grpc_proto as proto;
-use photonic_grpc_proto::attr_info::ValueType;
 
 use crate::client::{AttrInfo, AttrValueType, NodeInfo};
 use crate::SendValue;
@@ -11,50 +10,50 @@ pub struct GrpcClient {
     client: proto::interface_client::InterfaceClient<tonic::transport::Channel>,
 }
 
-impl Into<NodeInfo> for proto::NodeInfo {
-    fn into(self) -> NodeInfo {
-        let attrs = self
+impl From<proto::NodeInfo> for NodeInfo {
+    fn from(proto: proto::NodeInfo) -> Self {
+        let attrs = proto
             .attrs
             .into_iter()
             .map(|(key, attr)| (key, attr.into()))
             .collect();
 
         return NodeInfo {
-            name: self.name,
-            kind: self.kind,
-            nodes: self.nodes,
+            name: proto.name,
+            kind: proto.kind,
+            nodes: proto.nodes,
             attrs,
         };
     }
 }
 
-impl Into<AttrInfo> for proto::AttrInfo {
-    fn into(self) -> AttrInfo {
-        let value_type = self.value_type().into();
+impl From<proto::AttrInfo> for AttrInfo {
+    fn from(proto: proto::AttrInfo) -> Self {
+        let value_type = proto.value_type().into();
 
-        let attrs = self
+        let attrs = proto
             .attrs
             .into_iter()
             .map(|(key, attr)| (key, attr.into()))
             .collect();
 
         return AttrInfo {
-            kind: self.kind,
+            kind: proto.kind,
             value_type,
             attrs,
-            inputs: self.inputs,
+            inputs: proto.inputs,
         };
     }
 }
 
-impl Into<AttrValueType> for proto::attr_info::ValueType {
-    fn into(self) -> AttrValueType {
-        return match self {
-            Self::Boolean => AttrValueType::Boolean,
-            Self::Integer => AttrValueType::Integer,
-            Self::Decimal => AttrValueType::Decimal,
-            Self::Color => AttrValueType::Color,
-            Self::Range => AttrValueType::Range(&AttrValueType::Color), // TODO: This is fake
+impl From<proto::attr_info::ValueType> for AttrValueType {
+    fn from(proto: proto::attr_info::ValueType) -> Self {
+        return match proto {
+            proto::attr_info::ValueType::Boolean => AttrValueType::Boolean,
+            proto::attr_info::ValueType::Integer => AttrValueType::Integer,
+            proto::attr_info::ValueType::Decimal => AttrValueType::Decimal,
+            proto::attr_info::ValueType::Color => AttrValueType::Color,
+            proto::attr_info::ValueType::Range => AttrValueType::Range(&AttrValueType::Color), // TODO: This is fake
         };
     }
 }

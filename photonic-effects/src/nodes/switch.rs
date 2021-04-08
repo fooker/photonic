@@ -154,8 +154,8 @@ where
             // We guarantee to have two distinct indices in bounds
             let (source, target) = unsafe {
                 (
-                    &mut *sources.offset(self.source as isize),
-                    &mut *sources.offset(self.target as isize),
+                    &mut *sources.add(self.source),
+                    &mut *sources.add(self.target),
                 )
             };
 

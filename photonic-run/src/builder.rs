@@ -1,9 +1,10 @@
 use std::sync::Arc;
 
-use anyhow::{Context, Error};
+use anyhow::{Context, Result};
 
+use photonic_core::{color, InputHandle, Introspection, Loop, NodeHandle, Scene};
+use photonic_core::boxed::{BoxedNode, BoxedOutput, BoxedNodeDecl, BoxedUnboundAttrDecl, BoxedBoundAttrDecl, BoxedOutputDecl};
 use photonic_core::input::InputValue;
-use photonic_core::{boxed, color, InputHandle, Introspection, Loop, NodeHandle, Scene};
 
 use crate::config;
 use crate::model::{BoundAttrFactory, UnboundAttrFactory};
@@ -20,15 +21,10 @@ impl Builder {
         return Self { scene };
     }
 
+    #[allow(clippy::type_complexity)]
     pub fn build(
         config: config::Scene,
-    ) -> Result<
-        (
-            Loop<boxed::BoxedNode<color::RGBColor>, boxed::BoxedOutput<color::RGBColor>>,
-            Arc<Introspection>,
-        ),
-        Error,
-    > {
+    ) -> Result<(Loop<BoxedNode<color::RGBColor>, BoxedOutput<color::RGBColor>>, Arc<Introspection>)> {
         let mut builder = Self::new(config.size);
 
         let root = builder.node("root", config.root)?;
@@ -41,7 +37,7 @@ impl Builder {
         &mut self,
         name: &str,
         config: config::Node,
-    ) -> Result<NodeHandle<boxed::BoxedNodeDecl<color::RGBColor>>, Error> {
+    ) -> Result<NodeHandle<BoxedNodeDecl<color::RGBColor>>> {
         let decl =
             NodeRegistry::manufacture(&config.kind, config.config, self).context(format!(
                 "Failed to build node: {} (type={}) @{}",
@@ -54,7 +50,7 @@ impl Builder {
         &mut self,
         name: &str,
         config: config::Attr,
-    ) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error>
+    ) -> Result<BoxedUnboundAttrDecl<V>>
     where
         V: UnboundAttrFactory,
     {
@@ -72,7 +68,7 @@ impl Builder {
         &mut self,
         name: &str,
         config: config::Attr,
-    ) -> Result<boxed::BoxedBoundAttrDecl<V>, Error>
+    ) -> Result<BoxedBoundAttrDecl<V>>
     where
         V: BoundAttrFactory,
     {
@@ -86,7 +82,7 @@ impl Builder {
         }
     }
 
-    pub fn input<V>(&mut self, config: config::Input) -> Result<InputHandle<V>, Error>
+    pub fn input<V>(&mut self, config: config::Input) -> Result<InputHandle<V>>
     where
         V: InputValue,
     {
@@ -96,7 +92,7 @@ impl Builder {
     pub fn output(
         &mut self,
         config: config::Output,
-    ) -> Result<boxed::BoxedOutputDecl<color::RGBColor>, Error> {
+    ) -> Result<BoxedOutputDecl<color::RGBColor>> {
         return OutputRegistry::manufacture(&config.kind, config.config, self)
             .context(format!("Failed to build output: (type={})", config.kind));
     }

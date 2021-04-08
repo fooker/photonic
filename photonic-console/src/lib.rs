@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 use std::io::{stdout, Write};
 
 use anyhow::Error;
@@ -40,7 +42,7 @@ impl Output for ConsoleOutput {
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
         for i in 0..self.size {
-            let rgb: RGBColor = render.get(i).into();
+            let rgb: RGBColor = render.get(i);
             let (r, g, b) = rgb.into_components();
             write!(
                 &mut buf,
@@ -53,11 +55,7 @@ impl Output for ConsoleOutput {
         }
 
         write!(&mut buf, "\x1b[0m").unwrap();
-        if self.waterfall {
-            write!(&mut buf, "\n").unwrap();
-        } else {
-            write!(&mut buf, "\r").unwrap();
-        }
+        write!(&mut buf, "{}", if self.waterfall { "\n" } else { "\r" }).unwrap();
 
         let out = stdout();
         let mut out = out.lock();

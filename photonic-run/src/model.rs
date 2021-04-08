@@ -1,9 +1,9 @@
-use anyhow::{format_err, Error};
+use anyhow::{format_err, Result};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
 use photonic_core::attr::{AsFixedAttr, AttrValue, Bounded};
-use photonic_core::boxed;
+use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl};
 use photonic_core::color;
 use photonic_core::input::InputValue;
 use photonic_core::node::NodeDecl;
@@ -13,29 +13,20 @@ use crate::builder::Builder;
 use crate::config;
 
 pub trait OutputModel: DeserializeOwned {
-    fn assemble(
-        self,
-        builder: &mut Builder,
-    ) -> Result<boxed::BoxedOutputDecl<color::RGBColor>, Error>;
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedOutputDecl<color::RGBColor>>;
 }
 
 impl<T> OutputModel for T
 where
     T: OutputDecl<Element = color::RGBColor> + DeserializeOwned + 'static,
 {
-    fn assemble(
-        self,
-        _builder: &mut Builder,
-    ) -> Result<boxed::BoxedOutputDecl<color::RGBColor>, Error> {
-        return Ok(boxed::BoxedOutputDecl::wrap(self));
+    fn assemble(self, _builder: &mut Builder) -> Result<BoxedOutputDecl<color::RGBColor>> {
+        return Ok(BoxedOutputDecl::wrap(self));
     }
 }
 
 pub trait NodeModel: DeserializeOwned {
-    fn assemble(
-        self,
-        builder: &mut Builder,
-    ) -> Result<boxed::BoxedNodeDecl<color::RGBColor>, Error>;
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>>;
 }
 
 impl<T> NodeModel for T
@@ -43,11 +34,8 @@ where
     T: NodeDecl + DeserializeOwned + 'static,
     T::Element: Into<color::RGBColor>,
 {
-    fn assemble(
-        self,
-        _builder: &mut Builder,
-    ) -> Result<boxed::BoxedNodeDecl<color::RGBColor>, Error> {
-        return Ok(boxed::BoxedNodeDecl::wrap(self.map(Into::into)));
+    fn assemble(self, _builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+        return Ok(BoxedNodeDecl::wrap(self.map(Into::into)));
     }
 }
 
@@ -55,14 +43,14 @@ pub trait UnboundAttrModel<V>: DeserializeOwned
 where
     V: AttrValueFactory,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedUnboundAttrDecl<V>, Error>;
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedUnboundAttrDecl<V>>;
 }
 
 pub trait BoundAttrModel<V>: DeserializeOwned
 where
     V: AttrValueFactory + Bounded,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<boxed::BoxedBoundAttrDecl<V>, Error>;
+    fn assemble(self, builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>>;
 }
 
 pub trait UnboundAttrFactory: AttrValueFactory {
@@ -70,11 +58,11 @@ pub trait UnboundAttrFactory: AttrValueFactory {
         builder: &mut Builder,
         input: config::Input,
         initial: Value,
-    ) -> Result<boxed::BoxedUnboundAttrDecl<Self>, Error>;
+    ) -> Result<BoxedUnboundAttrDecl<Self>>;
     fn make_fixed(
         builder: &mut Builder,
         value: Value,
-    ) -> Result<boxed::BoxedUnboundAttrDecl<Self>, Error>;
+    ) -> Result<BoxedUnboundAttrDecl<Self>>;
 }
 
 pub trait BoundAttrFactory: AttrValueFactory + Bounded {
@@ -82,23 +70,23 @@ pub trait BoundAttrFactory: AttrValueFactory + Bounded {
         builder: &mut Builder,
         input: config::Input,
         initial: Value,
-    ) -> Result<boxed::BoxedBoundAttrDecl<Self>, Error>;
+    ) -> Result<BoxedBoundAttrDecl<Self>>;
     fn make_fixed(
         builder: &mut Builder,
         value: Value,
-    ) -> Result<boxed::BoxedBoundAttrDecl<Self>, Error>;
+    ) -> Result<BoxedBoundAttrDecl<Self>>;
 }
 
 pub trait AttrValueFactory: AttrValue + Sized {
     type Model: DeserializeOwned;
 
-    fn assemble(model: Self::Model) -> Result<Self, Error>;
+    fn assemble(model: Self::Model) -> Result<Self>;
 }
 
 impl AttrValueFactory for bool {
     type Model = Self;
 
-    fn assemble(model: Self::Model) -> Result<Self, Error> {
+    fn assemble(model: Self::Model) -> Result<Self> {
         return Ok(model);
     }
 }
@@ -106,7 +94,7 @@ impl AttrValueFactory for bool {
 impl AttrValueFactory for i64 {
     type Model = Self;
 
-    fn assemble(model: Self::Model) -> Result<Self, Error> {
+    fn assemble(model: Self::Model) -> Result<Self> {
         return Ok(model);
     }
 }
@@ -114,7 +102,7 @@ impl AttrValueFactory for i64 {
 impl AttrValueFactory for f64 {
     type Model = Self;
 
-    fn assemble(model: Self::Model) -> Result<Self, Error> {
+    fn assemble(model: Self::Model) -> Result<Self> {
         return Ok(model);
     }
 }
@@ -127,7 +115,7 @@ where
         _builder: &mut Builder,
         _input: config::Input,
         _initial: Value,
-    ) -> Result<boxed::BoxedUnboundAttrDecl<Self>, Error> {
+    ) -> Result<BoxedUnboundAttrDecl<Self>> {
         return Err(format_err!(
             "Input not supported for attributes of type {}",
             std::any::type_name::<Self>()
@@ -137,10 +125,10 @@ where
     default fn make_fixed(
         _builder: &mut Builder,
         value: Value,
-    ) -> Result<boxed::BoxedUnboundAttrDecl<Self>, Error> {
+    ) -> Result<BoxedUnboundAttrDecl<Self>> {
         let value: Self::Model = serde_json::from_value(value)?;
         let value = Self::assemble(value)?;
-        return Ok(boxed::BoxedUnboundAttrDecl::wrap(value.fixed()));
+        return Ok(BoxedUnboundAttrDecl::wrap(value.fixed()));
     }
 }
 
@@ -152,7 +140,7 @@ where
         _builder: &mut Builder,
         _input: config::Input,
         _initial: Value,
-    ) -> Result<boxed::BoxedBoundAttrDecl<Self>, Error> {
+    ) -> Result<BoxedBoundAttrDecl<Self>> {
         return Err(format_err!(
             "Input not supported for attributes of type {}",
             std::any::type_name::<Self>()
@@ -162,10 +150,10 @@ where
     default fn make_fixed(
         _builder: &mut Builder,
         value: Value,
-    ) -> Result<boxed::BoxedBoundAttrDecl<Self>, Error> {
+    ) -> Result<BoxedBoundAttrDecl<Self>> {
         let value: Self::Model = serde_json::from_value(value)?;
         let value = Self::assemble(value)?;
-        return Ok(boxed::BoxedBoundAttrDecl::wrap(value.fixed()));
+        return Ok(BoxedBoundAttrDecl::wrap(value.fixed()));
     }
 }
 
@@ -177,13 +165,13 @@ where
         builder: &mut Builder,
         input: config::Input,
         initial: Value,
-    ) -> Result<boxed::BoxedUnboundAttrDecl<Self>, Error> {
+    ) -> Result<BoxedUnboundAttrDecl<Self>> {
         let input = builder.input(input)?;
 
         let initial: Self::Model = serde_json::from_value(initial)?;
         let initial = Self::assemble(initial)?;
 
-        return Ok(boxed::BoxedUnboundAttrDecl::wrap(input.attr(initial)));
+        return Ok(BoxedUnboundAttrDecl::wrap(input.attr(initial)));
     }
 }
 
@@ -195,12 +183,12 @@ where
         builder: &mut Builder,
         input: config::Input,
         initial: Value,
-    ) -> Result<boxed::BoxedBoundAttrDecl<Self>, Error> {
+    ) -> Result<BoxedBoundAttrDecl<Self>> {
         let input = builder.input(input)?;
 
         let initial: Self::Model = serde_json::from_value(initial)?;
         let initial = Self::assemble(initial)?;
 
-        return Ok(boxed::BoxedBoundAttrDecl::wrap(input.attr(initial)));
+        return Ok(BoxedBoundAttrDecl::wrap(input.attr(initial)));
     }
 }

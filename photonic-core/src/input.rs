@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 use crossbeam::atomic::AtomicCell;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl, Update};
@@ -48,14 +48,6 @@ impl<V> Input<V>
 where
     V: InputValue,
 {
-    pub fn new() -> Self {
-        let value = Arc::new(AtomicCell::new(Poll::Pending));
-
-        return Self {
-            value: value.clone(),
-        };
-    }
-
     pub fn poll(&mut self) -> Poll<V> {
         return self.value.swap(Poll::Pending);
     }
@@ -63,6 +55,17 @@ where
     pub fn sink(&self) -> Sink<V> {
         return Sink {
             value: self.value.clone(),
+        };
+    }
+}
+
+impl<V> Default for Input<V>
+where
+    V: InputValue,
+{
+    fn default() -> Self {
+        return Self {
+            value: Arc::new(AtomicCell::new(Poll::Pending)),
         };
     }
 }
@@ -136,7 +139,7 @@ where
 {
     pub fn attr(self, initial: V) -> InputAttrDecl<V> {
         return InputAttrDecl {
-            input: self.into(),
+            input: self,
             initial,
         };
     }
@@ -194,7 +197,7 @@ where
         self,
         bounds: Bounds<V>,
         builder: &mut AttrBuilder,
-    ) -> Result<Self::Target, Error> {
+    ) -> Result<Self::Target> {
         let input = builder.input("input", self.input)?;
 
         let initial = bounds.ensure(self.initial)?;
@@ -241,7 +244,7 @@ where
 {
     type Target = UnboundInputAttr<V>;
 
-    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target> {
         let input = builder.input("value", self.input)?;
 
         return Ok(Self::Target {

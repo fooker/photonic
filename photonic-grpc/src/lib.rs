@@ -1,16 +1,17 @@
+#![allow(clippy::needless_return)]
+
 use std::net::SocketAddr;
 use std::sync::Arc;
 
 use anyhow::Error;
 use async_trait::async_trait;
+use tonic::{Request, Response, Status};
 
 use photonic_core::attr::AttrValueType;
-use photonic_core::input::{InputSender, InputValueType};
-use photonic_core::interface::{AttrInfo, InputInfo, Interface, Introspection, NodeInfo};
+use photonic_core::input::{InputSender};
+use photonic_core::interface::{AttrInfo, Interface, Introspection, NodeInfo};
 use photonic_grpc_proto as proto;
-use photonic_grpc_proto::input_send_request::Value;
 use photonic_grpc_proto::{InputSendRequest, InputSendResponse};
-use tonic::{Request, Response, Status};
 
 fn into_node(node: &NodeInfo) -> proto::NodeInfo {
     let nodes = node
@@ -54,13 +55,13 @@ fn into_attr(attr: &AttrInfo) -> proto::AttrInfo {
     };
 }
 
-fn into_input(input: &InputInfo) -> proto::InputInfo {
-    return proto::InputInfo {
-        name: input.name.clone(),
-        // kind: input.kind.to_string(),
-        value_type: into_input_vt(input.value_type).into(),
-    };
-}
+// TODO: implement
+// fn into_input(input: &InputInfo) -> proto::InputInfo {
+//     return proto::InputInfo {
+//         name: input.name.clone(),
+//         value_type: into_input_vt(input.value_type).into(),
+//     };
+// }
 
 fn into_attr_vt(vt: AttrValueType) -> proto::attr_info::ValueType {
     return match vt {
@@ -68,18 +69,19 @@ fn into_attr_vt(vt: AttrValueType) -> proto::attr_info::ValueType {
         AttrValueType::Integer => proto::attr_info::ValueType::Integer,
         AttrValueType::Decimal => proto::attr_info::ValueType::Decimal,
         AttrValueType::Color => proto::attr_info::ValueType::Color,
-        AttrValueType::Range(e) => proto::attr_info::ValueType::Range,
+        AttrValueType::Range(_e) => proto::attr_info::ValueType::Range, // TODO: this is fake
     };
 }
 
-fn into_input_vt(vt: InputValueType) -> proto::input_info::ValueType {
-    return match vt {
-        InputValueType::Trigger => proto::input_info::ValueType::Trigger,
-        InputValueType::Boolean => proto::input_info::ValueType::Boolean,
-        InputValueType::Integer => proto::input_info::ValueType::Integer,
-        InputValueType::Decimal => proto::input_info::ValueType::Decimal,
-    };
-}
+// TODO: implement
+// fn into_input_vt(vt: InputValueType) -> proto::input_info::ValueType {
+//     return match vt {
+//         InputValueType::Trigger => proto::input_info::ValueType::Trigger,
+//         InputValueType::Boolean => proto::input_info::ValueType::Boolean,
+//         InputValueType::Integer => proto::input_info::ValueType::Integer,
+//         InputValueType::Decimal => proto::input_info::ValueType::Decimal,
+//     };
+// }
 
 struct InterfaceService {
     introspection: Arc<Introspection>,
@@ -127,7 +129,7 @@ impl proto::interface_server::Interface for InterfaceService {
                 match (&input.sender, value) {
                     (
                         InputSender::Trigger(sender),
-                        proto::input_send_request::Value::Trigger(value),
+                        proto::input_send_request::Value::Trigger(_),
                     ) => {
                         sender.send(());
                     }
