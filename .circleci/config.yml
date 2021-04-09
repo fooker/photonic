@@ -1,13 +1,27 @@
 version: 2
+
 jobs:
-  build:
+  info:
     docker:
-      - image: cimg/rust:1.51.0
+      - image: rustlang/rust:nightly
     steps:
-      - checkout
       - run:
           name: Version information
-          command: rustc --version; cargo --version; rustup --version
+          command: rustc --version; cargo --version; rustup --version; rustup component list
+
+  prepare:
+    docker:
+      - image: rustlang/rust:nightly
+    steps:
+      - run:
+          name: Install Rust Components
+          command: rustup component add rustfmt
+
+  build:
+    docker:
+      - image: rustlang/rust:nightly
+    steps:
+      - checkout
       - run:
           name: Calculate dependencies
           command: cargo generate-lockfile
@@ -24,13 +38,43 @@ jobs:
             - target/debug/build
             - target/debug/deps
           key: v4-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
+
+  check:
+    docker:
+      - image: rustlang/rust:nightly
+    steps:
+      - checkout
       - run:
           name: Formatting
           command: cargo fmt --all -- --check
       - run:
           name: Linting
           command: cargo clippy --all -- --check
+
+  test:
+    docker:
+      - image: rustlang/rust:nightly
+    steps:
+      - checkout
       - run:
           name: Run all tests
           command: cargo test --all
 
+workflows:
+  version: 2
+  main:
+    jobs:
+      - info
+      - prepare:
+          requires:
+            - info
+      - build:
+          requires:
+            - prepare
+      - check:
+          requires:
+            - prepare
+      - test:
+          requires:
+            - prepare
+            - build
