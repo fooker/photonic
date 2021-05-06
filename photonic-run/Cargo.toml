@@ -14,6 +14,10 @@ photonic-mqtt = { path = "../photonic-mqtt" }
 serde = { version = "1.0.123", features = ["derive"] }
 serde_json = "1.0.62"
 serde_yaml = "0.8.17"
+serde_dhall = "0.10.1"
+toml = "0.5.8"
+serde-lexpr = "0.1.2"
+ron = "0.6.4"
 
 humantime-serde = "1"
 

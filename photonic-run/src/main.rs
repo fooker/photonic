@@ -13,6 +13,7 @@ use clap::Clap;
 use photonic_core::Introspection;
 use photonic_run::builder::Builder;
 use photonic_run::config;
+use std::ffi::OsStr;
 
 enum Interface {
     Grpc(SocketAddr),
@@ -85,7 +86,15 @@ struct Args {
 async fn main() -> Result<!> {
     let args = Args::parse();
 
-    let scene: config::Scene = serde_yaml::from_reader(File::open(&args.scene)?)?;
+    let scene: config::Scene = match args.scene.extension().and_then(OsStr::to_str) {
+        Some("yaml") | Some("yml") => serde_yaml::from_reader(File::open(&args.scene)?)?,
+        Some("json") => serde_json::from_reader(File::open(&args.scene)?)?,
+        Some("dhall") => serde_dhall::from_file(&args.scene).parse()?,
+        Some("toml") => toml::from_slice(&std::fs::read(&args.scene)?)?,
+        Some("sexp") => serde_lexpr::from_reader(File::open(&args.scene)?)?,
+        Some("ron") => ron::from_str(&std::fs::read_to_string(&args.scene)?)?,
+        _ => anyhow::bail!("Unknown scene file extension")
+    };
 
     let (main, introspection) = Builder::build(scene)?;
 
