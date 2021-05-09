@@ -10,7 +10,7 @@ photonic-mqtt = {path="../photonic-mqtt"}
 photonic-net = {path="../photonic-net"}
 photonic-console = {path="../photonic-console"}
 photonic-effects = {path="../photonic-effects"}
-photonic-rpi = {path="../photonic-rpi"}
+photonic-ledstrip = {path= "../photonic-ledstrip" }
 photonic-exec = {path="../photonic-exec"}
 photonic-grpc = {path="../photonic-grpc"}
 anyhow = "1"

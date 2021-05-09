@@ -5,7 +5,7 @@ members = [
     "photonic-effects",
     "photonic-net",
     "photonic-mqtt",
-    "photonic-rpi",
+    "photonic-ledstrip",
     "photonic-exec",
     "photonic-grpc",
     "photonic-grpc-proto",

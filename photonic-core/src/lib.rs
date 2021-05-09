@@ -1,5 +1,4 @@
 #![feature(never_type)]
-#![feature(unsize)]
 #![feature(trait_alias)]
 #![allow(clippy::needless_return)]
 

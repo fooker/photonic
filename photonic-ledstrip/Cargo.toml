@@ -1,5 +1,5 @@
 [package]
-name = "photonic-rpi"
+name = "photonic-ledstrip"
 version = "0.1.0"
 authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
@@ -8,6 +8,8 @@ edition = "2018"
 photonic-core = {path="../photonic-core"}
 palette = "0.4"
 anyhow = "1"
+cfg-if = "1.0.0"
+serde = "1.0.125"
 
-[target.'cfg(target = "arm-unknown-linux-gnueabihf")'.dependencies]
+[target.'cfg(all(target_arch = "arm", target_os = "linux"))'.dependencies]
 rs_ws281x = "0.2.3"

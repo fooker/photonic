@@ -639,9 +639,9 @@ dependencies = [
  "photonic-effects",
  "photonic-exec",
  "photonic-grpc",
+ "photonic-ledstrip",
  "photonic-mqtt",
  "photonic-net",
- "photonic-rpi",
  "shared_memory",
  "tokio",
 ]
@@ -1874,6 +1874,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "photonic-ledstrip"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cfg-if 1.0.0",
+ "palette 0.4.1",
+ "photonic-core",
+ "rs_ws281x",
+ "serde",
+]
+
+[[package]]
 name = "photonic-mqtt"
 version = "0.1.0"
 dependencies = [
@@ -1894,16 +1906,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "photonic-rpi"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "palette 0.4.1",
- "photonic-core",
- "rs_ws281x",
-]
-
-[[package]]
 name = "photonic-run"
 version = "0.1.0"
 dependencies = [
@@ -1916,6 +1918,7 @@ dependencies = [
  "photonic-core",
  "photonic-effects",
  "photonic-grpc",
+ "photonic-ledstrip",
  "photonic-mqtt",
  "rand 0.6.5",
  "ron",
@@ -2605,9 +2608,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.124"
+version = "1.0.125"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd761ff957cb2a45fbb9ab3da6512de9de55872866160b23c25f1a841e99d29f"
+checksum = "558dc50e1a5a5fa7112ca2ce4effcb321b0300c0d4ccf0776a9f60cd89031171"
 dependencies = [
  "serde_derive",
 ]
@@ -2634,9 +2637,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.124"
+version = "1.0.125"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1800f7693e94e186f5e25a28291ae1570da908aff7d97a095dec1e56ff99069b"
+checksum = "b093b7a2bb58203b5da3056c05b4ec1fed827dcfdb37347a8841695263b3d06d"
 dependencies = [
  "proc-macro2 1.0.24",
  "quote 1.0.9",

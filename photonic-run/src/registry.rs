@@ -39,6 +39,8 @@ impl OutputRegistry {
 
         return (match kind {
             "console" => factory::<photonic_console::ConsoleOutputDecl>,
+            "led-strip" => factory::<photonic_ledstrip::LedStripOutputDecl>,
+
             _ => return Err(format_err!("Unknown output type: {}", kind)),
         })(config, builder);
     }
