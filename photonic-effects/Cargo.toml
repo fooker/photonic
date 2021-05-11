@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 photonic-core = {path="../photonic-core"}
 anyhow = "1"
-rand = "0.6"
-num = "0.2"
-noise = "0.5"
+rand = "0.8"
+num = "0.4"
+noise = "0.7"
 serde = { version = "1", features = ["derive"] }

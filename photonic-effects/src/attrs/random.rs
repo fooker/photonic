@@ -1,8 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Error;
-use rand::distributions::uniform::SampleUniform;
-use rand::prelude::{FromEntropy, Rng, SmallRng};
+use rand::{distributions::{Distribution, Uniform, uniform::SampleUniform}, rngs::SmallRng, SeedableRng};
 
 use photonic_core::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, Update};
 use photonic_core::input::{Input, Poll};
@@ -10,13 +9,12 @@ use photonic_core::scene::{AttrBuilder, InputHandle};
 
 pub struct Random<V>
 where
-    V: AttrValue + Bounded,
+    V: AttrValue + SampleUniform + Bounded,
 {
-    bounds: Bounds<V>,
+    uniform: Uniform<V>,
+    random: SmallRng,
 
     current: V,
-
-    random: SmallRng,
 
     trigger: Input<()>,
 }
@@ -33,7 +31,7 @@ where
 
     fn update(&mut self, _duration: Duration) -> Update<V> {
         if let Poll::Ready(()) = self.trigger.poll() {
-            self.current = self.random.gen_range(self.bounds.min, self.bounds.max);
+            self.current = self.uniform.sample(&mut self.random);
             return Update::Changed(self.current);
         } else {
             return Update::Idle(self.current);
@@ -56,16 +54,17 @@ where
         builder: &mut AttrBuilder,
     ) -> Result<Self::Target, Error> {
         let mut random = SmallRng::from_entropy();
+        let uniform = Uniform::new_inclusive(bounds.min, bounds.max);
 
         // Generate a random initial value
-        let current = random.gen_range(bounds.min, bounds.max);
+        let current = uniform.sample(&mut random);
 
         let trigger = builder.input("trigger", self.trigger)?;
 
         return Ok(Random {
-            bounds,
-            current,
+            uniform,
             random,
+            current,
             trigger,
         });
     }

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Error;
-use rand::prelude::{FromEntropy, Rng, SmallRng};
+use rand::prelude::{SeedableRng, Rng, SmallRng};
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds, Range, UnboundAttrDecl};
 use photonic_core::color::{Black, HSLColor};
@@ -60,7 +60,7 @@ impl Random {
             return values.0;
         }
 
-        return self.0.gen_range(values.0, values.1);
+        return self.0.gen_range(values.0 ..= values.1);
     }
 }
 
