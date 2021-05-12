@@ -322,7 +322,7 @@ where
     Root: self::Node,
     Output: self::Output<Element = Root::Element>,
 {
-    pub async fn run(mut self, fps: usize) -> Result<!> {
+    pub async fn run(mut self, fps: usize) -> Result<()> {
         let mut timer = FrameTimer::new(fps);
 
         let mut stats = FrameStats::default();

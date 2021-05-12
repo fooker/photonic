@@ -4,10 +4,7 @@ pub type RGBColor = palette::LinSrgb<f64>;
 pub type HSVColor = palette::Hsv<palette::encoding::Srgb, f64>;
 pub type HSLColor = palette::Hsl<palette::encoding::Srgb, f64>;
 
-pub trait Mix = palette::Mix<Scalar = f64>;
-pub trait Shade = palette::Shade<Scalar = f64>;
-pub trait Saturate = palette::Saturate<Scalar = f64>;
-pub trait ComponentWise = palette::ComponentWise<Scalar = f64>;
+pub use palette;
 
 pub trait Black {
     fn black() -> Self;

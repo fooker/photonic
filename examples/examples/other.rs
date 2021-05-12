@@ -1,5 +1,3 @@
-#![feature(never_type)]
-
 use std::time::Duration;
 
 use anyhow::Error;

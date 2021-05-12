@@ -1,5 +1,4 @@
 #![allow(clippy::needless_return)]
-#![feature(never_type)]
 
 use std::fs::File;
 use std::net::SocketAddr;
@@ -83,7 +82,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> Result<!> {
+async fn main() -> Result<()> {
     let args = Args::parse();
 
     let scene: config::Scene = match args.scene.extension().and_then(OsStr::to_str) {

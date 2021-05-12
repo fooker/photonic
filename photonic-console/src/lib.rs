@@ -3,10 +3,9 @@
 use std::io::{stdout, Write};
 
 use anyhow::Error;
-use palette::Component;
 use serde::Deserialize;
 
-use photonic_core::color::RGBColor;
+use photonic_core::color::{RGBColor, palette::Component};
 use photonic_core::node::Render;
 use photonic_core::output::{Output, OutputDecl};
 

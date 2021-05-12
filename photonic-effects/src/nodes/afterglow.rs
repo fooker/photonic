@@ -4,7 +4,7 @@ use anyhow::Error;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
 use photonic_core::buffer::Buffer;
-use photonic_core::color::{Black, ComponentWise, Shade};
+use photonic_core::color::{Black, palette::{ComponentWise, Shade}};
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::{NodeBuilder, NodeHandle};
 
@@ -31,7 +31,7 @@ impl<Source, Decay> NodeDecl for AfterglowNodeDecl<Source, Decay>
 where
     Source: NodeDecl,
     Decay: BoundAttrDecl<f64>,
-    Source::Element: Black + Shade + ComponentWise + Copy + 'static,
+    Source::Element: Black + Shade<Scalar=f64> + ComponentWise<Scalar=f64> + Copy + 'static,
 {
     type Element = Source::Element;
     type Target = AfterglowNode<Source::Target, Decay::Target>;
@@ -49,7 +49,7 @@ impl<'a, Source, Decay> RenderType<'a, Self> for AfterglowNode<Source, Decay>
 where
     Source: Node,
     Decay: self::Attr<f64>,
-    Source::Element: Black + Shade + ComponentWise + Copy + 'static,
+    Source::Element: Black + Shade<Scalar=f64> + ComponentWise<Scalar=f64> + Copy + 'static,
 {
     type Render = &'a Buffer<Source::Element>;
 }
@@ -58,7 +58,7 @@ impl<Source, Decay> Node for AfterglowNode<Source, Decay>
 where
     Source: Node,
     Decay: self::Attr<f64>,
-    Source::Element: Black + Shade + ComponentWise + Copy + 'static,
+    Source::Element: Black + Shade<Scalar=f64> + ComponentWise<Scalar=f64> + Copy + 'static,
 {
     const KIND: &'static str = "afterglow";
 

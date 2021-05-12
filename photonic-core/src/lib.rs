@@ -1,5 +1,3 @@
-#![feature(never_type)]
-#![feature(trait_alias)]
 #![allow(clippy::needless_return)]
 
 pub mod animation;

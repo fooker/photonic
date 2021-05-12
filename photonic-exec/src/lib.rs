@@ -7,10 +7,9 @@ use std::time::Duration;
 
 use anyhow::{format_err, Error};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use palette::Component;
 use shared_memory::{ReadRaw, SharedMemCast, SharedMemRaw};
 
-use photonic_core::color::*;
+use photonic_core::color::{*, palette::Component};
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::*;
 

@@ -6,5 +6,4 @@ edition = "2018"
 
 [dependencies]
 photonic-core = {path="../photonic-core"}
-palette = "0.5"
 anyhow = "1"

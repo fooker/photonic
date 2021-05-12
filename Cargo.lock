@@ -1615,7 +1615,6 @@ name = "photonic-console"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "palette",
  "photonic-core",
  "serde",
 ]
@@ -1653,7 +1652,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "byteorder",
- "palette",
  "photonic-core",
  "shared_memory 0.8.2",
  "shlex 1.0.0",
@@ -1711,7 +1709,6 @@ name = "photonic-net"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "palette",
  "photonic-core",
 ]
 

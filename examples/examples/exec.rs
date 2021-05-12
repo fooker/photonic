@@ -1,5 +1,3 @@
-#![feature(never_type)]
-
 use anyhow::Error;
 
 use photonic_console::ConsoleOutputDecl;
