@@ -16,5 +16,5 @@ pub trait Output {
 
     const KIND: &'static str;
 
-    fn render(&mut self, render: &dyn Render<Element = Self::Element>);
+    fn render(&mut self, render: &dyn Render<Element = Self::Element>) -> Result<()>;
 }

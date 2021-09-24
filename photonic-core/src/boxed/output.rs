@@ -45,15 +45,15 @@ impl<Element> OutputDecl for BoxedOutputDecl<Element> {
 }
 
 trait AsBoxedOutput<Element> {
-    fn render(&mut self, render: &dyn Render<Element = Element>);
+    fn render(&mut self, render: &dyn Render<Element = Element>) -> Result<(), Error>;
 }
 
 impl<T, Element> AsBoxedOutput<Element> for T
 where
     T: Output<Element = Element>,
 {
-    fn render(&mut self, render: &dyn Render<Element = Element>) {
-        T::render(self, render);
+    fn render(&mut self, render: &dyn Render<Element = Element>) -> Result<(), Error> {
+        return T::render(self, render);
     }
 }
 
@@ -77,7 +77,7 @@ impl<Element> Output for BoxedOutput<Element> {
 
     const KIND: &'static str = "boxed";
 
-    fn render(&mut self, render: &dyn Render<Element = Self::Element>) {
-        self.output.render(render);
+    fn render(&mut self, render: &dyn Render<Element = Self::Element>) -> Result<(), Error>{
+        return self.output.render(render);
     }
 }

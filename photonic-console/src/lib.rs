@@ -36,7 +36,7 @@ impl Output for ConsoleOutput {
 
     const KIND: &'static str = "console";
 
-    fn render(&mut self, render: &dyn Render<Element = Self::Element>) {
+    fn render(&mut self, render: &dyn Render<Element = Self::Element>) -> Result<(), Error> {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
@@ -49,16 +49,17 @@ impl Output for ConsoleOutput {
                 r.convert::<u8>(),
                 g.convert::<u8>(),
                 b.convert::<u8>()
-            )
-            .unwrap();
+            )?;
         }
 
-        write!(&mut buf, "\x1b[0m").unwrap();
-        write!(&mut buf, "{}", if self.waterfall { "\n" } else { "\r" }).unwrap();
+        write!(&mut buf, "\x1b[0m")?;
+        write!(&mut buf, "{}", if self.waterfall { "\n" } else { "\r" })?;
 
         let out = stdout();
         let mut out = out.lock();
-        out.write_all(&buf).unwrap();
-        out.flush().unwrap();
+        out.write_all(&buf)?;
+        out.flush()?;
+
+        return Ok(());
     }
 }

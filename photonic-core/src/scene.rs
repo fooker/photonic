@@ -334,7 +334,7 @@ where
 
             // Render node tree to output
             let render = self.root.render();
-            self.output.render(&render);
+            self.output.render(&render)?;
 
             if let Some(stats) = stats.update(duration, fps) {
                 eprintln!(

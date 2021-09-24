@@ -10,6 +10,5 @@ anyhow = "1"
 palette = "0.5"
 cfg-if = "1.0.0"
 serde = "1.0.125"
-
-[target.'cfg(any(all(target_arch = "arm", target_os = "linux"), all(target_arch = "aarch64", target_os = "linux")))'.dependencies]
-rs_ws281x = "0.4.2"
+spidev = "0.4.1"
+bitvec = "0.22.3"
