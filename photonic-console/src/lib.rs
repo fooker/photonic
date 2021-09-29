@@ -5,9 +5,10 @@ use std::io::{stdout, Write};
 use anyhow::Error;
 use serde::Deserialize;
 
-use photonic_core::color::{RGBColor, palette::Component};
+use photonic_core::color::RGBColor;
 use photonic_core::node::Render;
 use photonic_core::output::{Output, OutputDecl};
+use photonic_core::color::palette::LinSrgb;
 
 #[derive(Deserialize)]
 pub struct ConsoleOutputDecl {
@@ -41,14 +42,12 @@ impl Output for ConsoleOutput {
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
         for i in 0..self.size {
-            let rgb: RGBColor = render.get(i);
+            let rgb: LinSrgb<u8> = render.get(i).into_format();
             let (r, g, b) = rgb.into_components();
             write!(
                 &mut buf,
                 "\x1b[48;2;{:03};{:03};{:03}m ",
-                r.convert::<u8>(),
-                g.convert::<u8>(),
-                b.convert::<u8>()
+                r, g, b
             )?;
         }
 

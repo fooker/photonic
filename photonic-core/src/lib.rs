@@ -16,6 +16,9 @@ pub mod utils;
 #[cfg(feature = "boxed")]
 pub mod boxed;
 
+// Re-export error types
+pub use anyhow::{Error, Result};
+
 pub use attr::{Attr, BoundAttrDecl, UnboundAttrDecl};
 pub use buffer::Buffer;
 pub use input::Input;

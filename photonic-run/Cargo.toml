@@ -6,7 +6,8 @@ edition = "2018"
 
 [dependencies]
 photonic-core = { path = "../photonic-core", features = ["boxed"]}
-photonic-effects = { path = "../photonic-effects" }
+photonic-effects = { path = "../photonic-effects", features = ["dyn"] }
+photonic-dyn = { path = "../photonic-dyn" }
 photonic-console = { path = "../photonic-console" }
 photonic-ledstrip = { path = "../photonic-ledstrip" }
 photonic-grpc = { path = "../photonic-grpc" }
@@ -29,5 +30,3 @@ rand = "0.8"
 
 clap = "3.0.0-beta.2"
 tokio = { version = "1.1.1", features = [ "macros", "rt-multi-thread" ] }
-
-csscolorparser = "0.4.0"

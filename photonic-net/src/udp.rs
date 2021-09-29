@@ -8,6 +8,7 @@ use photonic_core::buffer::Buffer;
 use photonic_core::color::{Black, RGBColor, palette::Component};
 use photonic_core::node::{Node, NodeDecl, RenderType};
 use photonic_core::scene::*;
+use photonic_core::color::palette::LinSrgb;
 
 pub trait Format {
     type Element: Copy;
@@ -21,7 +22,7 @@ impl Format for RGBColor {
     const ELEMENT_SIZE: usize = 3;
 
     fn load(b: &[u8]) -> Self::Element {
-        return RGBColor::from_components((b[0].convert(), b[1].convert(), b[2].convert()));
+        return LinSrgb::<u8>::from_components((b[0], b[1], b[2])).into_format();
     }
 }
 

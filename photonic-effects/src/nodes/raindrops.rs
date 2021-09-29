@@ -148,3 +148,35 @@ where
         return RaindropsRenderer(&self.raindrops);
     }
 }
+
+#[cfg(feature = "dyn")]
+pub mod model {
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::{color, NodeDecl};
+
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    pub struct RaindropsConfig {
+        pub rate: config::Attr,
+        pub color: config::Attr,
+        pub decay: config::Attr,
+    }
+
+    impl NodeModel for RaindropsConfig {
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(
+                super::RaindropsNodeDecl {
+                    rate: builder.bound_attr("rate", self.rate)?,
+                    color: builder.unbound_attr("color", self.color)?,
+                    decay: builder.bound_attr("decay", self.decay)?,
+                }
+                    .map(Into::into),
+            ));
+        }
+    }
+}

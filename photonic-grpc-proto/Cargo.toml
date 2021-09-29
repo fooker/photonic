@@ -5,11 +5,11 @@ authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
 
 [dependencies]
-tonic = { version = "0.4.0" }
-prost = "0.7"
-prost-types = "0.7"
+tonic = "0.5.2"
+prost = "0.8.0"
+prost-types = "0.8.0"
 anyhow = "1"
 
 [build-dependencies]
-tonic-build = { version = "0.4.0", features = ["prost"] }
-prost-build = { version = "0.7" }
+tonic-build = { version = "0.5.2", features = ["prost"] }
+prost-build = "0.8.0"

@@ -1,18 +1,21 @@
 #![allow(clippy::needless_return)]
 
+use std::ffi::OsStr;
 use std::fs::File;
 use std::net::SocketAddr;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use anyhow::{format_err, Error, Result};
+use anyhow::{Error, format_err, Result};
 use clap::Clap;
 
+use photonic_core::boxed::BoxedOutputDecl;
+use photonic_core::color::RGBColor;
 use photonic_core::Introspection;
-use photonic_run::builder::Builder;
-use photonic_run::config;
-use std::ffi::OsStr;
+use photonic_dyn::{config, registry};
+use photonic_dyn::builder::{Builder, NodeBuilder, OutputBuilder};
+use photonic_dyn::registry::{OutputRegistry, Factory};
 
 enum Interface {
     Grpc(SocketAddr),
@@ -81,11 +84,30 @@ struct Args {
     interface: Vec<Interface>,
 }
 
+struct Registry;
+
+impl OutputRegistry for Registry {
+    fn manufacture<Builder: OutputBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedOutputDecl<RGBColor>, Builder>>> {
+        return Some(match kind {
+            "console" => Factory::output::<photonic_console::ConsoleOutputDecl>(),
+            "led-strip-spi" => Factory::output::<photonic_ledstrip::LedStripOutputDecl<photonic_ledstrip::controllers::spi::SPI>>(),
+            _ => return None,
+        });
+    }
+}
+
+impl registry::Registry for Registry {
+    type Output = Self;
+    type Node = photonic_effects::registry::Registry;
+    type BoundAttr = photonic_effects::registry::Registry;
+    type UnboundAttr = photonic_effects::registry::Registry;
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
 
-    let scene: config::Scene = match args.scene.extension().and_then(OsStr::to_str) {
+    let config: config::Scene = match args.scene.extension().and_then(OsStr::to_str) {
         Some("yaml") | Some("yml") => serde_yaml::from_reader(File::open(&args.scene)?)?,
         Some("json") => serde_json::from_reader(File::open(&args.scene)?)?,
         Some("dhall") => serde_dhall::from_file(&args.scene).parse()?,
@@ -95,7 +117,12 @@ async fn main() -> Result<()> {
         _ => anyhow::bail!("Unknown scene file extension")
     };
 
-    let (main, introspection) = Builder::build(scene)?;
+    let mut builder = Builder::<Registry>::new(config.size);
+
+    let root = builder.node("root", config.root)?;
+    let output = builder.output(config.output)?;
+
+    let (main, introspection) = builder.finish().run(root, output)?;
 
     for interface in args.interface {
         interface.serve(introspection.clone())?

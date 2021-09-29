@@ -127,3 +127,35 @@ where
         };
     }
 }
+
+#[cfg(feature = "dyn")]
+pub mod model {
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::color;
+
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    pub struct PlasmaConfig {
+        pub range: config::Attr,
+        pub scale: config::Attr,
+        pub speed: config::Attr,
+    }
+
+    impl NodeModel for PlasmaConfig {
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(
+                super::PlasmaNodeDecl {
+                    range: builder.unbound_attr("range", self.range)?,
+                    scale: builder.unbound_attr("scale", self.scale)?,
+                    speed: builder.unbound_attr("speed", self.speed)?,
+                    phantom: Default::default(),
+                },
+            ));
+        }
+    }
+}

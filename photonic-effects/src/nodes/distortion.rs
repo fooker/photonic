@@ -108,3 +108,35 @@ where
         };
     }
 }
+
+#[cfg(feature = "dyn")]
+pub mod model {
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_core::boxed::BoxedNodeDecl;
+    use photonic_core::color;
+
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    pub struct DistortionConfig {
+        pub source: config::Node,
+        pub value: config::Attr,
+        pub distortion: String,
+    }
+
+    impl NodeModel for DistortionConfig {
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            // return Ok(BoxedNodeDecl::wrap(
+            //     super::DistortionNodeDecl {
+            //         source: builder.node("source", self.source)?,
+            //         value: builder.bound_attr("value", self.value)?,
+            //         distortion: todo!("Parse from expression language"),
+            //     },
+            // ));
+            todo!("Parse from expression language")
+        }
+    }
+}

@@ -96,3 +96,35 @@ where
         };
     }
 }
+
+#[cfg(feature = "dyn")]
+pub mod model {
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::{color, NodeDecl};
+
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    pub struct AlertConfig {
+        pub hue: config::Attr,
+        pub block: config::Attr,
+        pub speed: config::Attr,
+    }
+
+    impl NodeModel for AlertConfig {
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(
+                super::AlertNodeDecl {
+                    hue: builder.bound_attr("hue", self.hue)?,
+                    block: builder.bound_attr("block", self.block)?,
+                    speed: builder.unbound_attr("speed", self.speed)?,
+                }
+                    .map(Into::into),
+            ));
+        }
+    }
+}

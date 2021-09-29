@@ -22,12 +22,14 @@ pub struct FrameStats {
 }
 
 impl FrameStats {
-    pub fn update(&mut self, duration: Duration, reset_cycles: usize) -> Option<Self> {
+    pub fn update(&mut self, duration: Duration) {
         self.cycles += 1;
         self.sum_time += duration;
         self.min_time = Duration::min(self.min_time, duration);
         self.max_time = Duration::max(self.max_time, duration);
+    }
 
+    pub fn reset(&mut self, reset_cycles: usize) -> Option<Self> {
         if self.cycles >= reset_cycles {
             let old = self.clone();
 

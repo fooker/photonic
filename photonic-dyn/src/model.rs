@@ -1,76 +1,74 @@
 use anyhow::{format_err, Result};
-use serde::de::DeserializeOwned;
+use serde::{Deserialize, de::DeserializeOwned};
 use serde_json::Value;
 
-use photonic_core::attr::{AsFixedAttr, AttrValue, Bounded};
-use photonic_core::boxed::{
-    BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl,
-};
+use photonic_core::attr::{AsFixedAttr, AttrValue, Bounded, Range};
+use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl, Wrap};
 use photonic_core::color;
 use photonic_core::input::InputValue;
 use photonic_core::node::NodeDecl;
 use photonic_core::output::OutputDecl;
 
-use crate::builder::Builder;
+use crate::builder::{AttrBuilder, InputBuilder, NodeBuilder, OutputBuilder};
 use crate::config;
 
 pub trait OutputModel: DeserializeOwned {
-    fn assemble(self, builder: &mut Builder) -> Result<BoxedOutputDecl<color::RGBColor>>;
+    fn assemble(self, builder: &mut dyn OutputBuilder) -> Result<BoxedOutputDecl<color::RGBColor>>;
 }
 
 impl<T> OutputModel for T
-where
-    T: OutputDecl<Element = color::RGBColor> + DeserializeOwned + 'static,
+    where
+        T: OutputDecl<Element=color::RGBColor> + DeserializeOwned + 'static,
 {
-    fn assemble(self, _builder: &mut Builder) -> Result<BoxedOutputDecl<color::RGBColor>> {
+    fn assemble(self, _builder: &mut dyn OutputBuilder) -> Result<BoxedOutputDecl<color::RGBColor>> {
         return Ok(BoxedOutputDecl::wrap(self));
     }
 }
 
 pub trait NodeModel: DeserializeOwned {
-    fn assemble(self, builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>>;
+    fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>>;
 }
 
 impl<T> NodeModel for T
-where
-    T: NodeDecl + DeserializeOwned + 'static,
-    T::Element: Into<color::RGBColor>,
+    where
+        T: NodeDecl + DeserializeOwned + 'static,
+        T::Element: Into<color::RGBColor>,
 {
-    fn assemble(self, _builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+    fn assemble(self, _builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
         return Ok(BoxedNodeDecl::wrap(self.map(Into::into)));
     }
 }
 
 pub trait UnboundAttrModel<V>: DeserializeOwned
-where
-    V: AttrValueFactory,
+    where
+        V: AttrValueFactory,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<BoxedUnboundAttrDecl<V>>;
+    fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedUnboundAttrDecl<V>>;
 }
 
 pub trait BoundAttrModel<V>: DeserializeOwned
-where
-    V: AttrValueFactory + Bounded,
+    where
+        V: AttrValueFactory + Bounded,
 {
-    fn assemble(self, builder: &mut Builder) -> Result<BoxedBoundAttrDecl<V>>;
+    fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>>;
 }
 
 pub trait UnboundAttrFactory: AttrValueFactory {
     fn make_input(
-        builder: &mut Builder,
+        builder: &mut impl InputBuilder,
         input: config::Input,
         initial: Value,
     ) -> Result<BoxedUnboundAttrDecl<Self>>;
-    fn make_fixed(builder: &mut Builder, value: Value) -> Result<BoxedUnboundAttrDecl<Self>>;
+    fn make_fixed(builder: &mut impl InputBuilder, value: Value) -> Result<BoxedUnboundAttrDecl<Self>>;
 }
 
 pub trait BoundAttrFactory: AttrValueFactory + Bounded {
     fn make_input(
-        builder: &mut Builder,
+        builder: &mut impl InputBuilder,
         input: config::Input,
         initial: Value,
     ) -> Result<BoxedBoundAttrDecl<Self>>;
-    fn make_fixed(builder: &mut Builder, value: Value) -> Result<BoxedBoundAttrDecl<Self>>;
+    fn make_fixed(builder: &mut impl InputBuilder, value: Value) -> Result<BoxedBoundAttrDecl<Self>>;
 }
 
 pub trait AttrValueFactory: AttrValue + Sized {
@@ -104,11 +102,11 @@ impl AttrValueFactory for f64 {
 }
 
 impl<T> UnboundAttrFactory for T
-where
-    T: AttrValueFactory,
+    where
+        T: AttrValueFactory,
 {
     default fn make_input(
-        _builder: &mut Builder,
+        _builder: &mut impl InputBuilder,
         _input: config::Input,
         _initial: Value,
     ) -> Result<BoxedUnboundAttrDecl<Self>> {
@@ -119,7 +117,7 @@ where
     }
 
     default fn make_fixed(
-        _builder: &mut Builder,
+        _builder: &mut impl InputBuilder,
         value: Value,
     ) -> Result<BoxedUnboundAttrDecl<Self>> {
         let value: Self::Model = serde_json::from_value(value)?;
@@ -129,11 +127,11 @@ where
 }
 
 impl<T> BoundAttrFactory for T
-where
-    T: AttrValueFactory + Bounded,
+    where
+        T: AttrValueFactory + Bounded,
 {
     default fn make_input(
-        _builder: &mut Builder,
+        _builder: &mut impl InputBuilder,
         _input: config::Input,
         _initial: Value,
     ) -> Result<BoxedBoundAttrDecl<Self>> {
@@ -144,7 +142,7 @@ where
     }
 
     default fn make_fixed(
-        _builder: &mut Builder,
+        _builder: &mut impl InputBuilder,
         value: Value,
     ) -> Result<BoxedBoundAttrDecl<Self>> {
         let value: Self::Model = serde_json::from_value(value)?;
@@ -154,11 +152,11 @@ where
 }
 
 impl<T> UnboundAttrFactory for T
-where
-    T: AttrValueFactory + InputValue,
+    where
+        T: AttrValueFactory + InputValue,
 {
     fn make_input(
-        builder: &mut Builder,
+        builder: &mut impl InputBuilder,
         input: config::Input,
         initial: Value,
     ) -> Result<BoxedUnboundAttrDecl<Self>> {
@@ -172,11 +170,11 @@ where
 }
 
 impl<T> BoundAttrFactory for T
-where
-    T: AttrValueFactory + Bounded + InputValue,
+    where
+        T: AttrValueFactory + Bounded + InputValue,
 {
     fn make_input(
-        builder: &mut Builder,
+        builder: &mut impl InputBuilder,
         input: config::Input,
         initial: Value,
     ) -> Result<BoxedBoundAttrDecl<Self>> {
@@ -186,5 +184,48 @@ where
         let initial = Self::assemble(initial)?;
 
         return Ok(BoxedBoundAttrDecl::wrap(input.attr(initial)));
+    }
+}
+
+#[derive(Deserialize)]
+pub struct RangeModel<V>(pub V::Model, pub V::Model)
+    where
+        V: AttrValueFactory;
+
+impl<V> AttrValueFactory for Range<V>
+    where
+        V: AttrValueFactory,
+{
+    type Model = RangeModel<V>;
+
+    fn assemble(model: Self::Model) -> Result<Self> {
+        return Ok(Range(V::assemble(model.0)?, V::assemble(model.1)?));
+    }
+}
+
+impl AttrValueFactory for color::RGBColor {
+    type Model = String;
+
+    fn assemble(model: Self::Model) -> Result<Self> {
+        let color = csscolorparser::parse(&model)?.to_lrgba();
+        return Ok(color::RGBColor::new(color.0, color.1, color.2));
+    }
+}
+
+impl AttrValueFactory for color::HSVColor {
+    type Model = String;
+
+    fn assemble(model: Self::Model) -> Result<Self> {
+        let color = csscolorparser::parse(&model)?.to_hsva();
+        return Ok(color::HSVColor::new(color.0, color.1, color.2));
+    }
+}
+
+impl AttrValueFactory for color::HSLColor {
+    type Model = String;
+
+    fn assemble(model: Self::Model) -> Result<Self> {
+        let color = csscolorparser::parse(&model)?.to_hsla();
+        return Ok(color::HSLColor::new(color.0, color.1, color.2));
     }
 }

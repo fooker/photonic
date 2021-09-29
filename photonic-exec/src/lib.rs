@@ -12,6 +12,7 @@ use shared_memory::{ReadRaw, SharedMemCast, SharedMemRaw};
 use photonic_core::color::{*, palette::Component};
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::*;
+use photonic_core::color::palette::LinSrgb;
 
 #[repr(C, packed)]
 struct Element {
@@ -31,11 +32,7 @@ impl<'a> Render for ExecRenderer<'a> {
 
     fn get(&self, index: usize) -> Self::Element {
         let element = &unsafe { self.shm.get_raw_slice::<Element>() }[index];
-        return Self::Element::from_components((
-            element.r.convert(),
-            element.g.convert(),
-            element.b.convert(),
-        ));
+        return LinSrgb::<u8>::from_components((element.r, element.g, element.b)).into_format();
     }
 }
 

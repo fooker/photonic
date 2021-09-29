@@ -62,3 +62,29 @@ where
         return SolidRenderer(&self.solid);
     }
 }
+
+#[cfg(feature = "dyn")]
+pub mod model {
+    use photonic_dyn::model::{NodeModel, AttrValueFactory};
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::color;
+
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    pub struct SolidConfig {
+        pub solid: String,
+    }
+
+    impl NodeModel for SolidConfig {
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(
+                super::SolidNodeDecl {
+                    solid: AttrValueFactory::assemble(self.solid)?,
+                },
+            ));
+        }
+    }
+}

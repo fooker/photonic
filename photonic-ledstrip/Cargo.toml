@@ -7,8 +7,8 @@ edition = "2018"
 [dependencies]
 photonic-core = {path="../photonic-core"}
 anyhow = "1"
-palette = "0.5"
+palette = "0.6"
 cfg-if = "1.0.0"
 serde = "1.0.125"
-spidev = "0.4.1"
+spidev = "0.5.0"
 bitvec = "0.22.3"

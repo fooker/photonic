@@ -101,3 +101,32 @@ where
         };
     }
 }
+
+#[cfg(feature = "dyn")]
+pub mod model {
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::color;
+
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    pub struct RotationConfig {
+        pub source: config::Node,
+        pub speed: config::Attr,
+    }
+
+    impl NodeModel for RotationConfig {
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(
+                super::RotationNodeDecl {
+                    source: builder.node("source", self.source)?,
+                    speed: builder.unbound_attr("speed", self.speed)?,
+                },
+            ));
+        }
+    }
+}

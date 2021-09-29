@@ -116,3 +116,64 @@ where
         });
     }
 }
+
+#[cfg(feature = "dyn")]
+pub mod model {
+
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    use photonic_core::attr::Bounded;
+    use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedUnboundAttrDecl, Wrap};
+    use photonic_dyn::builder::AttrBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::{AttrValueFactory, BoundAttrModel, UnboundAttrModel};
+
+    #[derive(Deserialize)]
+    pub struct SequenceModel<V>
+        where
+            V: AttrValueFactory,
+    {
+        pub values: Vec<V::Model>,
+        pub next: Option<config::Input>,
+        pub prev: Option<config::Input>,
+    }
+
+    impl<V> UnboundAttrModel<V> for SequenceModel<V>
+        where
+            V: AttrValueFactory,
+    {
+        fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedUnboundAttrDecl<V>> {
+            return Ok(BoxedUnboundAttrDecl::wrap(
+                super::SequenceDecl {
+                    values: self
+                        .values
+                        .into_iter()
+                        .map(V::assemble)
+                        .collect::<Result<Vec<_>>>()?,
+                    next: self.next.map(|i| builder.input(i)).transpose()?,
+                    prev: self.prev.map(|i| builder.input(i)).transpose()?,
+                },
+            ));
+        }
+    }
+
+    impl<V> BoundAttrModel<V> for SequenceModel<V>
+        where
+            V: AttrValueFactory + Bounded,
+    {
+        fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
+            return Ok(BoxedBoundAttrDecl::wrap(
+                super::SequenceDecl {
+                    values: self
+                        .values
+                        .into_iter()
+                        .map(V::assemble)
+                        .collect::<Result<Vec<_>>>()?,
+                    next: self.next.map(|i| builder.input(i)).transpose()?,
+                    prev: self.prev.map(|i| builder.input(i)).transpose()?,
+                },
+            ));
+        }
+    }
+}

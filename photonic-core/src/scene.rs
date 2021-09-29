@@ -9,6 +9,7 @@ use crate::interface::{AttrInfo, InputInfo, Introspection, NodeInfo};
 use crate::node::{MapNodeDecl, Node, NodeDecl};
 use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
+use std::time::Duration;
 
 pub struct SceneBuilder {
     /// The size of the scene
@@ -297,15 +298,13 @@ impl Scene {
         // Materialize the node tree using a builder tracking the info object creation
         let (root_info, root_node) = builder.node(root)?;
 
-        // Materialize the output
-        let output = decl.materialize(self.size())?;
-
         let registry = Introspection::from(Arc::new(root_info));
 
         return Ok((
             Loop {
                 root: root_node,
-                output,
+                output: decl.materialize(self.size())?,
+                stats: FrameStats::default(),
             },
             registry,
         ));
@@ -315,6 +314,8 @@ impl Scene {
 pub struct Loop<Root, Output> {
     root: Root,
     output: Output,
+
+    stats: FrameStats,
 }
 
 impl<Root, Output> Loop<Root, Output>
@@ -322,27 +323,31 @@ where
     Root: self::Node,
     Output: self::Output<Element = Root::Element>,
 {
+    pub fn frame(&mut self, duration: Duration) -> Result<()> {
+        self.root.update(duration);
+
+        // Render node tree to output
+        let render = self.root.render();
+        self.output.render(&render)?;
+
+        self.stats.update(duration);
+
+        return Ok(());
+    }
+
     pub async fn run(mut self, fps: usize) -> Result<()> {
         let mut timer = FrameTimer::new(fps);
-
-        let mut stats = FrameStats::default();
 
         loop {
             let duration = timer.next().await;
 
-            self.root.update(duration);
+            self.frame(duration)?;
 
-            // Render node tree to output
-            let render = self.root.render();
-            self.output.render(&render)?;
-
-            if let Some(stats) = stats.update(duration, fps) {
-                eprintln!(
-                    "Stats: min={:3.2}, max={:3.2}, avg={:3.2}",
-                    stats.min_fps(),
-                    stats.max_fps(),
-                    stats.avg_fps()
-                )
+            if let Some(stats) = self.stats.reset(fps) {
+                eprintln!("Stats: min={:3.2}, max={:3.2}, avg={:3.2}",
+                          stats.min_fps(),
+                          stats.max_fps(),
+                          stats.avg_fps());
             }
         }
     }

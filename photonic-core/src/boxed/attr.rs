@@ -4,6 +4,7 @@ use anyhow::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl, Update};
 use crate::scene::AttrBuilder;
+use crate::boxed::Wrap;
 
 trait AsBoxedUnboundAttrDecl<V> {
     fn materialize(self: Box<Self>, builder: &mut AttrBuilder) -> Result<BoxedAttr<V>, Error>;
@@ -51,28 +52,24 @@ pub struct BoxedBoundAttrDecl<V> {
     decl: Box<dyn AsBoxedBoundAttrDecl<V>>,
 }
 
-impl<V> BoxedUnboundAttrDecl<V>
+impl<V, Decl> Wrap<Decl> for BoxedUnboundAttrDecl<V>
 where
     V: AttrValue,
+    Decl: UnboundAttrDecl<V> + 'static,
 {
-    pub fn wrap<Decl>(decl: Decl) -> Self
-    where
-        Decl: UnboundAttrDecl<V> + 'static,
-    {
+    fn wrap(decl: Decl) -> Self {
         return Self {
             decl: Box::new(decl),
         };
     }
 }
 
-impl<V> BoxedBoundAttrDecl<V>
+impl<V, Decl> Wrap<Decl> for  BoxedBoundAttrDecl<V>
 where
     V: AttrValue + Bounded,
+    Decl: BoundAttrDecl<V> + 'static,
 {
-    pub fn wrap<Decl>(decl: Decl) -> Self
-    where
-        Decl: BoundAttrDecl<V> + 'static,
-    {
+    fn wrap(decl: Decl) -> Self {
         return Self {
             decl: Box::new(decl),
         };
@@ -131,14 +128,12 @@ pub struct BoxedAttr<V> {
     attr: Box<dyn AsBoxedAttr<V>>,
 }
 
-impl<V> BoxedAttr<V>
+impl<V, Attr> Wrap<Attr> for BoxedAttr<V>
 where
     V: AttrValue,
+    Attr: self::Attr<V> + 'static,
 {
-    pub fn wrap<Attr>(attr: Attr) -> Self
-    where
-        Attr: self::Attr<V> + 'static,
-    {
+    fn wrap(attr: Attr) -> Self {
         return Self {
             attr: Box::new(attr),
         };

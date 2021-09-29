@@ -77,3 +77,52 @@ where
         });
     }
 }
+
+#[cfg(feature = "dyn")]
+pub mod model {
+
+    use anyhow::{format_err, Result};
+    use serde::Deserialize;
+
+    use photonic_core::attr::Bounded;
+    use photonic_core::boxed::{Wrap, BoxedBoundAttrDecl};
+    use photonic_dyn::builder::AttrBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::{AttrValueFactory, BoundAttrModel};
+    use num::Num;
+
+    #[derive(Deserialize)]
+    pub struct LooperModel<V>
+        where
+            V: AttrValueFactory,
+    {
+        pub step: V::Model,
+        pub trigger: config::Input,
+    }
+
+    impl<V> BoundAttrModel<V> for LooperModel<V>
+        where
+            V: AttrValueFactory + Bounded,
+    {
+        default fn assemble(self, _builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
+            return Err(format_err!(
+            "Looper is not supported for Attributes of Type {}",
+            std::any::type_name::<V>()
+        ));
+        }
+    }
+
+    impl<V> BoundAttrModel<V> for LooperModel<V>
+        where
+            V: AttrValueFactory + Bounded + Num + PartialOrd,
+    {
+        fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
+            return Ok(BoxedBoundAttrDecl::wrap(
+                super::LooperDecl {
+                    step: V::assemble(self.step)?,
+                    trigger: builder.input(self.trigger)?,
+                },
+            ));
+        }
+    }
+}

@@ -1,0 +1,19 @@
+[package]
+name = "photonic-dyn"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+photonic-core = { path = "../photonic-core", features = ["boxed"]}
+
+serde = { version = "1.0.123", features = ["derive"] }
+serde_json = "1.0.68"
+
+humantime-serde = "1"
+
+anyhow = "1"
+
+csscolorparser = "0.5.0"
+
+num = "0.4"
+rand = "0.8"

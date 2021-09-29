@@ -82,3 +82,32 @@ where
         return &self.buffer;
     }
 }
+
+#[cfg(feature = "dyn")]
+pub mod model {
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::color;
+
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    pub struct AfterglowConfig {
+        pub source: config::Node,
+        pub decay: config::Attr,
+    }
+
+    impl NodeModel for AfterglowConfig {
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(
+                super::AfterglowNodeDecl {
+                    source: builder.node("source", self.source)?,
+                    decay: builder.bound_attr("decay", self.decay)?,
+                },
+            ));
+        }
+    }
+}

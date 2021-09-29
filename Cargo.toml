@@ -11,5 +11,6 @@ members = [
     "photonic-grpc-proto",
     "photonic-cli",
     "photonic-run",
+    "photonic-dyn",
     "examples",
 ]
