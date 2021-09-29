@@ -57,7 +57,9 @@ impl<Solid> Node for SolidNode<Solid>
 
     type Element = Solid::Element;
 
-    fn update(&mut self, _duration: Duration) {}
+    fn update(&mut self, duration: Duration) {
+        self.solid.update(duration);
+    }
 
     fn render(&mut self) -> <Self as RenderType<Self>>::Render {
         return SolidRenderer(self.solid.get());
