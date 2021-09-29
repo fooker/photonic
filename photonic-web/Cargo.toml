@@ -1,0 +1,20 @@
+[package]
+name = "photonic-web-canvas"
+version = "0.1.0"
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+js-sys = "0.3.55"
+wasm-bindgen = { version = "0.2.78", features = ["serde-serialize"] }
+web-sys = { version = "0.3.55", features = ['CanvasRenderingContext2d', 'Document', 'Element', 'HtmlCanvasElement', 'Window'] }
+
+photonic-core = { path = "../photonic-core", features = ["boxed"] }
+photonic-effects = { path = "../photonic-effects", features = ["dyn"] }
+photonic-dyn = { path = "../photonic-dyn" }
+
+anyhow = "1.0.44"
+
+getrandom = { version = "0.2", features = ["js"] }
