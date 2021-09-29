@@ -61,9 +61,9 @@ pub struct LarsonNode<Hue, Speed, Width> {
 
 impl<Hue, Speed, Width> NodeDecl for LarsonNodeDecl<Hue, Speed, Width>
 where
-    Hue: BoundAttrDecl<f64>,
-    Speed: UnboundAttrDecl<f64>,
-    Width: BoundAttrDecl<f64>,
+    Hue: BoundAttrDecl<Element=f64>,
+    Speed: UnboundAttrDecl<Element=f64>,
+    Width: BoundAttrDecl<Element=f64>,
 {
     type Element = HSVColor;
     type Target = LarsonNode<Hue::Target, Speed::Target, Width::Target>;
@@ -82,18 +82,18 @@ where
 
 impl<Hue, Speed, Width> RenderType<'_, Self> for LarsonNode<Hue, Speed, Width>
 where
-    Hue: Attr<f64>,
-    Speed: Attr<f64>,
-    Width: Attr<f64>,
+    Hue: Attr<Element=f64>,
+    Speed: Attr<Element=f64>,
+    Width: Attr<Element=f64>,
 {
     type Render = LarsonRenderer;
 }
 
 impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
 where
-    Hue: Attr<f64>,
-    Speed: Attr<f64>,
-    Width: Attr<f64>,
+    Hue: Attr<Element=f64>,
+    Speed: Attr<Element=f64>,
+    Width: Attr<Element=f64>,
 {
     const KIND: &'static str = "larson";
 

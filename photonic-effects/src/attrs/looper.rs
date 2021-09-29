@@ -20,10 +20,11 @@ where
     trigger: Input<()>,
 }
 
-impl<V> Attr<V> for Looper<V>
+impl<V> Attr for Looper<V>
 where
     V: AttrValue + Num,
 {
+    type Element = V;
     const KIND: &'static str = "looper";
 
     fn get(&self) -> V {
@@ -48,10 +49,11 @@ where
     pub trigger: InputHandle<()>,
 }
 
-impl<V> BoundAttrDecl<V> for LooperDecl<V>
+impl<V> BoundAttrDecl for LooperDecl<V>
 where
     V: AttrValue + Bounded + Num + PartialOrd,
 {
+    type Element = V;
     type Target = Looper<V>;
     fn materialize(
         self,

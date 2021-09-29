@@ -40,9 +40,9 @@ pub struct AlertNode<Hue, Block, Speed> {
 
 impl<Hue, Block, Speed> NodeDecl for AlertNodeDecl<Hue, Block, Speed>
 where
-    Hue: BoundAttrDecl<f64>,
-    Block: BoundAttrDecl<i64>,
-    Speed: UnboundAttrDecl<f64>,
+    Hue: BoundAttrDecl<Element=f64>,
+    Block: BoundAttrDecl<Element=i64>,
+    Speed: UnboundAttrDecl<Element=f64>,
 {
     type Element = HSVColor;
     type Target = AlertNode<Hue::Target, Block::Target, Speed::Target>;
@@ -60,18 +60,18 @@ where
 
 impl<'a, Hue, Block, Speed> RenderType<'a, Self> for AlertNode<Hue, Block, Speed>
 where
-    Hue: Attr<f64>,
-    Block: Attr<i64>,
-    Speed: Attr<f64>,
+    Hue: Attr<Element=f64>,
+    Block: Attr<Element=i64>,
+    Speed: Attr<Element=f64>,
 {
     type Render = AlertRenderer;
 }
 
 impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
 where
-    Hue: Attr<f64>,
-    Block: Attr<i64>,
-    Speed: Attr<f64>,
+    Hue: Attr<Element=f64>,
+    Block: Attr<Element=i64>,
+    Speed: Attr<Element=f64>,
 {
     const KIND: &'static str = "alert";
 

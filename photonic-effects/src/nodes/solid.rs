@@ -2,87 +2,89 @@ use std::time::Duration;
 
 use anyhow::Error;
 
+use photonic_core::attr::AttrValue;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::NodeBuilder;
+use photonic_core::{UnboundAttrDecl, Attr};
 
-pub struct SolidRenderer<'a, E>(&'a E);
+pub struct SolidRenderer<E>(E);
 
-impl<'a, E> Render for SolidRenderer<'a, E>
-where
-    E: Copy,
+impl<E> Render for SolidRenderer<E>
+    where
+        E: Copy,
 {
     type Element = E;
 
     fn get(&self, _index: usize) -> Self::Element {
-        return *self.0;
+        return self.0;
     }
 }
 
-pub struct SolidNodeDecl<E>
-where
-    E: Clone,
-{
-    pub solid: E,
+pub struct SolidNodeDecl<Solid> {
+    pub solid: Solid,
 }
 
-impl<E> NodeDecl for SolidNodeDecl<E>
-where
-    E: Copy + 'static,
+impl<Solid> NodeDecl for SolidNodeDecl<Solid>
+    where
+        Solid: UnboundAttrDecl,
 {
-    type Element = E;
-    type Target = SolidNode<Self::Element>;
+    type Element = Solid::Element;
+    type Target = SolidNode<Solid::Target>;
 
-    fn materialize(self, _size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
-        return Ok(Self::Target { solid: self.solid });
+    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+        return Ok(Self::Target {
+            solid: builder.unbound_attr("solid", self.solid)?,
+        });
     }
 }
 
-pub struct SolidNode<E> {
-    solid: E,
+pub struct SolidNode<Solid> {
+    solid: Solid,
 }
 
-impl<'a, E> RenderType<'a, Self> for SolidNode<E>
-where
-    E: Copy + 'static,
+impl<'a, Solid> RenderType<'a, Self> for SolidNode<Solid>
+    where
+        Solid: Attr,
 {
-    type Render = SolidRenderer<'a, E>;
+    type Render = SolidRenderer<Solid::Element>;
 }
 
-impl<E> Node for SolidNode<E>
-where
-    E: Copy + 'static,
+impl<Solid> Node for SolidNode<Solid>
+    where
+        Solid: Attr,
 {
     const KIND: &'static str = "solid";
 
-    type Element = E;
+    type Element = Solid::Element;
 
     fn update(&mut self, _duration: Duration) {}
 
     fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return SolidRenderer(&self.solid);
+        return SolidRenderer(self.solid.get());
     }
 }
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::model::{NodeModel, AttrValueFactory};
-    use photonic_dyn::builder::NodeBuilder;
-    use photonic_core::boxed::{BoxedNodeDecl, Wrap};
-    use photonic_core::color;
-
     use anyhow::Result;
     use serde::Deserialize;
 
+    use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::color;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::model::{AttrValueFactory, NodeModel};
+    use photonic_dyn::config;
+
     #[derive(Deserialize)]
     pub struct SolidConfig {
-        pub solid: String,
+        pub solid: config::Attr,
     }
 
     impl NodeModel for SolidConfig {
         fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
             return Ok(BoxedNodeDecl::wrap(
                 super::SolidNodeDecl {
-                    solid: AttrValueFactory::assemble(self.solid)?,
+                    solid: builder.unbound_attr("solid", self.solid)?,
                 },
             ));
         }

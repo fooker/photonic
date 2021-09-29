@@ -49,10 +49,11 @@ where
     trigger: Input<()>,
 }
 
-impl<V> Attr<V> for Button<V>
+impl<V> Attr for Button<V>
 where
     V: AttrValue,
 {
+    type Element = V;
     const KIND: &'static str = "button";
 
     fn get(&self) -> V {
@@ -92,10 +93,11 @@ where
     pub trigger: InputHandle<()>,
 }
 
-impl<V> BoundAttrDecl<V> for ButtonDecl<V>
+impl<V> BoundAttrDecl for ButtonDecl<V>
 where
     V: AttrValue + Bounded,
 {
+    type Element = V;
     type Target = Button<V>;
     fn materialize(
         self,
@@ -112,10 +114,11 @@ where
     }
 }
 
-impl<V> UnboundAttrDecl<V> for ButtonDecl<V>
+impl<V> UnboundAttrDecl for ButtonDecl<V>
 where
     V: AttrValue,
 {
+    type Element = V;
     type Target = Button<V>;
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         return Ok(Button {

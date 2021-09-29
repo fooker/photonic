@@ -42,14 +42,13 @@ where
     }
 }
 
-pub trait Attr<V>
-where
-    V: AttrValue,
-{
+pub trait Attr {
+    type Element: AttrValue;
+
     const KIND: &'static str;
 
-    fn get(&self) -> V;
-    fn update(&mut self, duration: Duration) -> Update<V>;
+    fn get(&self) -> Self::Element;
+    fn update(&mut self, duration: Duration) -> Update<Self::Element>;
 }
 
 /// Inclusive on both sides
@@ -142,37 +141,37 @@ where
     }
 }
 
-pub trait UnboundAttrDecl<V>
-where
-    V: AttrValue,
-{
-    type Target: Attr<V> + 'static;
+pub trait UnboundAttrDecl {
+    type Element: AttrValue;
+    type Target: Attr<Element = Self::Element> + 'static;
+
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target>;
 }
 
-pub trait BoundAttrDecl<V>
-where
-    V: AttrValue + Bounded,
-{
-    type Target: Attr<V> + 'static;
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target>;
+pub trait BoundAttrDecl {
+    type Element: AttrValue + Bounded;
+    type Target: Attr<Element = Self::Element> + 'static;
+
+    fn materialize(self, bounds: Bounds<Self::Element>, builder: &mut AttrBuilder) -> Result<Self::Target>;
 }
 
 pub struct FixedAttr<V>(V)
 where
     V: AttrValue;
 
-impl<V> Attr<V> for FixedAttr<V>
+impl<V> Attr for FixedAttr<V>
 where
     V: AttrValue,
 {
+    type Element = V;
+
     const KIND: &'static str = "fixed";
 
-    fn get(&self) -> V {
+    fn get(&self) -> Self::Element {
         return self.0;
     }
 
-    fn update(&mut self, _duration: Duration) -> Update<V> {
+    fn update(&mut self, _duration: Duration) -> Update<Self::Element> {
         return Update::Idle(self.0);
     }
 }
@@ -181,24 +180,26 @@ pub struct FixedAttrDecl<V>(V)
 where
     V: AttrValue;
 
-impl<V> UnboundAttrDecl<V> for FixedAttrDecl<V>
+impl<V> UnboundAttrDecl for FixedAttrDecl<V>
 where
     V: AttrValue,
 {
-    type Target = FixedAttr<V>;
+    type Element = V;
+    type Target = FixedAttr<Self::Element>;
 
     fn materialize(self, _builder: &mut AttrBuilder) -> Result<Self::Target> {
         return Ok(FixedAttr(self.0));
     }
 }
 
-impl<V> BoundAttrDecl<V> for FixedAttrDecl<V>
+impl<V> BoundAttrDecl for FixedAttrDecl<V>
 where
     V: AttrValue + Bounded,
 {
-    type Target = FixedAttr<V>;
+    type Element = V;
+    type Target = FixedAttr<Self::Element>;
 
-    fn materialize(self, bounds: Bounds<V>, _builder: &mut AttrBuilder) -> Result<Self::Target> {
+    fn materialize(self, bounds: Bounds<Self::Element>, _builder: &mut AttrBuilder) -> Result<Self::Target> {
         let value = bounds.ensure(self.0)?;
 
         return Ok(FixedAttr(value));
@@ -276,11 +277,12 @@ where
     }
 }
 
-impl<V, T> BoundAttrDecl<V> for Box<T>
+impl<V, T> BoundAttrDecl for Box<T>
 where
     V: AttrValue + Bounded,
-    T: BoundAttrDecl<V>,
+    T: BoundAttrDecl<Element=V>,
 {
+    type Element = V;
     type Target = T::Target;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target> {
@@ -288,11 +290,12 @@ where
     }
 }
 
-impl<V, T> UnboundAttrDecl<V> for Box<T>
+impl<V, T> UnboundAttrDecl for Box<T>
 where
     V: AttrValue,
-    T: UnboundAttrDecl<V>,
+    T: UnboundAttrDecl<Element=V>,
 {
+    type Element = V;
     type Target = T::Target;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target> {

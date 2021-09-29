@@ -20,7 +20,7 @@ trait AsBoxedBoundAttrDecl<V> {
 
 impl<T, V> AsBoxedUnboundAttrDecl<V> for T
 where
-    T: UnboundAttrDecl<V>,
+    T: UnboundAttrDecl<Element=V>,
     T::Target: 'static,
     V: AttrValue,
 {
@@ -31,7 +31,7 @@ where
 
 impl<T, V> AsBoxedBoundAttrDecl<V> for T
 where
-    T: BoundAttrDecl<V>,
+    T: BoundAttrDecl<Element=V>,
     T::Target: 'static,
     V: AttrValue + Bounded,
 {
@@ -55,7 +55,7 @@ pub struct BoxedBoundAttrDecl<V> {
 impl<V, Decl> Wrap<Decl> for BoxedUnboundAttrDecl<V>
 where
     V: AttrValue,
-    Decl: UnboundAttrDecl<V> + 'static,
+    Decl: UnboundAttrDecl<Element=V> + 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -67,7 +67,7 @@ where
 impl<V, Decl> Wrap<Decl> for  BoxedBoundAttrDecl<V>
 where
     V: AttrValue + Bounded,
-    Decl: BoundAttrDecl<V> + 'static,
+    Decl: BoundAttrDecl<Element=V> + 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -76,10 +76,11 @@ where
     }
 }
 
-impl<V> UnboundAttrDecl<V> for BoxedUnboundAttrDecl<V>
+impl<V> UnboundAttrDecl for BoxedUnboundAttrDecl<V>
 where
     V: AttrValue,
 {
+    type Element = V;
     type Target = BoxedAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
@@ -87,10 +88,11 @@ where
     }
 }
 
-impl<V> BoundAttrDecl<V> for BoxedBoundAttrDecl<V>
+impl<V> BoundAttrDecl for BoxedBoundAttrDecl<V>
 where
     V: AttrValue + Bounded,
 {
+    type Element = V;
     type Target = BoxedAttr<V>;
 
     fn materialize(
@@ -112,7 +114,7 @@ where
 
 impl<T, V> AsBoxedAttr<V> for T
 where
-    T: Attr<V>,
+    T: Attr<Element=V>,
     V: AttrValue,
 {
     fn get(&self) -> V {
@@ -131,7 +133,7 @@ pub struct BoxedAttr<V> {
 impl<V, Attr> Wrap<Attr> for BoxedAttr<V>
 where
     V: AttrValue,
-    Attr: self::Attr<V> + 'static,
+    Attr: self::Attr<Element=V> + 'static,
 {
     fn wrap(attr: Attr) -> Self {
         return Self {
@@ -140,10 +142,12 @@ where
     }
 }
 
-impl<V> Attr<V> for BoxedAttr<V>
+impl<V> Attr for BoxedAttr<V>
 where
     V: AttrValue,
 {
+    type Element = V;
+
     const KIND: &'static str = "boxed";
 
     fn get(&self) -> V {

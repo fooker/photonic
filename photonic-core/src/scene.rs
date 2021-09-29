@@ -61,15 +61,14 @@ impl<'b> NodeBuilder<'b> {
         return Ok(node);
     }
 
-    pub fn bound_attr<V, Attr>(
+    pub fn bound_attr<Attr>(
         &mut self,
         name: &str,
         decl: Attr,
-        bounds: impl Into<Bounds<V>>,
+        bounds: impl Into<Bounds<Attr::Element>>,
     ) -> Result<Attr::Target>
     where
-        V: AttrValue + Bounded,
-        Attr: BoundAttrDecl<V>,
+        Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
 
@@ -77,7 +76,7 @@ impl<'b> NodeBuilder<'b> {
             node: self,
             info: AttrInfo {
                 kind: Attr::Target::KIND,
-                value_type: V::TYPE,
+                value_type: Attr::Element::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },
@@ -91,16 +90,15 @@ impl<'b> NodeBuilder<'b> {
         return Ok(attr);
     }
 
-    pub fn unbound_attr<V, Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target>
+    pub fn unbound_attr<Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target>
     where
-        V: AttrValue,
-        Attr: UnboundAttrDecl<V>,
+        Attr: UnboundAttrDecl,
     {
         let mut builder = AttrBuilder {
             node: self,
             info: AttrInfo {
                 kind: Attr::Target::KIND,
-                value_type: V::TYPE,
+                value_type: Attr::Element::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },
@@ -123,15 +121,14 @@ pub struct AttrBuilder<'b, 'p> {
 }
 
 impl<'b, 'p> AttrBuilder<'b, 'p> {
-    pub fn bound_attr<V, Attr>(
+    pub fn bound_attr<Attr>(
         &mut self,
         name: &str,
         decl: Attr,
-        bounds: impl Into<Bounds<V>>,
+        bounds: impl Into<Bounds<Attr::Element>>,
     ) -> Result<Attr::Target>
     where
-        V: AttrValue + Bounded,
-        Attr: BoundAttrDecl<V>,
+        Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
 
@@ -139,7 +136,7 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
             node: self.node,
             info: AttrInfo {
                 kind: Attr::Target::KIND,
-                value_type: V::TYPE,
+                value_type: Attr::Element::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },
@@ -153,16 +150,15 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
         return Ok(attr);
     }
 
-    pub fn unbound_attr<V, Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target>
+    pub fn unbound_attr<Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target>
     where
-        V: AttrValue,
-        Attr: UnboundAttrDecl<V>,
+        Attr: UnboundAttrDecl,
     {
         let mut builder = AttrBuilder {
             node: self.node,
             info: AttrInfo {
                 kind: Attr::Target::KIND,
-                value_type: V::TYPE,
+                value_type: Attr::Element::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },

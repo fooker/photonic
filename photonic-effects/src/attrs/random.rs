@@ -6,6 +6,7 @@ use rand::{distributions::{Distribution, Uniform, uniform::SampleUniform}, rngs:
 use photonic_core::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, Update};
 use photonic_core::input::{Input, Poll};
 use photonic_core::scene::{AttrBuilder, InputHandle};
+use std::marker::PhantomData;
 
 pub struct Random<V>
 where
@@ -19,10 +20,11 @@ where
     trigger: Input<()>,
 }
 
-impl<V> Attr<V> for Random<V>
+impl<V> Attr for Random<V>
 where
     V: AttrValue + SampleUniform + Bounded,
 {
+    type Element = V;
     const KIND: &'static str = "random";
 
     fn get(&self) -> V {
@@ -39,14 +41,16 @@ where
     }
 }
 
-pub struct RandomDecl {
+pub struct RandomDecl<V> {
     pub trigger: InputHandle<()>,
+    phantom: PhantomData<V>,
 }
 
-impl<V> BoundAttrDecl<V> for RandomDecl
+impl<V> BoundAttrDecl for RandomDecl<V>
 where
     V: AttrValue + SampleUniform + Bounded,
 {
+    type Element = V;
     type Target = Random<V>;
     fn materialize(
         self,
@@ -108,6 +112,7 @@ pub mod model {
             return Ok(BoxedBoundAttrDecl::wrap(
                 super::RandomDecl {
                     trigger: builder.input(self.trigger)?,
+                    phantom: Default::default(),
                 },
             ));
         }

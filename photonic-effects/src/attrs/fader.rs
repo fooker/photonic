@@ -12,7 +12,7 @@ use photonic_core::scene::AttrBuilder;
 pub struct Fader<Input, V>
     where
         V: AttrValue + Lerp,
-        Input: Attr<V>,
+        Input: Attr<Element=V>,
 {
     input: Input,
 
@@ -22,11 +22,13 @@ pub struct Fader<Input, V>
     transition: Animation<V>,
 }
 
-impl<Input, V> Attr<V> for Fader<Input, V>
+impl<Input, V> Attr for Fader<Input, V>
     where
         V: AttrValue + Lerp,
-        Input: Attr<V>,
+        Input: Attr<Element=V>,
 {
+    type Element = V;
+
     const KIND: &'static str = "fader";
 
     fn get(&self) -> V {
@@ -52,11 +54,12 @@ pub struct FaderDecl<Input> {
     pub easing: Easing<f64>,
 }
 
-impl<Input, V> BoundAttrDecl<V> for FaderDecl<Input>
+impl<Input, V> BoundAttrDecl for FaderDecl<Input>
     where
         V: AttrValue + Lerp + Bounded,
-        Input: BoundAttrDecl<V>,
+        Input: BoundAttrDecl<Element=V>,
 {
+    type Element = V;
     type Target = Fader<Input::Target, V>;
     fn materialize(
         self,
@@ -76,11 +79,12 @@ impl<Input, V> BoundAttrDecl<V> for FaderDecl<Input>
     }
 }
 
-impl<Input, V: AttrValue> UnboundAttrDecl<V> for FaderDecl<Input>
+impl<Input, V: AttrValue> UnboundAttrDecl for FaderDecl<Input>
     where
         V: Lerp,
-        Input: UnboundAttrDecl<V>,
+        Input: UnboundAttrDecl<Element=V>,
 {
+    type Element = V;
     type Target = Fader<Input::Target, V>;
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let input = builder.unbound_attr("input", self.input)?;

@@ -20,10 +20,11 @@ where
     prev: Option<Input<()>>,
 }
 
-impl<V> Attr<V> for Sequence<V>
+impl<V> Attr for Sequence<V>
 where
     V: AttrValue,
 {
+    type Element = V;
     const KIND: &'static str = "sequence";
 
     fn get(&self) -> V {
@@ -59,10 +60,11 @@ where
     pub prev: Option<InputHandle<()>>,
 }
 
-impl<V> BoundAttrDecl<V> for SequenceDecl<V>
+impl<V> BoundAttrDecl for SequenceDecl<V>
 where
     V: AttrValue + Bounded,
 {
+    type Element = V;
     type Target = Sequence<V>;
     fn materialize(
         self,
@@ -93,10 +95,11 @@ where
     }
 }
 
-impl<V> UnboundAttrDecl<V> for SequenceDecl<V>
+impl<V> UnboundAttrDecl for SequenceDecl<V>
 where
     V: AttrValue,
 {
+    type Element = V;
     type Target = Sequence<V>;
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let next = self
