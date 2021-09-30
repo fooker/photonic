@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use anyhow::Result;
 
-use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl};
+use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounds, UnboundAttrDecl};
 use crate::input::{Input, InputValue};
 use crate::interface::{AttrInfo, InputInfo, Introspection, NodeInfo};
 use crate::node::{MapNodeDecl, Node, NodeDecl};
 use crate::output::{Output, OutputDecl};
 use crate::utils::{FrameStats, FrameTimer};
-use std::time::Duration;
 
 pub struct SceneBuilder {
     /// The size of the scene
@@ -18,8 +18,8 @@ pub struct SceneBuilder {
 
 impl SceneBuilder {
     pub fn node<Node>(&mut self, decl: NodeHandle<Node>) -> Result<(NodeInfo, Node::Target)>
-    where
-        Node: NodeDecl,
+        where
+            Node: NodeDecl,
     {
         let mut builder = NodeBuilder {
             scene: self,
@@ -50,8 +50,8 @@ pub struct NodeBuilder<'b> {
 
 impl<'b> NodeBuilder<'b> {
     pub fn node<Node>(&mut self, name: &str, decl: NodeHandle<Node>) -> Result<Node::Target>
-    where
-        Node: NodeDecl,
+        where
+            Node: NodeDecl,
     {
         let (info, node) = self.scene.node(decl)?;
 
@@ -67,8 +67,8 @@ impl<'b> NodeBuilder<'b> {
         decl: Attr,
         bounds: impl Into<Bounds<Attr::Element>>,
     ) -> Result<Attr::Target>
-    where
-        Attr: BoundAttrDecl,
+        where
+            Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
 
@@ -91,8 +91,8 @@ impl<'b> NodeBuilder<'b> {
     }
 
     pub fn unbound_attr<Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target>
-    where
-        Attr: UnboundAttrDecl,
+        where
+            Attr: UnboundAttrDecl,
     {
         let mut builder = AttrBuilder {
             node: self,
@@ -127,8 +127,8 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
         decl: Attr,
         bounds: impl Into<Bounds<Attr::Element>>,
     ) -> Result<Attr::Target>
-    where
-        Attr: BoundAttrDecl,
+        where
+            Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
 
@@ -151,8 +151,8 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
     }
 
     pub fn unbound_attr<Attr>(&mut self, name: &str, decl: Attr) -> Result<Attr::Target>
-    where
-        Attr: UnboundAttrDecl,
+        where
+            Attr: UnboundAttrDecl,
     {
         let mut builder = AttrBuilder {
             node: self.node,
@@ -173,8 +173,8 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
     }
 
     pub fn input<V>(&mut self, name: &str, input: InputHandle<V>) -> Result<Input<V>>
-    where
-        V: InputValue,
+        where
+            V: InputValue,
     {
         let info = InputInfo {
             name: input.name,
@@ -191,8 +191,8 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
 }
 
 pub struct NodeHandle<Decl>
-where
-    Decl: NodeDecl,
+    where
+        Decl: NodeDecl,
 {
     /// The scene-wide unique name of the node
     pub name: String,
@@ -202,14 +202,14 @@ where
 }
 
 impl<Decl> NodeHandle<Decl>
-where
-    Decl: NodeDecl,
-    Decl::Element: 'static,
+    where
+        Decl: NodeDecl,
+        Decl::Element: 'static,
 {
     pub fn transform<R, F>(self, transform: F) -> NodeHandle<MapNodeDecl<Decl, F>>
-    where
-        F: Fn(Decl::Element) -> R + 'static,
-        R: 'static,
+        where
+            F: Fn(Decl::Element) -> R + 'static,
+            R: 'static,
     {
         return NodeHandle {
             name: self.name,
@@ -219,8 +219,8 @@ where
 }
 
 pub struct InputHandle<V>
-where
-    V: InputValue,
+    where
+        V: InputValue,
 {
     /// The scene-wide unique name of the input
     pub name: String,
@@ -229,8 +229,8 @@ where
 }
 
 impl<V> InputHandle<V>
-where
-    V: InputValue,
+    where
+        V: InputValue,
 {
     pub fn new(name: String) -> Self {
         return Self {
@@ -241,8 +241,8 @@ where
 }
 
 impl<V> From<InputHandle<V>> for Input<V>
-where
-    V: InputValue,
+    where
+        V: InputValue,
 {
     fn from(handle: InputHandle<V>) -> Self {
         return handle.input;
@@ -263,8 +263,8 @@ impl Scene {
     }
 
     pub fn node<Node>(&mut self, name: &str, decl: Node) -> Result<NodeHandle<Node>>
-    where
-        Node: NodeDecl,
+        where
+            Node: NodeDecl,
     {
         return Ok(NodeHandle {
             name: name.to_owned(),
@@ -273,8 +273,8 @@ impl Scene {
     }
 
     pub fn input<V>(&mut self, name: &str) -> Result<InputHandle<V>>
-    where
-        V: InputValue,
+        where
+            V: InputValue,
     {
         return Ok(InputHandle::new(name.to_owned()));
     }
@@ -285,9 +285,9 @@ impl Scene {
         root: NodeHandle<Root>,
         decl: Output,
     ) -> Result<(Loop<Root::Target, Output::Target>, Arc<Introspection>)>
-    where
-        Root: NodeDecl,
-        Output: OutputDecl<Element = Root::Element>,
+        where
+            Root: NodeDecl,
+            Output: OutputDecl<Element=Root::Element>,
     {
         let mut builder = SceneBuilder { size: self.size };
 
@@ -315,9 +315,9 @@ pub struct Loop<Root, Output> {
 }
 
 impl<Root, Output> Loop<Root, Output>
-where
-    Root: self::Node,
-    Output: self::Output<Element = Root::Element>,
+    where
+        Root: self::Node,
+        Output: self::Output<Element=Root::Element>,
 {
     pub fn frame(&mut self, duration: Duration) -> Result<()> {
         self.root.update(duration);

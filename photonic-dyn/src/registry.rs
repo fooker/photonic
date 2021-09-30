@@ -6,6 +6,7 @@ use serde_json::Value;
 use photonic_core::{color, NodeDecl};
 use photonic_core::attr::Bounded;
 use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl, Wrap};
+use photonic_core::color::RGBColor;
 
 use crate::builder::{AttrBuilder, NodeBuilder, OutputBuilder};
 use crate::model::{AttrValueFactory, BoundAttrModel, NodeModel, OutputModel, UnboundAttrModel};
@@ -145,4 +146,52 @@ pub trait Registry {
     type Node: self::NodeRegistry;
     type BoundAttr: self::BoundAttrRegistry;
     type UnboundAttr: self::UnboundAttrRegistry;
+}
+
+pub struct CombinedOutputRegistry<R1, R2>(PhantomData<(R1, R2)>);
+
+impl<R1, R2> OutputRegistry for CombinedOutputRegistry<R1, R2>
+    where R1: OutputRegistry,
+          R2: OutputRegistry,
+{
+    fn manufacture<Builder: OutputBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedOutputDecl<RGBColor>, Builder>>> {
+        return R1::manufacture(kind)
+            .or_else(|| R2::manufacture(kind));
+    }
+}
+
+pub struct CombinedNodeRegistry<R1, R2>(PhantomData<(R1, R2)>);
+
+impl<R1, R2> NodeRegistry for CombinedNodeRegistry<R1, R2>
+    where R1: NodeRegistry,
+          R2: NodeRegistry,
+{
+    fn manufacture<Builder: NodeBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedNodeDecl<RGBColor>, Builder>>> {
+        return R1::manufacture(kind)
+            .or_else(|| R2::manufacture(kind));
+    }
+}
+
+pub struct CombinedBoundAttrRegistry<R1, R2>(PhantomData<(R1, R2)>);
+
+impl<R1, R2> BoundAttrRegistry for CombinedBoundAttrRegistry<R1, R2>
+    where R1: BoundAttrRegistry,
+          R2: BoundAttrRegistry,
+{
+    fn manufacture<V: AttrValueFactory + Bounded, Builder: AttrBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedBoundAttrDecl<V>, Builder>>> {
+        return R1::manufacture(kind)
+            .or_else(|| R2::manufacture(kind));
+    }
+}
+
+pub struct CombinedUnboundAttrRegistry<R1, R2>(PhantomData<(R1, R2)>);
+
+impl<R1, R2> UnboundAttrRegistry for CombinedUnboundAttrRegistry<R1, R2>
+    where R1: UnboundAttrRegistry,
+          R2: UnboundAttrRegistry,
+{
+    fn manufacture<V: AttrValueFactory, Builder: AttrBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedUnboundAttrDecl<V>, Builder>>> {
+        return R1::manufacture(kind)
+            .or_else(|| R2::manufacture(kind));
+    }
 }

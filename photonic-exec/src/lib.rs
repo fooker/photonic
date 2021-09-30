@@ -5,14 +5,14 @@ use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
-use anyhow::{format_err, Error};
+use anyhow::{Error, format_err};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use shared_memory::{ReadRaw, SharedMemCast, SharedMemRaw};
 
-use photonic_core::color::{*, palette::Component};
+use photonic_core::color::*;
+use photonic_core::color::palette::LinSrgb;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::*;
-use photonic_core::color::palette::LinSrgb;
 
 #[repr(C, packed)]
 struct Element {
@@ -67,7 +67,7 @@ impl NodeDecl for ExecNodeDecl {
             ),
             size * 3,
         )
-        .expect("Failed to create SHM");
+            .expect("Failed to create SHM");
 
         // Spawn a child process
         let child = Command::new(command)

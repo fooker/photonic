@@ -1,5 +1,5 @@
 [package]
-name = "photonic-web-canvas"
+name = "photonic-web"
 version = "0.1.0"
 edition = "2018"
 
@@ -18,3 +18,5 @@ photonic-dyn = { path = "../photonic-dyn" }
 anyhow = "1.0.44"
 
 getrandom = { version = "0.2", features = ["js"] }
+
+num = "0.4.0"

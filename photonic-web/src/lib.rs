@@ -1,19 +1,20 @@
+use std::sync::Arc;
+use std::time::Duration;
+
+use num::ToPrimitive;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
-use photonic_core::{Output, OutputDecl, Result, Introspection, Loop};
-use photonic_core::boxed::{BoxedOutputDecl, BoxedNode};
+use photonic_core::{Introspection, Loop, Output, OutputDecl, Result};
+use photonic_core::boxed::{BoxedNode, BoxedOutputDecl};
 use photonic_core::color::palette::LinSrgb;
 use photonic_core::color::RGBColor;
+use photonic_core::input::InputSender;
 use photonic_core::node::Render;
 use photonic_dyn::{config, registry};
 use photonic_dyn::builder::{Builder, NodeBuilder, OutputBuilder};
 use photonic_dyn::registry::{Factory, OutputRegistry};
-use std::time::Duration;
-use anyhow::anyhow;
-use std::sync::Arc;
-use photonic_core::input::InputSender;
 
 struct Registry;
 
@@ -33,7 +34,7 @@ impl registry::Registry for Registry {
 #[wasm_bindgen]
 pub struct System {
     main: Loop<BoxedNode<RGBColor>, CanvasOutput>,
-    registry: Arc<Introspection>
+    registry: Arc<Introspection>,
 }
 
 #[wasm_bindgen]
@@ -55,6 +56,9 @@ impl System {
             }
 
             InputSender::Integer(sink) => {
+                sink.send(value.as_f64()
+                    .and_then(|f| f.to_i64())
+                    .ok_or("value is not integer")?);
             }
 
             InputSender::Decimal(sink) => {
@@ -97,7 +101,7 @@ pub fn render(
         ctx: context,
     };
 
-    let (mut main, registry) = scene.run(root, output)
+    let (main, registry) = scene.run(root, output)
         .map_err(|e| format!("{:#?}", e))?;
 
     return Ok(System {
