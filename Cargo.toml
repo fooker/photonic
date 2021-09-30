@@ -13,5 +13,6 @@ members = [
     "photonic-run",
     "photonic-web",
     "photonic-dyn",
+    "photonic-wasm",
     "examples",
 ]
