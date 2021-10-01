@@ -1,4 +1,4 @@
-# Build using `nix-shell -E "with import <nixpkgs> {}; callPackage ./default.nix {}" --show-trace`
+# Build using `nix-build -E "with import <nixpkgs> {}; callPackage ./default.nix {}" --show-trace`
 
 { pkgsBuildHost
 , makeRustPlatform
@@ -18,7 +18,7 @@ in rustNightlyPlatform.buildRustPackage rec {
 
   src = nix-gitignore.gitignoreSource [] ./.;
 
-  cargoSha256 = "1qgxwkj889ljys65rkkjn2r927rdnc6dzjcyyiqsqb8a8gjj9y5n";
+  cargoSha256 = "1j9nx4fmmmhi2hddy8yvxbq10fjdi90q6h38h9nfazjx9khfdxky";
 
   nativeBuildInputs = [
     pkgsBuildHost.llvmPackages.clang
