@@ -65,8 +65,8 @@ impl Controller for SPI {
 
         let bytes = (0..self.size)
             .map(|i| render.get(i))
-            .flat_map(|color| channels.expand(color))
-            .map(|channel| context.transform(channel))
+            .flat_map(|color| channels.expand(context.transform(color)))
+            .map(|channel| (channel * 255.0 + 0.5) as u8)
             .enumerate();
 
         for (i, b) in bytes {

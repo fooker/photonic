@@ -2,7 +2,6 @@ use std::time::Duration;
 
 use anyhow::Error;
 
-use photonic_core::attr::AttrValue;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::NodeBuilder;
 use photonic_core::{UnboundAttrDecl, Attr};
@@ -74,7 +73,7 @@ pub mod model {
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::color;
     use photonic_dyn::builder::NodeBuilder;
-    use photonic_dyn::model::{AttrValueFactory, NodeModel};
+    use photonic_dyn::model::NodeModel;
     use photonic_dyn::config;
 
     #[derive(Deserialize)]

@@ -1,9 +1,10 @@
 #![allow(clippy::needless_return)]
 
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 
+use photonic_core::color::palette::ComponentWise;
 use photonic_core::color::RGBColor;
 use photonic_core::math::clamp;
 use photonic_core::node::Render;
@@ -28,14 +29,15 @@ impl Channels {
     pub fn expand(&self, color: RGBColor) -> Vec<f64> {
         return match self {
             Self::White(offsets) => {
-                // TODO: Do white blending here
+                let (color, white) = rgb2rgbw(color);
+
                 vec![
                     offsets.get0(color),
                     offsets.get1(color),
                     offsets.get2(color),
-                    0.0,
+                    white,
                 ]
-            },
+            }
 
             Self::Plain(offsets) => {
                 vec![
@@ -43,7 +45,7 @@ impl Channels {
                     offsets.get1(color),
                     offsets.get2(color),
                 ]
-            },
+            }
         };
     }
 }
@@ -134,16 +136,18 @@ pub struct RenderContext {
 }
 
 impl RenderContext {
-    pub fn transform(&self, value: f64) -> u8 {
-        // Apply brightness
-        let value = value * self.brightness;
+    pub fn transform(&self, color: RGBColor) -> RGBColor {
+        return color.component_wise_self(|value| {
+            // Apply brightness
+            let value = value * self.brightness;
 
-        // Apply gamma correction
-        return if let Some(gamma_factor) = self.gamma_factor {
-            (f64::powf(value, gamma_factor) * 255.00 + 0.5) as u8
-        } else {
-            (value * 255.0) as u8
-        }
+            // Apply gamma correction
+            return if let Some(gamma_factor) = self.gamma_factor {
+                f64::powf(value, gamma_factor)
+            } else {
+                value
+            }
+        });
     }
 }
 
@@ -189,7 +193,7 @@ impl<Controller> Output for LedStripOutput<Controller>
         self.controller.send()
             .context("Sending buffer failed")?;
 
-        return Ok(())
+        return Ok(());
     }
 }
 
@@ -211,4 +215,14 @@ impl<Controller> OutputDecl for LedStripOutputDecl<Controller>
             context,
         });
     }
+}
+
+fn rgb2rgbw(color: RGBColor) -> (RGBColor, f64) {
+    let white = f64::min(f64::min(color.red, color.blue), color.blue);
+
+    return (RGBColor::new(
+        color.red - white,
+        color.green - white,
+        color.blue - white,
+    ), white);
 }

@@ -17,7 +17,7 @@ in rustNightlyPlatform.buildRustPackage rec {
 
   src = nix-gitignore.gitignoreSource [] ./.;
 
-  cargoSha256 = "1wx9qw2fljdpaczgmw8cqyj290bpir9i49cyr4rvl7qzz9pfw1pp";
+  cargoSha256 = "08b3yb3q2xzhna2xaj3x5rcwzxg19c5m32rz0715n55c6zbw1j7v";
 
   nativeBuildInputs = [
     pkgsBuildHost.llvmPackages.clang
