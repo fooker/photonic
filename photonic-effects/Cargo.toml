@@ -5,7 +5,7 @@ authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
 
 [features]
-dyn = ["photonic-dyn", "serde", "humantime-serde", "csscolorparser"]
+dyn = ["photonic-dyn", "serde", "humantime-serde", "csscolorparser", "evalexpr"]
 
 [dependencies]
 photonic-core = { path = "../photonic-core" }
@@ -17,3 +17,4 @@ noise = "0.7"
 serde = { version = "1", features = ["derive"], optional = true }
 humantime-serde = { version = "1", optional = true }
 csscolorparser = { version = "0.5.0", optional = true }
+evalexpr = { version = "6.5.0", features = ["serde_support"], optional = true }

@@ -36,7 +36,8 @@ impl<T> NodeModel for T
         T::Element: Into<color::RGBColor>,
 {
     fn assemble(self, _builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-        return Ok(BoxedNodeDecl::wrap(self.map(Into::into)));
+        let decl = self.map(Into::into);
+        return Ok(BoxedNodeDecl::wrap(decl));
     }
 }
 

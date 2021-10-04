@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 use noise::{NoiseFn, Perlin, Seedable};
 
 use photonic_core::attr::{Attr, AttrValue, Range, UnboundAttrDecl};
@@ -28,13 +28,13 @@ where
 {
     type Element = E;
 
-    fn get(&self, index: usize) -> Self::Element {
+    fn get(&self, index: usize) -> Result<Self::Element> {
         let i = self
             .noise
             .get([index as f64 / self.scale, self.time / self.scale]);
         let i = math::remap(i, (-1.0, 1.0), (0.0, 1.0));
 
-        return E::lerp(self.range.0, self.range.1, i);
+        return Ok(E::lerp(self.range.0, self.range.1, i));
     }
 }
 
@@ -74,7 +74,7 @@ where
     type Element = E;
     type Target = PlasmaNode<Range::Target, Scale::Target, Speed::Target, E>;
 
-    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             perlin: Perlin::new().set_seed(1),
 
@@ -110,21 +110,23 @@ where
 
     type Element = E;
 
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: Duration) -> Result<()> {
         self.range.update(duration);
         self.scale.update(duration);
         self.speed.update(duration);
 
         self.time += duration.as_secs_f64() * self.speed.get();
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return PlasmaRenderer {
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(PlasmaRenderer {
             noise: &self.perlin,
             range: self.range.get(),
             scale: self.scale.get(),
             time: self.time,
-        };
+        });
     }
 }
 

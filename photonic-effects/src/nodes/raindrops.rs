@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 use rand::prelude::{SeedableRng, Rng, SmallRng};
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds, Range, UnboundAttrDecl};
@@ -30,8 +30,8 @@ pub struct RaindropsRenderer<'a>(&'a Vec<Raindrop>);
 impl<'a> Render for RaindropsRenderer<'a> {
     type Element = HSLColor;
 
-    fn get(&self, index: usize) -> Self::Element {
-        self.0[index].color
+    fn get(&self, index: usize) -> Result<Self::Element> {
+        Ok(self.0[index].color)
     }
 }
 
@@ -89,7 +89,7 @@ where
     type Element = HSLColor;
     type Target = RaindropsNode<Rate::Target, Color::Target, Decay::Target>;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             rate: builder.bound_attr("rate", self.rate, Bounds::normal())?,
             color: builder.unbound_attr("color", self.color)?,
@@ -126,7 +126,7 @@ where
 
     type Element = HSLColor;
 
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: Duration) -> Result<()> {
         self.rate.update(duration);
         self.color.update(duration);
         self.decay.update(duration);
@@ -142,10 +142,12 @@ where
                 );
             }
         }
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return RaindropsRenderer(&self.raindrops);
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(RaindropsRenderer(&self.raindrops));
     }
 }
 

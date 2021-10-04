@@ -152,7 +152,7 @@ impl<Node> Output<Node> for CanvasOutput
         self.ctx.clear_rect(0.0, 0.0, width as f64, height as f64);
 
         for i in 0..self.size {
-            let rgb: LinSrgb<u8> = render.get(i).into().into_format();
+            let rgb: LinSrgb<u8> = render.get(i)?.into().into_format();
 
             self.ctx.begin_path();
             self.ctx.set_fill_style(&format!("#{:#x}", rgb).into());

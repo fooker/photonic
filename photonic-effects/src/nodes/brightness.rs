@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
 use photonic_core::color::Black;
@@ -22,14 +22,14 @@ where
 {
     type Element = Source::Element;
 
-    fn get(&self, index: usize) -> Self::Element {
-        let value = self.source.get(index);
+    fn get(&self, index: usize) -> Result<Self::Element> {
+        let value = self.source.get(index)?;
 
-        if self.range.0 <= index && index <= self.range.1 {
-            return Self::Element::lerp(Self::Element::black(), value, self.brightness);
+        return Ok(if self.range.0 <= index && index <= self.range.1 {
+            Self::Element::lerp(Self::Element::black(), value, self.brightness)
         } else {
-            return value;
-        }
+            value
+        });
     }
 }
 
@@ -58,7 +58,7 @@ where
     type Element = E;
     type Target = BrightnessNode<Source::Target, Brightness::Target>;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             source: builder.node("source", self.source)?,
             brightness: builder.bound_attr("brightness", self.brightness, Bounds::normal())?,
@@ -86,18 +86,20 @@ where
 
     type Element = Source::Element;
 
-    fn update(&mut self, duration: Duration) {
-        self.source.update(duration);
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        self.source.update(duration)?;
 
         self.brightness.update(duration);
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return BrightnessRenderer {
-            source: self.source.render(),
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(BrightnessRenderer {
+            source: self.source.render()?,
             brightness: self.brightness.get(),
             range: self.range,
-        };
+        });
     }
 }
 

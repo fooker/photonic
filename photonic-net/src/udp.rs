@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 use std::net::{ToSocketAddrs, UdpSocket};
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::buffer::Buffer;
 use photonic_core::color::{Black, RGBColor};
@@ -70,7 +70,7 @@ where
     type Element = F::Element;
     type Target = ReceiverNode<F>;
 
-    fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target> {
         let socket = UdpSocket::bind(self.address)?;
         socket.set_nonblocking(true).unwrap();
 
@@ -98,7 +98,7 @@ where
 
     type Element = F::Element;
 
-    fn update(&mut self, _duration: Duration) {
+    fn update(&mut self, _duration: Duration) -> Result<()> {
         // Read all packets available without blocking but only use last one
         loop {
             match self.socket.recv(&mut self.buffer) {
@@ -110,9 +110,11 @@ where
 
         Iterator::zip(self.output.iter_mut(), self.buffer.chunks(F::ELEMENT_SIZE))
             .for_each(|(o, b)| *o = F::load(b));
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return &self.output;
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(&self.output);
     }
 }

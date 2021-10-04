@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::time::Duration;
 
-use anyhow::{anyhow, Error};
+use anyhow::{anyhow, Result};
 use wasmtime::{Engine, Instance, Module, Store, TypedFunc};
 
 use photonic_core::{Node, NodeDecl};
@@ -28,7 +28,7 @@ impl<P> NodeDecl for WasmNodeDecl<P>
     type Element = RGBColor;
     type Target = WasmNode;
 
-    fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target> {
         let engine = Engine::default();
 
         let mut store = Store::new(&engine, ());
@@ -71,19 +71,18 @@ impl Node for WasmNode {
 
     const KIND: &'static str = "wasm";
 
-    fn update(&mut self, duration: Duration) {
-        self.update.call(&mut self.store, duration.as_secs_f64())
-            .unwrap(); // TODO: Error handling
-
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        self.update.call(&mut self.store, duration.as_secs_f64())?;
         for i in 0..self.buffer.size() {
-            let color = RGBColor::from_components(self.render.call(&mut self.store, i as u64)
-                .unwrap()); // TODO: Error handling
+            let color = RGBColor::from_components(self.render.call(&mut self.store, i as u64)?);
 
             self.buffer.set(i, color);
         }
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return &self.buffer;
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(&self.buffer);
     }
 }

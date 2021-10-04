@@ -2,7 +2,6 @@
 
 use anyhow::{Context, Result};
 
-use photonic_core::boxed::{BoxedNodeDecl, BoxedOutputDecl};
 use photonic_core::color::RGBColor;
 use photonic_core::math::clamp;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};

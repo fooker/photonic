@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::animation::{Animation, Easing, Transition};
 use photonic_core::attr::{Attr, BoundAttrDecl, Update};
@@ -26,18 +26,18 @@ where
 {
     type Element = Source::Element;
 
-    fn get(&self, index: usize) -> Self::Element {
+    fn get(&self, index: usize) -> Result<Self::Element> {
         match self {
             SwitchRenderer::Blending {
                 source,
                 target,
                 blend,
             } => {
-                let source = source.get(index);
-                let target = target.get(index);
+                let source = source.get(index)?;
+                let target = target.get(index)?;
 
                 // TODO: Blending modes
-                return Self::Element::lerp(source, target, *blend);
+                return Ok(Self::Element::lerp(source, target, *blend));
             }
 
             SwitchRenderer::Full(source) => {
@@ -79,13 +79,13 @@ where
     type Element = E;
     type Target = SwitchNode<Source::Target, Fade::Target>;
 
-    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         let sources = self
             .sources
             .into_iter()
             .enumerate()
             .map(|(i, source)| builder.node(&format!("source-{}", i), source))
-            .collect::<Result<Vec<_>, Error>>()?;
+            .collect::<Result<Vec<_>>>()?;
 
         let fade = builder.bound_attr("fade", self.fade, (0, (sources.len() - 1) as i64))?;
 
@@ -120,9 +120,9 @@ where
 
     type Element = Source::Element;
 
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: Duration) -> Result<()> {
         for source in &mut self.sources {
-            source.update(duration);
+            source.update(duration)?;
         }
 
         if let Update::Changed(fade) = self.fade.update(duration) {
@@ -143,11 +143,13 @@ where
             self.source = self.target;
             self.blend = 0.0;
         }
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
         if self.source == self.target {
-            return SwitchRenderer::Full(self.sources[self.source].render());
+            return Ok(SwitchRenderer::Full(self.sources[self.source].render()?));
         } else {
             let sources = self.sources.as_mut_ptr();
 
@@ -159,11 +161,11 @@ where
                 )
             };
 
-            return SwitchRenderer::Blending {
-                source: source.render(),
-                target: target.render(),
+            return Ok(SwitchRenderer::Blending {
+                source: source.render()?,
+                target: target.render()?,
                 blend: self.blend,
-            };
+            });
         }
     }
 }

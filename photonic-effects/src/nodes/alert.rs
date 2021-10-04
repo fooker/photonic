@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, UnboundAttrDecl};
 use photonic_core::color::HSVColor;
@@ -17,10 +17,10 @@ pub struct AlertRenderer {
 impl Render for AlertRenderer {
     type Element = HSVColor;
 
-    fn get(&self, index: usize) -> Self::Element {
+    fn get(&self, index: usize) -> Result<Self::Element> {
         let x = (index / self.block_size) % 2 == 0;
 
-        return HSVColor::new(self.hue, 1.0, if x { self.value } else { 1.0 - self.value });
+        return Ok(HSVColor::new(self.hue, 1.0, if x { self.value } else { 1.0 - self.value }));
     }
 }
 
@@ -47,7 +47,7 @@ where
     type Element = HSVColor;
     type Target = AlertNode<Hue::Target, Block::Target, Speed::Target>;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             hue: builder.bound_attr("hue", self.hue, (0.0, 360.0))?,
             block: builder.bound_attr("block", self.block, (0, size as i64))?,
@@ -77,15 +77,17 @@ where
 
     type Element = HSVColor;
 
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: Duration) -> Result<()> {
         self.block.update(duration);
         self.speed.update(duration);
 
         self.time += duration.as_secs_f64() * self.speed.get();
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return AlertRenderer {
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(AlertRenderer {
             hue: self.hue.get(),
             block_size: self.block.get() as usize,
             value: math::remap(
@@ -93,7 +95,7 @@ where
                 (-1.0, 1.0),
                 (0.0, 1.0),
             ),
-        };
+        });
     }
 }
 

@@ -320,10 +320,10 @@ impl<Root, Output> Loop<Root, Output>
         Output: self::Output<Root>,
 {
     pub fn frame(&mut self, duration: Duration) -> Result<()> {
-        self.root.update(duration);
+        self.root.update(duration)?;
 
         // Render node tree to output
-        let render = self.root.render();
+        let render = self.root.render()?;
         self.output.render(render)?;
 
         self.stats.update(duration);

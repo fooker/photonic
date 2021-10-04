@@ -5,7 +5,7 @@ use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
-use anyhow::{Error, format_err};
+use anyhow::{Result, format_err, Context};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use shared_memory::{ReadRaw, SharedMemCast, SharedMemRaw};
 
@@ -30,9 +30,9 @@ pub struct ExecRenderer<'a> {
 impl<'a> Render for ExecRenderer<'a> {
     type Element = RGBColor;
 
-    fn get(&self, index: usize) -> Self::Element {
+    fn get(&self, index: usize) -> Result<Self::Element> {
         let element = &unsafe { self.shm.get_raw_slice::<Element>() }[index];
-        return LinSrgb::<u8>::from_components((element.r, element.g, element.b)).into_format();
+        return Ok(LinSrgb::<u8>::from_components((element.r, element.g, element.b)).into_format());
     }
 }
 
@@ -51,7 +51,7 @@ impl NodeDecl for ExecNodeDecl {
     type Element = RGBColor;
     type Target = ExecNode;
 
-    fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target> {
         let command = shlex::split(&self.command)
             .ok_or_else(|| format_err!("Invalid command: {}", &self.command))?;
         let (command, args) = command
@@ -92,22 +92,26 @@ impl Node for ExecNode {
 
     type Element = RGBColor;
 
-    fn update(&mut self, duration: Duration) {
-        let stdin = self.child.stdin.as_mut().expect("StdIn missing");
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        let stdin = self.child.stdin.as_mut()
+            .context("StdIn missing")?;
 
-        let stdout = self.child.stdout.as_mut().expect("StdOut missing");
+        let stdout = self.child.stdout.as_mut()
+            .context("StdOut missing")?;
 
         // Send the duration to the child process
         stdin
             .write_u64::<BigEndian>(duration.as_millis() as u64)
-            .expect("Failed to write to child process");
-        stdin.flush().expect("Failed to flush to child process");
+            .context("Failed to write to child process")?;
+        stdin.flush().context("Failed to flush to child process")?;
 
         // Wait for any char from the child to signal it's ready
-        stdout.read_u8().expect("Failed to write to child process");
+        stdout.read_u8().context("Failed to write to child process")?;
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return ExecRenderer { shm: &self.shm };
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(ExecRenderer { shm: &self.shm });
     }
 }

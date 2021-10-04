@@ -48,7 +48,7 @@ impl<Node> Output<Node> for ConsoleOutput
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
         for i in 0..self.size {
-            let rgb: LinSrgb<u8> = render.get(i).into().into_format();
+            let rgb: LinSrgb<u8> = render.get(i)?.into().into_format();
             let (r, g, b) = rgb.into_components();
             write!(
                 &mut buf,

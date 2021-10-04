@@ -1,13 +1,13 @@
 use std::time::Duration;
 
-use anyhow::Result;
+use anyhow::{Result, Error};
 
 use crate::scene::NodeBuilder;
 
 pub trait Render {
     type Element;
 
-    fn get(&self, index: usize) -> Self::Element;
+    fn get(&self, index: usize) -> Result<Self::Element>;
 
     fn map<R, F>(self, f: &F) -> MapRender<Self, F>
     where
@@ -44,8 +44,8 @@ pub trait Node: for<'a> RenderType<'a, Self> + Sized {
 
     type Element;
 
-    fn update(&mut self, duration: Duration);
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render;
+    fn update(&mut self, duration: Duration) -> Result<()>;
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render>;
 
     fn map<R, F>(self, f: F) -> MapNode<Self, F>
     where
@@ -74,8 +74,8 @@ where
 {
     type Element = R;
 
-    fn get(&self, index: usize) -> Self::Element {
-        return (self.f)(self.source.get(index));
+    fn get(&self, index: usize) -> Result<Self::Element> {
+        return self.source.get(index).map(self.f);
     }
 }
 
@@ -107,12 +107,13 @@ where
 
     const KIND: &'static str = S::KIND;
 
-    fn update(&mut self, duration: Duration) {
-        self.source.update(duration);
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        self.source.update(duration)?;
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return self.source.render().map(&self.f);
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(self.source.render()?.map(&self.f));
     }
 }
 
@@ -137,7 +138,7 @@ where
 
     fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target>
     where
-        Self::Target: std::marker::Sized,
+        Self::Target: Sized,
     {
         return Ok(self.source.materialize(size, builder)?.map(self.f));
     }

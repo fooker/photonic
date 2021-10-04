@@ -3,9 +3,9 @@ use std::marker::PhantomData;
 use anyhow::Result;
 use serde_json::Value;
 
-use photonic_core::{color, NodeDecl};
+use photonic_core::color;
 use photonic_core::attr::Bounded;
-use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl, Wrap};
+use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl};
 use photonic_core::color::RGBColor;
 
 use crate::builder::{AttrBuilder, NodeBuilder, OutputBuilder};
@@ -95,7 +95,7 @@ impl<T, Builder> Factory<BoxedNodeDecl<color::RGBColor>, Builder> for NodeFactor
     fn produce(self: Box<Self>, config: Value, builder: &mut Builder) -> Result<BoxedNodeDecl<color::RGBColor>> {
         let model: T = serde_json::from_value(config)?;
         let decl = T::assemble(model, builder)?;
-        return Ok(BoxedNodeDecl::wrap(decl.map(Into::into)));
+        return Ok(decl);
     }
 }
 

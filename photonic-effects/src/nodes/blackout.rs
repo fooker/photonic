@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::attr::{Attr, UnboundAttrDecl};
 use photonic_core::color::Black;
@@ -22,9 +22,9 @@ where
 {
     type Element = Source::Element;
 
-    fn get(&self, index: usize) -> Self::Element {
+    fn get(&self, index: usize) -> Result<Self::Element> {
         return if self.range.0 <= index && index <= self.range.1 && self.active {
-            Self::Element::black()
+            Ok(Self::Element::black())
         } else {
             self.source.get(index)
         };
@@ -56,7 +56,7 @@ where
     type Element = E;
     type Target = BlackoutNode<Source::Target, Active::Target>;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             source: builder.node("source", self.source)?,
             active: builder.unbound_attr("active", self.active)?,
@@ -84,18 +84,20 @@ where
 
     type Element = Source::Element;
 
-    fn update(&mut self, duration: Duration) {
-        self.source.update(duration);
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        self.source.update(duration)?;
 
         self.active.update(duration);
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return BlackoutRenderer {
-            source: self.source.render(),
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(BlackoutRenderer {
+            source: self.source.render()?,
             active: self.active.get(),
             range: self.range,
-        };
+        });
     }
 }
 

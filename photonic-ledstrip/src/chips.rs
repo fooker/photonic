@@ -109,7 +109,7 @@ impl From<RGBColor> for RGBW {
 }
 
 pub trait Chip {
-    type Element;
+    type Element: Color;
 
     type Channels: IntoIterator<Item=f64>;
 

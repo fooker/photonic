@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::{Result, Error};
 
 use crate::boxed::Wrap;
 use crate::node::{Node, NodeDecl, Render, RenderType};
@@ -11,7 +11,7 @@ trait AsBoxedNodeDecl<Element> {
         self: Box<Self>,
         size: usize,
         builder: &mut NodeBuilder,
-    ) -> Result<BoxedNode<Element>, Error>;
+    ) -> Result<BoxedNode<Element>>;
 }
 
 impl<T, Element> AsBoxedNodeDecl<Element> for T
@@ -23,7 +23,7 @@ impl<T, Element> AsBoxedNodeDecl<Element> for T
         self: Box<Self>,
         size: usize,
         builder: &mut NodeBuilder,
-    ) -> Result<BoxedNode<Element>, Error> {
+    ) -> Result<BoxedNode<Element>> {
         return T::materialize(*self, size, builder).map(BoxedNode::wrap);
     }
 }
@@ -34,7 +34,7 @@ pub struct BoxedNodeDecl<Element> {
 
 impl<Element, Decl> Wrap<Decl> for BoxedNodeDecl<Element>
     where
-        Decl: NodeDecl<Element=Element> + 'static,
+        Decl: AsBoxedNodeDecl<Element> + 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -50,7 +50,7 @@ impl<Element> NodeDecl for BoxedNodeDecl<Element>
     type Element = Element;
     type Target = BoxedNode<Element>;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error>
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target>
         where
             Self::Target: Sized,
     {
@@ -59,7 +59,7 @@ impl<Element> NodeDecl for BoxedNodeDecl<Element>
 }
 
 trait AsBoxedRender<Element> {
-    fn get(&self, index: usize) -> Element;
+    fn get(&self, index: usize) -> Result<Element>;
 }
 
 impl<T, Element> AsBoxedRender<Element> for T
@@ -67,8 +67,10 @@ impl<T, Element> AsBoxedRender<Element> for T
         T: Render,
         <T as Render>::Element: Into<Element>,
 {
-    fn get(&self, index: usize) -> Element {
-        return T::get(self, index).into();
+    fn get(&self, index: usize) -> Result<Element> {
+        return T::get(self, index)
+            .map(Into::into)
+            .map_err(Into::into);
     }
 }
 
@@ -78,8 +80,7 @@ pub struct BoxedRender<'a, Element> {
 
 impl<'a, Element, Render> Wrap<Render> for BoxedRender<'a, Element>
     where
-        Render: self::Render + 'a,
-        Render::Element: Into<Element>,
+        Render: AsBoxedRender<Element> + 'a,
 {
     fn wrap(render: Render) -> Self {
         return Self {
@@ -91,14 +92,14 @@ impl<'a, Element, Render> Wrap<Render> for BoxedRender<'a, Element>
 impl<'a, Element> Render for BoxedRender<'a, Element> {
     type Element = Element;
 
-    fn get(&self, index: usize) -> Self::Element {
+    fn get(&self, index: usize) -> Result<Self::Element> {
         return self.render.get(index);
     }
 }
 
 trait AsBoxedNode<Element> {
-    fn update(&mut self, duration: Duration);
-    fn render(&mut self) -> BoxedRender<Element>;
+    fn update(&mut self, duration: Duration) -> Result<()>;
+    fn render(&mut self) -> Result<BoxedRender<Element>>;
 }
 
 impl<T, Element> AsBoxedNode<Element> for T
@@ -106,13 +107,13 @@ impl<T, Element> AsBoxedNode<Element> for T
         T: Node,
         T::Element: Into<Element>,
 {
-    fn update(&mut self, duration: Duration) {
-        T::update(self, duration);
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        T::update(self, duration)
     }
 
-    fn render(&mut self) -> BoxedRender<Element> {
-        let render = T::render(self);
-        return BoxedRender::wrap(render);
+    fn render(&mut self) -> Result<BoxedRender<Element>> {
+        T::render(self)
+            .map(BoxedRender::wrap)
     }
 }
 
@@ -122,8 +123,7 @@ pub struct BoxedNode<Element> {
 
 impl<Element, Node> Wrap<Node> for BoxedNode<Element>
     where
-        Node: self::Node + 'static,
-        Node::Element: Into<Element>,
+        Node: AsBoxedNode<Element> + 'static,
 {
     fn wrap(node: Node) -> Self {
         return Self {
@@ -135,6 +135,7 @@ impl<Element, Node> Wrap<Node> for BoxedNode<Element>
 impl<'a, Element> RenderType<'a, Self> for BoxedNode<Element>
     where
         Element: 'static,
+        Error: 'static,
 {
     type Render = BoxedRender<'a, Element>;
 }
@@ -142,16 +143,17 @@ impl<'a, Element> RenderType<'a, Self> for BoxedNode<Element>
 impl<Element> Node for BoxedNode<Element>
     where
         Element: 'static,
+        Error: 'static,
 {
-    type Element = Element;
-
     const KIND: &'static str = "boxed";
 
-    fn update(&mut self, duration: Duration) {
-        self.node.update(duration);
+    type Element = Element;
+
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        self.node.update(duration)
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return self.node.render();
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        self.node.render()
     }
 }

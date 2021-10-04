@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::attr::{Attr, UnboundAttrDecl};
 use photonic_core::math;
@@ -21,14 +21,14 @@ where
 {
     type Element = Source::Element;
 
-    fn get(&self, index: usize) -> Self::Element {
+    fn get(&self, index: usize) -> Result<Self::Element> {
         let index = math::wrap((index as f64) - self.offset, self.size);
         let index = (index.trunc() as usize, index.fract());
 
-        let c1 = self.source.get(index.0);
-        let c2 = self.source.get((index.0 + 1) % self.size);
+        let c1 = self.source.get(index.0)?;
+        let c2 = self.source.get((index.0 + 1) % self.size)?;
 
-        return Self::Element::lerp(c1, c2, index.1);
+        return Ok(Self::Element::lerp(c1, c2, index.1));
     }
 }
 
@@ -58,7 +58,7 @@ where
     type Element = E;
     type Target = RotationNode<Source::Target, Speed::Target>;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             size,
             source: builder.node("source", self.source)?,
@@ -87,18 +87,20 @@ where
 
     type Element = Source::Element;
 
-    fn update(&mut self, duration: Duration) {
-        self.source.update(duration);
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        self.source.update(duration)?;
 
         self.offset += self.speed.update(duration).value() * duration.as_secs_f64();
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return RotationRenderer {
-            source: self.source.render(),
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(RotationRenderer {
+            source: self.source.render()?,
             size: self.size,
             offset: self.offset,
-        };
+        });
     }
 }
 

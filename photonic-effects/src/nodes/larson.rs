@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, UnboundAttrDecl};
 use photonic_core::color::HSVColor;
@@ -16,7 +16,7 @@ pub struct LarsonRenderer {
 impl Render for LarsonRenderer {
     type Element = HSVColor;
 
-    fn get(&self, index: usize) -> Self::Element {
+    fn get(&self, index: usize) -> Result<Self::Element> {
         // Calculate value as the linear distance between the pixel and the current
         // position scaled from 0.0 for ±width/2 to 1.0 for center
         let value = f64::max(
@@ -24,7 +24,7 @@ impl Render for LarsonRenderer {
             ((self.width / 2.0) - f64::abs((index as f64) - self.position)) / (self.width / 2.0),
         );
 
-        return HSVColor::new(self.hue, 1.0, value);
+        return Ok(HSVColor::new(self.hue, 1.0, value));
     }
 }
 
@@ -68,7 +68,7 @@ where
     type Element = HSVColor;
     type Target = LarsonNode<Hue::Target, Speed::Target, Width::Target>;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             size,
             hue: builder.bound_attr("hue", self.hue, (0.0, 360.0))?,
@@ -99,7 +99,7 @@ where
 
     type Element = HSVColor;
 
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: Duration) -> Result<()> {
         self.speed.update(duration);
         self.width.update(duration);
 
@@ -121,14 +121,16 @@ where
                 }
             }
         }
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return LarsonRenderer {
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(LarsonRenderer {
             hue: self.hue.get(),
             width: self.width.get(),
             position: self.position,
-        };
+        });
     }
 }
 

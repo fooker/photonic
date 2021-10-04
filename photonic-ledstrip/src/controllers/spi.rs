@@ -7,18 +7,16 @@ use spidev::{Spidev, SpidevOptions, SpidevTransfer, SpiModeFlags};
 use photonic_core::node::Render;
 
 use crate::{Controller, RenderContext};
+use crate::chips::Color;
 
 pub struct SPI<Chip: crate::Chip> {
     size: usize,
     spi: Spidev,
-    buffer: Vec<u8>,
 
     chip: PhantomData<Chip>,
 }
 
 impl<Chip: crate::Chip> SPI<Chip> {
-    const PATTERN_SIZE: usize = 4;
-
     // 8 bits per channel, each bit encoded as 4 bits
     const PATTERNS: [u8; 4] = [
         0b1000_1000, // 0 0
@@ -53,12 +51,9 @@ impl<Chip> Controller for SPI<Chip>
             .mode(SpiModeFlags::SPI_MODE_0)
             .build())?;
 
-        let buffer = Vec::new(); // vec![0; size * Chip::CHANNELS * Self::PATTERN_SIZE + Self::RESET_BYTES].into_boxed_slice();
-
         return Ok(Self {
             size,
             spi,
-            buffer,
             chip: Default::default(),
         });
     }
@@ -66,18 +61,23 @@ impl<Chip> Controller for SPI<Chip>
     fn send(&mut self,
               render: impl Render<Element=Self::Element>,
               context: &RenderContext<Self::Element>) -> Result<()> {
-        let bytes = (0..self.size)
-            .map(|i| render.get(i))
-            // .flat_map(|color| Chip::expand(context.transform(color))) // TODO: Add transform
-            .flat_map(|color| Chip::expand(color))
-            .map(|channel| (channel * 255.0 + 0.5) as u8)
-            .flat_map(|b| [
-                Self::PATTERNS[((b >> 6) & 0b0000_0011) as usize],
-                Self::PATTERNS[((b >> 4) & 0b0000_0011) as usize],
-                Self::PATTERNS[((b >> 2) & 0b0000_0011) as usize],
-                Self::PATTERNS[((b >> 6) & 0b0000_0011) as usize],
-            ])
-            .collect::<Vec<_>>();
+        let mut bytes = Vec::new();
+
+        for i in 0..self.size {
+            let color = render.get(i)?;
+            for channel in Chip::expand(Chip::Element::transform(color, context)) {
+                let data = (channel * 255.0 + 0.5) as u8;
+
+                bytes.extend([
+                    Self::PATTERNS[((data >> 6) & 0b0000_0011) as usize],
+                    Self::PATTERNS[((data >> 4) & 0b0000_0011) as usize],
+                    Self::PATTERNS[((data >> 2) & 0b0000_0011) as usize],
+                    Self::PATTERNS[((data >> 0) & 0b0000_0011) as usize],
+                ]);
+            }
+        }
+
+        bytes.extend(vec![0; Self::RESET_BYTES]);
 
         let mut tx = SpidevTransfer::write(&bytes);
 

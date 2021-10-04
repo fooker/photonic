@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::NodeBuilder;
@@ -14,8 +14,8 @@ impl<E> Render for SolidRenderer<E>
 {
     type Element = E;
 
-    fn get(&self, _index: usize) -> Self::Element {
-        return self.0;
+    fn get(&self, _index: usize) -> Result<Self::Element> {
+        Ok(self.0)
     }
 }
 
@@ -30,7 +30,7 @@ impl<Solid> NodeDecl for SolidNodeDecl<Solid>
     type Element = Solid::Element;
     type Target = SolidNode<Solid::Target>;
 
-    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             solid: builder.unbound_attr("solid", self.solid)?,
         });
@@ -56,12 +56,14 @@ impl<Solid> Node for SolidNode<Solid>
 
     type Element = Solid::Element;
 
-    fn update(&mut self, duration: Duration) {
+    fn update(&mut self, duration: Duration) -> Result<()> {
         self.solid.update(duration);
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return SolidRenderer(self.solid.get());
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(SolidRenderer(self.solid.get()));
     }
 }
 

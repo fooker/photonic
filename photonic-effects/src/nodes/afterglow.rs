@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
 use photonic_core::buffer::Buffer;
@@ -36,7 +36,7 @@ where
     type Element = Source::Element;
     type Target = AfterglowNode<Source::Target, Decay::Target>;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             source: builder.node("source", self.source)?,
             decay: builder.bound_attr("decay", self.decay, Bounds::normal())?,
@@ -64,22 +64,23 @@ where
 
     type Element = Source::Element;
 
-    fn update(&mut self, duration: Duration) {
-        self.source.update(duration);
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        self.source.update(duration)?;
 
         let decay = self.decay.update(duration).value() * duration.as_secs_f64();
-
         self.buffer.update(|_, e| e.darken(decay));
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        let source = self.source.render();
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        let source = self.source.render()?;
 
-        self.buffer.update(|i, e| {
-            return source.get(i).component_wise(e, f64::max);
-        });
+        for (i, e) in self.buffer.iter_mut().enumerate() {
+            *e = source.get(i)?.component_wise(e, f64::max);
+        }
 
-        return &self.buffer;
+        return Ok(&self.buffer);
     }
 }
 

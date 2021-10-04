@@ -10,12 +10,10 @@ use std::sync::Arc;
 use anyhow::{Error, format_err, Result};
 use clap::Clap;
 
-use photonic_core::boxed::{BoxedOutputDecl, BoxedNodeDecl};
-use photonic_core::color::RGBColor;
 use photonic_core::Introspection;
 use photonic_dyn::{config, registry};
-use photonic_dyn::builder::{Builder, NodeBuilder, OutputBuilder};
-use photonic_dyn::registry::{OutputRegistry, Factory, CombinedOutputRegistry};
+use photonic_dyn::builder::{Builder, NodeBuilder};
+use photonic_dyn::registry::{CombinedOutputRegistry};
 
 enum Interface {
     Grpc(SocketAddr),

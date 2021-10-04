@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
 use photonic_core::math::Lerp;
@@ -23,12 +23,12 @@ where
 {
     type Element = Base::Element;
 
-    fn get(&self, index: usize) -> Self::Element {
-        let base = self.base.get(index);
-        let overlay = self.overlay.get(index).into();
+    fn get(&self, index: usize) -> Result<Self::Element> {
+        let base = self.base.get(index)?;
+        let overlay = self.overlay.get(index)?.into();
 
         // TODO: Blending modes
-        return Self::Element::lerp(base, overlay, self.blend);
+        return Ok(Self::Element::lerp(base, overlay, self.blend));
     }
 }
 
@@ -61,7 +61,7 @@ where
     type Element = EB;
     type Target = OverlayNode<Base::Target, Overlay::Target, Blend::Target>;
 
-    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target, Error> {
+    fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
         return Ok(Self::Target {
             base: builder.node("base", self.base)?,
             overlay: builder.node("overlay", self.overlay)?,
@@ -96,19 +96,21 @@ where
 
     type Element = Base::Element;
 
-    fn update(&mut self, duration: Duration) {
-        self.base.update(duration);
-        self.overlay.update(duration);
+    fn update(&mut self, duration: Duration) -> Result<()> {
+        self.base.update(duration)?;
+        self.overlay.update(duration)?;
 
         self.blend.update(duration);
+
+        return Ok(());
     }
 
-    fn render(&mut self) -> <Self as RenderType<Self>>::Render {
-        return OverlayRenderer {
-            base: self.base.render(),
-            overlay: self.overlay.render(),
+    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+        return Ok(OverlayRenderer {
+            base: self.base.render()?,
+            overlay: self.overlay.render()?,
             blend: self.blend.get(),
-        };
+        });
     }
 }
 
