@@ -66,7 +66,7 @@ impl<Registry: self::Registry> Builder<Registry> {
         return self.scene;
     }
 
-    pub fn output(&mut self, config: config::Output) -> Result<BoxedOutputDecl<color::RGBColor>> {
+    pub fn output(&mut self, config: config::Output) -> Result<BoxedOutputDecl<BoxedNodeDecl<color::RGBColor>>> {
         return Ok(
             Registry::Output::manufacture(&config.kind)
                 .ok_or(format_err!("Unknown output type: {}", config.kind))?

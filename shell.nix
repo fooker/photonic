@@ -7,6 +7,11 @@ let
   
   channel = pkgs.latest.rustChannels.nightly;
   rust = channel.rust.override {
+    targets = [
+      "x86_64-unknown-linux-gnu"
+      "aarch64-unknown-linux-gnu"
+      "wasm32-unknown-unknown"
+    ];
     extensions = [
       "clippy-preview"
       "rust-src"
@@ -17,7 +22,7 @@ let
 
 in pkgs.mkShell {
   buildInputs = with pkgs; [
-    channel.rust
+    rust
 
     pkg-config
     openssl

@@ -5,15 +5,15 @@ authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
 
 [features]
-dyn = [ "photonic-dyn", "serde", "humantime-serde", "csscolorparser" ]
+dyn = ["photonic-dyn", "serde", "humantime-serde", "csscolorparser"]
 
 [dependencies]
-photonic-core = {path="../photonic-core"}
-photonic-dyn = {path="../photonic-dyn", optional = true}
+photonic-core = { path = "../photonic-core" }
+photonic-dyn = { path = "../photonic-dyn", optional = true }
 anyhow = "1"
-rand = { version = "0.8", features = [ "small_rng" ]}
+rand = { version = "0.8", features = ["small_rng"] }
 num = "0.4"
 noise = "0.7"
-serde = { version = "1", features = ["derive"], optional=true }
-humantime-serde = { version = "1", optional=true }
-csscolorparser = { version = "0.5.0", optional=true }
+serde = { version = "1", features = ["derive"], optional = true }
+humantime-serde = { version = "1", optional = true }
+csscolorparser = { version = "0.5.0", optional = true }

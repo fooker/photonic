@@ -19,8 +19,8 @@ pub trait Factory<T, Builder> {
     ) -> Result<T>;
 }
 
-impl<Builder> dyn Factory<BoxedOutputDecl<color::RGBColor>, Builder> {
-    pub fn output<X>() -> Box<dyn Factory<BoxedOutputDecl<color::RGBColor>, Builder>>
+impl<Builder> dyn Factory<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>, Builder> {
+    pub fn output<X>() -> Box<dyn Factory<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>, Builder>>
         where
             X: OutputModel + 'static,
             Builder: OutputBuilder,
@@ -64,16 +64,16 @@ impl<Builder> dyn Factory<BoxedUnboundAttrDecl<color::RGBColor>, Builder> {
 pub trait OutputRegistry {
     fn manufacture<Builder: OutputBuilder>(
         kind: &str,
-    ) -> Option<Box<dyn Factory<BoxedOutputDecl<color::RGBColor>, Builder>>>;
+    ) -> Option<Box<dyn Factory<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>, Builder>>>;
 }
 
 pub struct OutputFactory<T>(PhantomData<T>);
 
-impl<T, Builder> Factory<BoxedOutputDecl<color::RGBColor>, Builder> for OutputFactory<T>
+impl<T, Builder> Factory<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>, Builder> for OutputFactory<T>
     where T: OutputModel,
           Builder: OutputBuilder,
 {
-    fn produce(self: Box<Self>, config: Value, builder: &mut Builder) -> Result<BoxedOutputDecl<color::RGBColor>> {
+    fn produce(self: Box<Self>, config: Value, builder: &mut Builder) -> Result<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>> {
         let model: T = serde_json::from_value(config)?;
         let decl = T::assemble(model, builder)?;
         return Ok(decl);
@@ -154,7 +154,7 @@ impl<R1, R2> OutputRegistry for CombinedOutputRegistry<R1, R2>
     where R1: OutputRegistry,
           R2: OutputRegistry,
 {
-    fn manufacture<Builder: OutputBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedOutputDecl<RGBColor>, Builder>>> {
+    fn manufacture<Builder: OutputBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>, Builder>>> {
         return R1::manufacture(kind)
             .or_else(|| R2::manufacture(kind));
     }

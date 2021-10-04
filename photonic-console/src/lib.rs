@@ -3,14 +3,15 @@
 use std::io::{stdout, Write};
 
 use anyhow::Error;
-use serde::Deserialize;
 
-use photonic_core::color::RGBColor;
-use photonic_core::node::Render;
-use photonic_core::output::{Output, OutputDecl};
 use photonic_core::color::palette::LinSrgb;
+use photonic_core::color::RGBColor;
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
+use photonic_core::output::{Output, OutputDecl};
 
-#[derive(Deserialize)]
+pub mod registry;
+
+#[cfg_attr(feature = "dyn", derive(serde::Deserialize))]
 pub struct ConsoleOutputDecl {
     pub waterfall: bool,
 }
@@ -20,8 +21,11 @@ pub struct ConsoleOutput {
     waterfall: bool,
 }
 
-impl OutputDecl for ConsoleOutputDecl {
-    type Element = RGBColor;
+impl<Node> OutputDecl<Node> for ConsoleOutputDecl
+    where
+        Node: self::NodeDecl,
+        Node::Element: Into<RGBColor>,
+{
     type Target = ConsoleOutput;
 
     fn materialize(self, size: usize) -> Result<Self::Target, Error> {
@@ -32,17 +36,19 @@ impl OutputDecl for ConsoleOutputDecl {
     }
 }
 
-impl Output for ConsoleOutput {
-    type Element = RGBColor;
-
+impl<Node> Output<Node> for ConsoleOutput
+    where
+        Node: self::Node,
+        Node::Element: Into<RGBColor>,
+{
     const KIND: &'static str = "console";
 
-    fn render(&mut self, render: &dyn Render<Element = Self::Element>) -> Result<(), Error> {
+    fn render(&mut self, render: <Node as RenderType<'_, Node>>::Render) -> Result<(), Error> {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(self.size * 20 + 5);
 
         for i in 0..self.size {
-            let rgb: LinSrgb<u8> = render.get(i).into_format();
+            let rgb: LinSrgb<u8> = render.get(i).into().into_format();
             let (r, g, b) = rgb.into_components();
             write!(
                 &mut buf,

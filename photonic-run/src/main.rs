@@ -10,12 +10,12 @@ use std::sync::Arc;
 use anyhow::{Error, format_err, Result};
 use clap::Clap;
 
-use photonic_core::boxed::BoxedOutputDecl;
+use photonic_core::boxed::{BoxedOutputDecl, BoxedNodeDecl};
 use photonic_core::color::RGBColor;
 use photonic_core::Introspection;
 use photonic_dyn::{config, registry};
 use photonic_dyn::builder::{Builder, NodeBuilder, OutputBuilder};
-use photonic_dyn::registry::{OutputRegistry, Factory};
+use photonic_dyn::registry::{OutputRegistry, Factory, CombinedOutputRegistry};
 
 enum Interface {
     Grpc(SocketAddr),
@@ -86,18 +86,11 @@ struct Args {
 
 struct Registry;
 
-impl OutputRegistry for Registry {
-    fn manufacture<Builder: OutputBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedOutputDecl<RGBColor>, Builder>>> {
-        return Some(match kind {
-            "console" => Factory::output::<photonic_console::ConsoleOutputDecl>(),
-            "led-strip-spi" => Factory::output::<photonic_ledstrip::LedStripOutputDecl<photonic_ledstrip::controllers::spi::SPI>>(),
-            _ => return None,
-        });
-    }
-}
-
 impl registry::Registry for Registry {
-    type Output = Self;
+    type Output = CombinedOutputRegistry<
+        photonic_console::registry::Registry,
+        photonic_ledstrip::registry::Registry,
+    >;
     type Node = photonic_effects::registry::Registry;
     type BoundAttr = photonic_effects::registry::Registry;
     type UnboundAttr = photonic_effects::registry::Registry;

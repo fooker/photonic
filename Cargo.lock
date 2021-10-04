@@ -1979,6 +1979,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "photonic-core",
+ "photonic-dyn",
  "serde",
 ]
 
@@ -2070,6 +2071,7 @@ dependencies = [
  "cfg-if 1.0.0",
  "palette 0.6.0",
  "photonic-core",
+ "photonic-dyn",
  "serde",
  "spidev",
 ]

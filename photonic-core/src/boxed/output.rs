@@ -1,30 +1,38 @@
 use anyhow::Error;
 
 use crate::boxed::Wrap;
-use crate::node::Render;
+use crate::node::{Node, NodeDecl, RenderType};
 use crate::output::{Output, OutputDecl};
 
-trait AsBoxedOutputDecl<Element> {
-    fn materialize(self: Box<Self>, size: usize) -> Result<BoxedOutput<Element>, Error>;
+trait AsBoxedOutputDecl<Node>
+    where
+        Node: self::NodeDecl,
+{
+    fn materialize(self: Box<Self>, size: usize) -> Result<BoxedOutput<Node::Target>, Error>;
 }
 
-impl<T, Element> AsBoxedOutputDecl<Element> for T
+impl<T, Node> AsBoxedOutputDecl<Node> for T
     where
-        T: OutputDecl<Element=Element>,
+        T: OutputDecl<Node>,
         T::Target: 'static,
+        Node: self::NodeDecl,
 {
-    fn materialize(self: Box<Self>, size: usize) -> Result<BoxedOutput<Element>, Error> {
+    fn materialize(self: Box<Self>, size: usize) -> Result<BoxedOutput<Node::Target>, Error> {
         return T::materialize(*self, size).map(BoxedOutput::wrap);
     }
 }
 
-pub struct BoxedOutputDecl<Element> {
-    decl: Box<dyn AsBoxedOutputDecl<Element>>,
+pub struct BoxedOutputDecl<Node>
+    where
+        Node: self::NodeDecl,
+{
+    decl: Box<dyn AsBoxedOutputDecl<Node>>,
 }
 
-impl<Element, Decl> Wrap<Decl> for BoxedOutputDecl<Element>
+impl<Node, Decl> Wrap<Decl> for BoxedOutputDecl<Node>
     where
-        Decl: OutputDecl<Element=Element> + 'static,
+        Node: self::NodeDecl + 'static,
+        Decl: OutputDecl<Node> + 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -33,9 +41,11 @@ impl<Element, Decl> Wrap<Decl> for BoxedOutputDecl<Element>
     }
 }
 
-impl<Element> OutputDecl for BoxedOutputDecl<Element> {
-    type Element = Element;
-    type Target = BoxedOutput<Element>;
+impl<Node> OutputDecl<Node> for BoxedOutputDecl<Node>
+    where
+        Node: self::NodeDecl,
+{
+    type Target = BoxedOutput<Node::Target>;
 
     fn materialize(self, size: usize) -> Result<Self::Target, Error>
         where
@@ -45,26 +55,34 @@ impl<Element> OutputDecl for BoxedOutputDecl<Element> {
     }
 }
 
-trait AsBoxedOutput<Element> {
-    fn render(&mut self, render: &dyn Render<Element=Element>) -> Result<(), Error>;
+trait AsBoxedOutput<Node>
+    where
+        Node: self::Node,
+{
+    fn render(&mut self, render: <Node as RenderType<'_, Node>>::Render) -> Result<(), Error>;
 }
 
-impl<T, Element> AsBoxedOutput<Element> for T
+impl<T, Node> AsBoxedOutput<Node> for T
     where
-        T: Output<Element=Element>,
+        T: Output<Node>,
+        Node: self::Node,
 {
-    fn render(&mut self, render: &dyn Render<Element=Element>) -> Result<(), Error> {
+    fn render(&mut self, render: <Node as RenderType<'_, Node>>::Render) -> Result<(), Error> {
         return T::render(self, render);
     }
 }
 
-pub struct BoxedOutput<Element> {
-    output: Box<dyn AsBoxedOutput<Element>>,
+pub struct BoxedOutput<Node>
+    where
+        Node: self::Node,
+{
+    output: Box<dyn AsBoxedOutput<Node>>,
 }
 
-impl<Element, Output> Wrap<Output> for BoxedOutput<Element>
+impl<Node, Output> Wrap<Output> for BoxedOutput<Node>
     where
-        Output: self::Output<Element=Element> + 'static,
+        Node: self::Node,
+        Output: self::Output<Node> + 'static,
 {
     fn wrap(output: Output) -> Self {
         return Self {
@@ -73,12 +91,13 @@ impl<Element, Output> Wrap<Output> for BoxedOutput<Element>
     }
 }
 
-impl<Element> Output for BoxedOutput<Element> {
-    type Element = Element;
-
+impl<Node> Output<Node> for BoxedOutput<Node>
+    where
+        Node: self::Node,
+{
     const KIND: &'static str = "boxed";
 
-    fn render(&mut self, render: &dyn Render<Element=Self::Element>) -> Result<(), Error> {
+    fn render(&mut self, render: <Node as RenderType<'_, Node>>::Render) -> Result<(), Error> {
         return self.output.render(render);
     }
 }

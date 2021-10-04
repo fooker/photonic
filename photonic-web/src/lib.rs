@@ -7,11 +7,11 @@ use wasm_bindgen::prelude::*;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 use photonic_core::{Introspection, Loop, Output, OutputDecl, Result};
-use photonic_core::boxed::{BoxedNode, BoxedOutputDecl};
+use photonic_core::boxed::{BoxedNode, BoxedOutputDecl, BoxedNodeDecl};
 use photonic_core::color::palette::LinSrgb;
 use photonic_core::color::RGBColor;
 use photonic_core::input::InputSender;
-use photonic_core::node::Render;
+use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_dyn::{config, registry};
 use photonic_dyn::builder::{Builder, NodeBuilder, OutputBuilder};
 use photonic_dyn::registry::{Factory, OutputRegistry};
@@ -19,7 +19,7 @@ use photonic_dyn::registry::{Factory, OutputRegistry};
 struct Registry;
 
 impl OutputRegistry for Registry {
-    fn manufacture<Builder: OutputBuilder>(_kind: &str) -> Option<Box<dyn Factory<BoxedOutputDecl<RGBColor>, Builder>>> {
+    fn manufacture<Builder: OutputBuilder>(_kind: &str) -> Option<Box<dyn Factory<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>, Builder>>> {
         return None;
     }
 }
@@ -114,8 +114,11 @@ pub struct CanvasOutputDecl {
     ctx: CanvasRenderingContext2d,
 }
 
-impl OutputDecl for CanvasOutputDecl {
-    type Element = RGBColor;
+impl<Node> OutputDecl<Node> for CanvasOutputDecl
+    where
+        Node: self::NodeDecl,
+        Node::Element: Into<RGBColor>,
+{
     type Target = CanvasOutput;
 
     fn materialize(self, size: usize) -> Result<Self::Target> where Self::Target: Sized {
@@ -132,12 +135,14 @@ pub struct CanvasOutput {
     ctx: CanvasRenderingContext2d,
 }
 
-impl Output for CanvasOutput {
-    type Element = RGBColor;
-
+impl<Node> Output<Node> for CanvasOutput
+    where
+        Node: self::Node,
+        Node::Element: Into<RGBColor>,
+{
     const KIND: &'static str = "web-canvas";
 
-    fn render(&mut self, render: &dyn Render<Element=Self::Element>) -> Result<()> {
+    fn render(&mut self, render: <Node as RenderType<'_, Node>>::Render) -> Result<()> {
         let width: u32 = self.ctx.canvas().unwrap().width();
         let height: u32 = self.ctx.canvas().unwrap().height();
 
@@ -147,7 +152,7 @@ impl Output for CanvasOutput {
         self.ctx.clear_rect(0.0, 0.0, width as f64, height as f64);
 
         for i in 0..self.size {
-            let rgb: LinSrgb<u8> = render.get(i).into_format();
+            let rgb: LinSrgb<u8> = render.get(i).into().into_format();
 
             self.ctx.begin_path();
             self.ctx.set_fill_style(&format!("#{:#x}", rgb).into());

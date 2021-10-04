@@ -4,7 +4,11 @@ version = "0.1.0"
 authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
 
+[features]
+dyn = ["photonic-dyn", "serde"]
+
 [dependencies]
-photonic-core = {path="../photonic-core"}
+photonic-core = { path = "../photonic-core" }
+photonic-dyn = { path = "../photonic-dyn", optional = true }
 anyhow = "1"
-serde = { version = "1", features = ["derive"] }
+serde = { version = "1", features = ["derive"], optional = true }

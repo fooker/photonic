@@ -11,16 +11,17 @@ use photonic_core::output::OutputDecl;
 
 use crate::builder::{AttrBuilder, InputBuilder, NodeBuilder, OutputBuilder};
 use crate::config;
+use photonic_core::color::RGBColor;
 
 pub trait OutputModel: DeserializeOwned {
-    fn assemble(self, builder: &mut dyn OutputBuilder) -> Result<BoxedOutputDecl<color::RGBColor>>;
+    fn assemble(self, builder: &mut dyn OutputBuilder) -> Result<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>>;
 }
 
 impl<T> OutputModel for T
     where
-        T: OutputDecl<Element=color::RGBColor> + DeserializeOwned + 'static,
+        T: OutputDecl<BoxedNodeDecl<RGBColor>> + DeserializeOwned + 'static,
 {
-    fn assemble(self, _builder: &mut dyn OutputBuilder) -> Result<BoxedOutputDecl<color::RGBColor>> {
+    fn assemble(self, _builder: &mut dyn OutputBuilder) -> Result<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>> {
         return Ok(BoxedOutputDecl::wrap(self));
     }
 }

@@ -287,7 +287,7 @@ impl Scene {
     ) -> Result<(Loop<Root::Target, Output::Target>, Arc<Introspection>)>
         where
             Root: NodeDecl,
-            Output: OutputDecl<Element=Root::Element>,
+            Output: OutputDecl<Root>,
     {
         let mut builder = SceneBuilder { size: self.size };
 
@@ -317,14 +317,14 @@ pub struct Loop<Root, Output> {
 impl<Root, Output> Loop<Root, Output>
     where
         Root: self::Node,
-        Output: self::Output<Element=Root::Element>,
+        Output: self::Output<Root>,
 {
     pub fn frame(&mut self, duration: Duration) -> Result<()> {
         self.root.update(duration);
 
         // Render node tree to output
         let render = self.root.render();
-        self.output.render(&render)?;
+        self.output.render(render)?;
 
         self.stats.update(duration);
 
