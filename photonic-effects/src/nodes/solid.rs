@@ -62,7 +62,7 @@ impl<Solid> Node for SolidNode<Solid>
         return Ok(());
     }
 
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         return Ok(SolidRenderer(self.solid.get()));
     }
 }

@@ -147,17 +147,17 @@ where
         return Ok(());
     }
 
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         if self.source == self.target {
             return Ok(SwitchRenderer::Full(self.sources[self.source].render()?));
         } else {
-            let sources = self.sources.as_mut_ptr();
+            let sources = self.sources.as_ptr();
 
             // We guarantee to have two distinct indices in bounds
             let (source, target) = unsafe {
                 (
-                    &mut *sources.add(self.source),
-                    &mut *sources.add(self.target),
+                    & *sources.add(self.source),
+                    & *sources.add(self.target),
                 )
             };
 

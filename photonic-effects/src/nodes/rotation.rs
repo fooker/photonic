@@ -95,7 +95,7 @@ where
         return Ok(());
     }
 
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         return Ok(RotationRenderer {
             source: self.source.render()?,
             size: self.size,

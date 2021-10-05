@@ -86,7 +86,7 @@ where
         return Ok(());
     }
 
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         return Ok(AlertRenderer {
             hue: self.hue.get(),
             block_size: self.block.get() as usize,

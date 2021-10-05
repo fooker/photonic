@@ -99,7 +99,7 @@ impl<'a, Element> Render for BoxedRender<'a, Element> {
 
 trait AsBoxedNode<Element> {
     fn update(&mut self, duration: Duration) -> Result<()>;
-    fn render(&mut self) -> Result<BoxedRender<Element>>;
+    fn render(&self) -> Result<BoxedRender<Element>>;
 }
 
 impl<T, Element> AsBoxedNode<Element> for T
@@ -111,7 +111,7 @@ impl<T, Element> AsBoxedNode<Element> for T
         T::update(self, duration)
     }
 
-    fn render(&mut self) -> Result<BoxedRender<Element>> {
+    fn render(&self) -> Result<BoxedRender<Element>> {
         T::render(self)
             .map(BoxedRender::wrap)
     }
@@ -153,7 +153,7 @@ impl<Element> Node for BoxedNode<Element>
         self.node.update(duration)
     }
 
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         self.node.render()
     }
 }

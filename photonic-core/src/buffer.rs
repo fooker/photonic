@@ -87,7 +87,7 @@ impl<E> Node for Buffer<E>
 
     fn update(&mut self, _duration: Duration) -> Result<()> { Ok(()) }
 
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         Ok(self)
     }
 }
@@ -123,5 +123,19 @@ impl<'a, E> Render for &'a Buffer<E>
 
     fn get(&self, index: usize) -> Result<Self::Element> {
         return Ok(*Buffer::get(self, index));
+    }
+}
+
+impl<E> std::ops::Index<usize> for Buffer<E> {
+    type Output = E;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        return self.data.index(index);
+    }
+}
+
+impl<E> std::ops::IndexMut<usize> for Buffer<E> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        return self.data.index_mut(index);
     }
 }

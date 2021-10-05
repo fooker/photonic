@@ -120,7 +120,7 @@ where
         return Ok(());
     }
 
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         return Ok(PlasmaRenderer {
             noise: &self.perlin,
             range: self.range.get(),

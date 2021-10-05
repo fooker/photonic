@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use anyhow::{Result, Error};
+use anyhow::Result;
 
 use crate::scene::NodeBuilder;
 
@@ -45,7 +45,7 @@ pub trait Node: for<'a> RenderType<'a, Self> + Sized {
     type Element;
 
     fn update(&mut self, duration: Duration) -> Result<()>;
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render>;
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render>;
 
     fn map<R, F>(self, f: F) -> MapNode<Self, F>
     where
@@ -112,7 +112,7 @@ where
         return Ok(());
     }
 
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         return Ok(self.source.render()?.map(&self.f));
     }
 }

@@ -125,7 +125,7 @@ where
         return Ok(());
     }
 
-    fn render(&mut self) -> Result<<Self as RenderType<Self>>::Render> {
+    fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         return Ok(LarsonRenderer {
             hue: self.hue.get(),
             width: self.width.get(),
