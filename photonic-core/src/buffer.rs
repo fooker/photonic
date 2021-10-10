@@ -4,6 +4,7 @@ use anyhow::Result;
 
 use crate::color::Black;
 use crate::node::{Node, Render, RenderType};
+use std::ops::{Deref, DerefMut};
 
 pub struct Buffer<E> {
     data: Box<[E]>,
@@ -17,6 +18,43 @@ impl<E> Buffer<E> {
         for (i, e) in self.data.iter_mut().enumerate() {
             *e = f(i, e);
         }
+    }
+
+    pub fn try_update<F>(&mut self, f: F) -> Result<()>
+        where
+            F: Fn(usize, &E) -> Result<E>,
+    {
+        for (i, e) in self.data.iter_mut().enumerate() {
+            *e = f(i, e)?;
+        }
+        return Ok(());
+    }
+
+    pub fn update_from(&mut self, it: impl Iterator<Item=E>) {
+        for (e, u) in self.data.iter_mut().zip(it) {
+            *e = u;
+        }
+    }
+
+    pub fn try_update_from(&mut self, it: impl Iterator<Item=Result<E>>) -> Result<()> {
+        for (e, u) in self.data.iter_mut().zip(it) {
+            *e = u?;
+        }
+        return Ok(());
+    }
+}
+
+impl<E> Deref for Buffer<E> {
+    type Target = [E];
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
+    }
+}
+
+impl<E> DerefMut for Buffer<E> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.data
     }
 }
 

@@ -1,8 +1,11 @@
 use photonic_core::color::RGBColor;
-use crate::RenderContext;
 
 pub trait Color: Sized {
-    fn transform(color: Self, context: &RenderContext<Self>) -> Self;
+    fn transform(self,
+                 brightness: f64,
+                 gamma_factor: Option<f64>,
+                 correction: Option<Self>) -> Self
+        where Self: Sized;
 }
 
 #[derive(Copy, Clone)]
@@ -14,25 +17,29 @@ pub struct RGB {
 }
 
 impl Color for RGB {
-    fn transform(color: Self, context: &RenderContext<Self>) -> Self {
+    fn transform(self,
+                 brightness: f64,
+                 gamma_factor: Option<f64>,
+                 correction: Option<Self>) -> Self
+        where Self: Sized {
         // Apply brightness
-        let color = Self {
-            red: color.red * context.brightness,
-            green: color.green * context.brightness,
-            blue: color.blue * context.brightness,
+        let result = Self {
+            red: self.red * brightness,
+            green: self.green * brightness,
+            blue: self.blue * brightness,
         };
 
         // Apply gamma linearization
-        let color = if let Some(gamma_factor) = context.gamma_factor {
+        let color = if let Some(gamma_factor) = gamma_factor {
             Self {
-                red: f64::powf(color.red, gamma_factor),
-                green: f64::powf(color.green, gamma_factor),
-                blue: f64::powf(color.blue, gamma_factor),
+                red: f64::powf(result.red, gamma_factor),
+                green: f64::powf(result.green, gamma_factor),
+                blue: f64::powf(result.blue, gamma_factor),
             }
-        } else { color };
+        } else { result };
 
         // Apply correction
-        let color = if let Some(correction) = context.correction {
+        let color = if let Some(correction) = correction {
             Self {
                 red: color.red * correction.red,
                 green: color.green * correction.green,
@@ -64,17 +71,21 @@ pub struct RGBW {
 }
 
 impl Color for RGBW {
-    fn transform(color: Self, context: &RenderContext<Self>) -> Self {
+    fn transform(self,
+                 brightness: f64,
+                 gamma_factor: Option<f64>,
+                 correction: Option<Self>) -> Self
+        where Self: Sized {
         // Apply brightness
         let color = Self {
-            red: color.red * context.brightness,
-            green: color.green * context.brightness,
-            blue: color.blue * context.brightness,
-            white: color.white * context.brightness,
+            red: self.red * brightness,
+            green: self.green * brightness,
+            blue: self.blue * brightness,
+            white: self.white * brightness,
         };
 
         // Apply gamma linearization
-        let color = if let Some(gamma_factor) = context.gamma_factor {
+        let color = if let Some(gamma_factor) = gamma_factor {
             Self {
                 red: f64::powf(color.red, gamma_factor),
                 green: f64::powf(color.green, gamma_factor),
@@ -84,7 +95,7 @@ impl Color for RGBW {
         } else { color };
 
         // Apply correction
-        let color = if let Some(correction) = context.correction {
+        let color = if let Some(correction) = correction {
             Self {
                 red: color.red * correction.red,
                 green: color.green * correction.green,
@@ -109,13 +120,12 @@ impl From<RGBColor> for RGBW {
 }
 
 pub trait Chip {
-    type Element: Color;
-
-    type Channels: IntoIterator<Item=f64>;
+    type Element: Color + Copy;
 
     const CHANNELS: usize;
 
-    fn expand(element: Self::Element) -> Self::Channels;
+    fn expand(element: Self::Element, target: &mut [f64]);
+    // fn expand(element: Self::Element) -> [f64; Self::CHANNELS];
 }
 
 pub trait Offset<C, const N: usize> {
@@ -140,16 +150,14 @@ macro_rules! impl_chip {
         
         impl Chip for $name {
             type Element = $element;
-            type Channels = [f64; 3];
+            // type Channels = [f64; 3];
 
             const CHANNELS: usize = 3;
-            
-            fn expand(element: Self::Element) -> [f64; 3] {
-                return [
-                    <Self as Offset::<Self::Element, 0>>::get(element),
-                    <Self as Offset::<Self::Element, 1>>::get(element),
-                    <Self as Offset::<Self::Element, 2>>::get(element),
-                ];
+
+            fn expand(element: Self::Element, target: &mut [f64]) {
+                target[0] = <Self as Offset::<Self::Element, 0>>::get(element);
+                target[1] = <Self as Offset::<Self::Element, 1>>::get(element);
+                target[2] = <Self as Offset::<Self::Element, 2>>::get(element);
             }
         }
     };
@@ -164,17 +172,15 @@ macro_rules! impl_chip {
 
         impl Chip for $name {
             type Element = $element;
-            type Channels = [f64; 4];
+            // type Channels = [f64; 4];
 
             const CHANNELS: usize = 4;
 
-            fn expand(element: Self::Element) -> [f64; 4] {
-                return [
-                    <Self as Offset::<Self::Element, 0>>::get(element),
-                    <Self as Offset::<Self::Element, 1>>::get(element),
-                    <Self as Offset::<Self::Element, 2>>::get(element),
-                    <Self as Offset::<Self::Element, 3>>::get(element),
-                ];
+            fn expand(element: Self::Element, target: &mut [f64]) {
+                target[0] = <Self as Offset::<Self::Element, 0>>::get(element);
+                target[1] = <Self as Offset::<Self::Element, 1>>::get(element);
+                target[2] = <Self as Offset::<Self::Element, 2>>::get(element);
+                target[3] = <Self as Offset::<Self::Element, 3>>::get(element);
             }
         }
     };

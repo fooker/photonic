@@ -16,3 +16,6 @@ members = [
     "photonic-wasm",
     "examples",
 ]
+
+[patch.crates-io]
+spidev = { git = "https://github.com/rust-embedded/rust-spidev" }
