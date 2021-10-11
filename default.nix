@@ -18,7 +18,12 @@ in rustNightlyPlatform.buildRustPackage rec {
 
   src = nix-gitignore.gitignoreSource [] ./.;
 
-  cargoSha256 = "0x3fdd53z97kimal0v53c7yxvjd9i01639qy7wchh28w9wkk1mr0";
+  cargoLock = {
+    lockFile = ./Cargo.lock;
+    outputHashes = {
+        "spidev-0.5.0" = "0sbv53xwnqyf0bmcf14zmblj6az99g59xnkz33bf6bwjzfa4xc76";
+    };
+  };
 
   nativeBuildInputs = [
     pkgsBuildHost.llvmPackages.clang
@@ -33,5 +38,7 @@ in rustNightlyPlatform.buildRustPackage rec {
   PROTOC = "${ pkgsBuildHost.protobuf }/bin/protoc";
 
   doCheck = false;
+
+  buildType = "debug";
 }
 
