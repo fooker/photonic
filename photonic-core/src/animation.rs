@@ -21,7 +21,10 @@ impl<F: Float> Easing<F> {
     }
 
     pub fn with(func: fn(F) -> F, speed: Duration) -> Self {
-        return Self { func, speed };
+        return Self {
+            func,
+            speed,
+        };
     }
 }
 
@@ -37,7 +40,9 @@ where
     F: Lerp + Copy,
 {
     pub fn idle() -> Self {
-        return Self { state: State::Idle };
+        return Self {
+            state: State::Idle,
+        };
     }
 
     pub fn start(&mut self, easing: Easing<f64>, source: F, target: F) {

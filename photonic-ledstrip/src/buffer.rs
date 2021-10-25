@@ -1,7 +1,7 @@
 use std::cell::UnsafeCell;
 use std::ops::{Deref, DerefMut};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::Arc;
 
 struct Shared<T: Send> {
     buffers: [UnsafeCell<T>; 3],
@@ -17,11 +17,7 @@ impl<T: Send> Shared<T> {
 
 pub fn new<T: Send>(gen: impl Fn() -> T) -> (Writer<T>, Reader<T>) {
     let shared = Arc::new(Shared {
-        buffers: [
-            UnsafeCell::new(gen()),
-            UnsafeCell::new(gen()),
-            UnsafeCell::new(gen()),
-        ],
+        buffers: [UnsafeCell::new(gen()), UnsafeCell::new(gen()), UnsafeCell::new(gen())],
         back_info: AtomicU8::new(0),
     });
 
@@ -45,7 +41,8 @@ pub struct Writer<T: Send> {
 
 impl<T: Send> Writer<T> {
     pub fn publish(&mut self) -> bool {
-        let back_info = self.shared.back_info.swap(self.index | Shared::<T>::BACK_DIRTY_MASK, Ordering::AcqRel);
+        let back_info =
+            self.shared.back_info.swap(self.index | Shared::<T>::BACK_DIRTY_MASK, Ordering::AcqRel);
         self.index = back_info & Shared::<T>::BACK_INDEX_MASK;
         return back_info & Shared::<T>::BACK_DIRTY_MASK == 0;
     }
@@ -74,7 +71,8 @@ pub struct Reader<T: Send> {
 
 impl<T: Send> Reader<T> {
     pub fn update(&mut self) -> bool {
-        let updated = self.shared.back_info.load(Ordering::Relaxed) & Shared::<T>::BACK_DIRTY_MASK != 0;
+        let updated =
+            self.shared.back_info.load(Ordering::Relaxed) & Shared::<T>::BACK_DIRTY_MASK != 0;
 
         if updated {
             let back_info = self.shared.back_info.swap(self.index, Ordering::AcqRel);

@@ -120,16 +120,12 @@ pub enum InputSender {
 
 impl std::fmt::Debug for InputSender {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        return write!(
-            f,
-            "({})",
-            match self {
-                Self::Trigger(_) => "trigger",
-                Self::Boolean(_) => "boolean",
-                Self::Integer(_) => "integer",
-                Self::Decimal(_) => "decimal",
-            }
-        );
+        return write!(f, "({})", match self {
+            Self::Trigger(_) => "trigger",
+            Self::Boolean(_) => "boolean",
+            Self::Integer(_) => "integer",
+            Self::Decimal(_) => "decimal",
+        });
     }
 }
 

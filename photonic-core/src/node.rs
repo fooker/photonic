@@ -14,7 +14,10 @@ pub trait Render {
         Self: Sized,
         F: Fn(Self::Element) -> R,
     {
-        return MapRender { source: self, f };
+        return MapRender {
+            source: self,
+            f,
+        };
     }
 }
 
@@ -31,7 +34,10 @@ pub trait NodeDecl {
         Self: Sized,
         F: Fn(Self::Element) -> R,
     {
-        return MapNodeDecl { source: self, f };
+        return MapNodeDecl {
+            source: self,
+            f,
+        };
     }
 }
 
@@ -63,7 +69,10 @@ pub struct MapRender<'a, S, F> {
 
 impl<'a, S, F> MapRender<'a, S, F> {
     pub fn new(source: S, f: &'a F) -> Self {
-        return Self { source, f };
+        return Self {
+            source,
+            f,
+        };
     }
 }
 
@@ -86,7 +95,10 @@ pub struct MapNode<S, F> {
 
 impl<S, F> MapNode<S, F> {
     pub fn new(source: S, f: F) -> Self {
-        return Self { source, f };
+        return Self {
+            source,
+            f,
+        };
     }
 }
 
@@ -124,7 +136,10 @@ pub struct MapNodeDecl<S, F> {
 
 impl<S, F> MapNodeDecl<S, F> {
     pub fn new(source: S, f: F) -> Self {
-        return Self { source, f };
+        return Self {
+            source,
+            f,
+        };
     }
 }
 

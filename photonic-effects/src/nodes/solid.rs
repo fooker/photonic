@@ -4,13 +4,13 @@ use anyhow::Result;
 
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::NodeBuilder;
-use photonic_core::{UnboundAttrDecl, Attr};
+use photonic_core::{Attr, UnboundAttrDecl};
 
 pub struct SolidRenderer<E>(E);
 
 impl<E> Render for SolidRenderer<E>
-    where
-        E: Copy,
+where
+    E: Copy,
 {
     type Element = E;
 
@@ -24,8 +24,8 @@ pub struct SolidNodeDecl<Solid> {
 }
 
 impl<Solid> NodeDecl for SolidNodeDecl<Solid>
-    where
-        Solid: UnboundAttrDecl,
+where
+    Solid: UnboundAttrDecl,
 {
     type Element = Solid::Element;
     type Target = SolidNode<Solid::Target>;
@@ -42,15 +42,15 @@ pub struct SolidNode<Solid> {
 }
 
 impl<'a, Solid> RenderType<'a, Self> for SolidNode<Solid>
-    where
-        Solid: Attr,
+where
+    Solid: Attr,
 {
     type Render = SolidRenderer<Solid::Element>;
 }
 
 impl<Solid> Node for SolidNode<Solid>
-    where
-        Solid: Attr,
+where
+    Solid: Attr,
 {
     const KIND: &'static str = "solid";
 
@@ -75,8 +75,8 @@ pub mod model {
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::color;
     use photonic_dyn::builder::NodeBuilder;
-    use photonic_dyn::model::NodeModel;
     use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
     #[derive(Deserialize)]
     pub struct SolidConfig {
@@ -84,12 +84,13 @@ pub mod model {
     }
 
     impl NodeModel for SolidConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-            return Ok(BoxedNodeDecl::wrap(
-                super::SolidNodeDecl {
-                    solid: builder.unbound_attr("solid", self.solid)?,
-                },
-            ));
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(super::SolidNodeDecl {
+                solid: builder.unbound_attr("solid", self.solid)?,
+            }));
         }
     }
 }

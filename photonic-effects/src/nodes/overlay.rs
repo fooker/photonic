@@ -116,11 +116,11 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::config;
-    use photonic_dyn::model::NodeModel;
-    use photonic_dyn::builder::NodeBuilder;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::color;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
     use anyhow::Result;
     use serde::Deserialize;
@@ -133,14 +133,15 @@ pub mod model {
     }
 
     impl NodeModel for OverlayConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-            return Ok(BoxedNodeDecl::wrap(
-                super::OverlayNodeDecl {
-                    base: builder.node("base", self.base)?,
-                    overlay: builder.node("overlay", self.overlay)?,
-                    blend: builder.bound_attr("blend", self.blend)?,
-                },
-            ));
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(super::OverlayNodeDecl {
+                base: builder.node("base", self.base)?,
+                overlay: builder.node("overlay", self.overlay)?,
+                blend: builder.bound_attr("blend", self.blend)?,
+            }));
         }
     }
 }

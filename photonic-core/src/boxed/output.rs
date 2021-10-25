@@ -5,17 +5,17 @@ use crate::node::{Node, NodeDecl, RenderType};
 use crate::output::{Output, OutputDecl};
 
 trait AsBoxedOutputDecl<Node>
-    where
-        Node: self::NodeDecl,
+where
+    Node: self::NodeDecl,
 {
     fn materialize(self: Box<Self>, size: usize) -> Result<BoxedOutput<Node::Target>, Error>;
 }
 
 impl<T, Node> AsBoxedOutputDecl<Node> for T
-    where
-        T: OutputDecl<Node>,
-        T::Target: 'static,
-        Node: self::NodeDecl,
+where
+    T: OutputDecl<Node>,
+    T::Target: 'static,
+    Node: self::NodeDecl,
 {
     fn materialize(self: Box<Self>, size: usize) -> Result<BoxedOutput<Node::Target>, Error> {
         return T::materialize(*self, size).map(BoxedOutput::wrap);
@@ -23,16 +23,16 @@ impl<T, Node> AsBoxedOutputDecl<Node> for T
 }
 
 pub struct BoxedOutputDecl<Node>
-    where
-        Node: self::NodeDecl,
+where
+    Node: self::NodeDecl,
 {
     decl: Box<dyn AsBoxedOutputDecl<Node>>,
 }
 
 impl<Node, Decl> Wrap<Decl> for BoxedOutputDecl<Node>
-    where
-        Node: self::NodeDecl + 'static,
-        Decl: OutputDecl<Node> + 'static,
+where
+    Node: self::NodeDecl + 'static,
+    Decl: OutputDecl<Node> + 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -42,30 +42,30 @@ impl<Node, Decl> Wrap<Decl> for BoxedOutputDecl<Node>
 }
 
 impl<Node> OutputDecl<Node> for BoxedOutputDecl<Node>
-    where
-        Node: self::NodeDecl,
+where
+    Node: self::NodeDecl,
 {
     type Target = BoxedOutput<Node::Target>;
 
     fn materialize(self, size: usize) -> Result<Self::Target, Error>
-        where
-            Self::Target: Sized,
+    where
+        Self::Target: Sized,
     {
         return self.decl.materialize(size);
     }
 }
 
 trait AsBoxedOutput<Node>
-    where
-        Node: self::Node,
+where
+    Node: self::Node,
 {
     fn render(&mut self, render: <Node as RenderType<'_, Node>>::Render) -> Result<(), Error>;
 }
 
 impl<T, Node> AsBoxedOutput<Node> for T
-    where
-        T: Output<Node>,
-        Node: self::Node,
+where
+    T: Output<Node>,
+    Node: self::Node,
 {
     fn render(&mut self, render: <Node as RenderType<'_, Node>>::Render) -> Result<(), Error> {
         return T::render(self, render);
@@ -73,16 +73,16 @@ impl<T, Node> AsBoxedOutput<Node> for T
 }
 
 pub struct BoxedOutput<Node>
-    where
-        Node: self::Node,
+where
+    Node: self::Node,
 {
     output: Box<dyn AsBoxedOutput<Node>>,
 }
 
 impl<Node, Output> Wrap<Output> for BoxedOutput<Node>
-    where
-        Node: self::Node,
-        Output: self::Output<Node> + 'static,
+where
+    Node: self::Node,
+    Output: self::Output<Node> + 'static,
 {
     fn wrap(output: Output) -> Self {
         return Self {
@@ -92,8 +92,8 @@ impl<Node, Output> Wrap<Output> for BoxedOutput<Node>
 }
 
 impl<Node> Output<Node> for BoxedOutput<Node>
-    where
-        Node: self::Node,
+where
+    Node: self::Node,
 {
     const KIND: &'static str = "boxed";
 

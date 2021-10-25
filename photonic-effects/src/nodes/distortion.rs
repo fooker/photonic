@@ -53,7 +53,7 @@ pub struct DistortionNode<Source, Value, F> {
 impl<Source, Value, F, E> NodeDecl for DistortionNodeDecl<Source, Value, F>
 where
     Source: NodeDecl<Element = E>,
-    Value: BoundAttrDecl<Element=f64>,
+    Value: BoundAttrDecl<Element = f64>,
     E: Lerp,
     F: Fn(&E, f64) -> Result<E> + 'static,
 {
@@ -73,7 +73,7 @@ where
 impl<'a, Source, Value, F> RenderType<'a, Self> for DistortionNode<Source, Value, F>
 where
     Source: Node,
-    Value: self::Attr<Element=f64>,
+    Value: self::Attr<Element = f64>,
     Source::Element: Lerp,
     F: Fn(&Source::Element, f64) -> Result<Source::Element> + 'static,
 {
@@ -83,7 +83,7 @@ where
 impl<Source, Value, F> Node for DistortionNode<Source, Value, F>
 where
     Source: Node,
-    Value: self::Attr<Element=f64>,
+    Value: self::Attr<Element = f64>,
     Source::Element: Lerp,
     F: Fn(&Source::Element, f64) -> Result<Source::Element> + 'static,
 {
@@ -113,16 +113,16 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::config;
-    use photonic_dyn::model::NodeModel;
-    use photonic_dyn::builder::NodeBuilder;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::color;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
     use anyhow::Result;
-    use serde::Deserialize;
-    use photonic_core::color::RGBColor;
     use evalexpr::{Context, Value};
+    use photonic_core::color::RGBColor;
+    use serde::Deserialize;
 
     #[derive(Deserialize)]
     pub struct DistortionConfig {
@@ -132,32 +132,32 @@ pub mod model {
     }
 
     impl NodeModel for DistortionConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
             let distortion = self.distortion;
 
-            return Ok(BoxedNodeDecl::wrap(
-                super::DistortionNodeDecl {
-                    source: builder.node("source", self.source)?,
-                    value: builder.bound_attr("value", self.value)?,
-                    distortion: move |value: &RGBColor, time: f64| {
-                        let mut ctx = evalexpr::context_map! {
-                            "t" => time,
-                            "r" => value.red,
-                            "g" => value.green,
-                            "b" => value.blue,
-                        }?;
+            return Ok(BoxedNodeDecl::wrap(super::DistortionNodeDecl {
+                source: builder.node("source", self.source)?,
+                value: builder.bound_attr("value", self.value)?,
+                distortion: move |value: &RGBColor, time: f64| {
+                    let mut ctx = evalexpr::context_map! {
+                        "t" => time,
+                        "r" => value.red,
+                        "g" => value.green,
+                        "b" => value.blue,
+                    }?;
 
-                        distortion.eval_empty_with_context_mut(&mut ctx)?;
+                    distortion.eval_empty_with_context_mut(&mut ctx)?;
 
-                        return Ok(RGBColor::new(
-                            ctx.get_value("r").map_or(Ok(0.0), Value::as_float)?,
-                            ctx.get_value("g").map_or(Ok(0.0), Value::as_float)?,
-                            ctx.get_value("b").map_or(Ok(0.0), Value::as_float)?,
-                        ));
-                    },
+                    return Ok(RGBColor::new(
+                        ctx.get_value("r").map_or(Ok(0.0), Value::as_float)?,
+                        ctx.get_value("g").map_or(Ok(0.0), Value::as_float)?,
+                        ctx.get_value("b").map_or(Ok(0.0), Value::as_float)?,
+                    ));
                 },
-            ));
+            }));
         }
     }
 }

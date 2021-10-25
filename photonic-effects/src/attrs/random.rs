@@ -1,7 +1,10 @@
 use std::time::Duration;
 
 use anyhow::Error;
-use rand::{distributions::{Distribution, Uniform, uniform::SampleUniform}, rngs::SmallRng, SeedableRng};
+use rand::distributions::uniform::SampleUniform;
+use rand::distributions::{Distribution, Uniform};
+use rand::rngs::SmallRng;
+use rand::SeedableRng;
 
 use photonic_core::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, Update};
 use photonic_core::input::{Input, Poll};
@@ -93,28 +96,29 @@ pub mod model {
     }
 
     impl<V> BoundAttrModel<V> for RandomModel
-        where
-            V: AttrValueFactory + Bounded,
+    where
+        V: AttrValueFactory + Bounded,
     {
-        default fn assemble(self, _builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
+        default fn assemble(
+            self,
+            _builder: &mut impl AttrBuilder,
+        ) -> Result<BoxedBoundAttrDecl<V>> {
             return Err(format_err!(
-            "Random is not supported for Attributes of Type {}",
-            std::any::type_name::<V>()
-        ));
+                "Random is not supported for Attributes of Type {}",
+                std::any::type_name::<V>()
+            ));
         }
     }
 
     impl<V> BoundAttrModel<V> for RandomModel
-        where
-            V: AttrValueFactory + Bounded + SampleUniform,
+    where
+        V: AttrValueFactory + Bounded + SampleUniform,
     {
         fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
-            return Ok(BoxedBoundAttrDecl::wrap(
-                super::RandomDecl {
-                    trigger: builder.input(self.trigger)?,
-                    phantom: Default::default(),
-                },
-            ));
+            return Ok(BoxedBoundAttrDecl::wrap(super::RandomDecl {
+                trigger: builder.input(self.trigger)?,
+                phantom: Default::default(),
+            }));
         }
     }
 }

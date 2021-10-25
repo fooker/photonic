@@ -10,9 +10,9 @@ use photonic_core::math::Lerp;
 use photonic_core::scene::AttrBuilder;
 
 pub struct Fader<Input, V>
-    where
-        V: AttrValue + Lerp,
-        Input: Attr<Element=V>,
+where
+    V: AttrValue + Lerp,
+    Input: Attr<Element = V>,
 {
     input: Input,
 
@@ -23,9 +23,9 @@ pub struct Fader<Input, V>
 }
 
 impl<Input, V> Attr for Fader<Input, V>
-    where
-        V: AttrValue + Lerp,
-        Input: Attr<Element=V>,
+where
+    V: AttrValue + Lerp,
+    Input: Attr<Element = V>,
 {
     type Element = V;
 
@@ -55,9 +55,9 @@ pub struct FaderDecl<Input> {
 }
 
 impl<Input, V> BoundAttrDecl for FaderDecl<Input>
-    where
-        V: AttrValue + Lerp + Bounded,
-        Input: BoundAttrDecl<Element=V>,
+where
+    V: AttrValue + Lerp + Bounded,
+    Input: BoundAttrDecl<Element = V>,
 {
     type Element = V;
     type Target = Fader<Input::Target, V>;
@@ -80,9 +80,9 @@ impl<Input, V> BoundAttrDecl for FaderDecl<Input>
 }
 
 impl<Input, V: AttrValue> UnboundAttrDecl for FaderDecl<Input>
-    where
-        V: Lerp,
-        Input: UnboundAttrDecl<Element=V>,
+where
+    V: Lerp,
+    Input: UnboundAttrDecl<Element = V>,
 {
     type Element = V;
     type Target = Fader<Input::Target, V>;
@@ -162,8 +162,8 @@ pub mod model {
         }
 
         pub fn resemble<F>(self) -> Result<animation::Easing<F>>
-            where
-                F: animation::Float,
+        where
+            F: animation::Float,
         {
             return Ok(animation::Easing {
                 func: Self::func(&self.func)
@@ -180,10 +180,13 @@ pub mod model {
     }
 
     impl<V> UnboundAttrModel<V> for FaderModel
-        where
-            V: AttrValueFactory,
+    where
+        V: AttrValueFactory,
     {
-        default fn assemble(self, _builder: &mut impl AttrBuilder) -> Result<BoxedUnboundAttrDecl<V>> {
+        default fn assemble(
+            self,
+            _builder: &mut impl AttrBuilder,
+        ) -> Result<BoxedUnboundAttrDecl<V>> {
             return Err(format_err!(
                 "Fader is not supported for Attributes of Type {}",
                 std::any::type_name::<V>()
@@ -192,24 +195,25 @@ pub mod model {
     }
 
     impl<V> UnboundAttrModel<V> for FaderModel
-        where
-            V: AttrValueFactory + Lerp,
+    where
+        V: AttrValueFactory + Lerp,
     {
         fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedUnboundAttrDecl<V>> {
-            return Ok(BoxedUnboundAttrDecl::wrap(
-                super::FaderDecl {
-                    input: builder.unbound_attr("input", self.input)?,
-                    easing: self.easing.resemble()?,
-                },
-            ));
+            return Ok(BoxedUnboundAttrDecl::wrap(super::FaderDecl {
+                input: builder.unbound_attr("input", self.input)?,
+                easing: self.easing.resemble()?,
+            }));
         }
     }
 
     impl<V> BoundAttrModel<V> for FaderModel
-        where
-            V: AttrValueFactory + Bounded,
+    where
+        V: AttrValueFactory + Bounded,
     {
-        default fn assemble(self, _builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
+        default fn assemble(
+            self,
+            _builder: &mut impl AttrBuilder,
+        ) -> Result<BoxedBoundAttrDecl<V>> {
             return Err(format_err!(
                 "Fader is not supported for Attributes of Type {}",
                 std::any::type_name::<V>()
@@ -218,16 +222,14 @@ pub mod model {
     }
 
     impl<V> BoundAttrModel<V> for FaderModel
-        where
-            V: AttrValueFactory + Bounded + Lerp,
+    where
+        V: AttrValueFactory + Bounded + Lerp,
     {
         fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
-            return Ok(BoxedBoundAttrDecl::wrap(
-                super::FaderDecl {
-                    input: builder.bound_attr("input", self.input)?,
-                    easing: self.easing.resemble()?,
-                },
-            ));
+            return Ok(BoxedBoundAttrDecl::wrap(super::FaderDecl {
+                input: builder.bound_attr("input", self.input)?,
+                easing: self.easing.resemble()?,
+            }));
         }
     }
 }

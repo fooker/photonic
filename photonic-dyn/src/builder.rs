@@ -1,22 +1,23 @@
 use std::marker::PhantomData;
 
-use anyhow::{Context, format_err, Result};
+use anyhow::{format_err, Context, Result};
 
-use photonic_core::{color, InputHandle, NodeHandle, Scene};
 use photonic_core::boxed::{
-    BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl,
-    BoxedUnboundAttrDecl,
+    BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl,
 };
 use photonic_core::input::InputValue;
+use photonic_core::{color, InputHandle, NodeHandle, Scene};
 
 use crate::config;
 use crate::model::{BoundAttrFactory, UnboundAttrFactory};
-use crate::registry::{BoundAttrRegistry, NodeRegistry, OutputRegistry, Registry, UnboundAttrRegistry};
+use crate::registry::{
+    BoundAttrRegistry, NodeRegistry, OutputRegistry, Registry, UnboundAttrRegistry,
+};
 
 pub trait InputBuilder {
     fn input<V>(&mut self, config: config::Input) -> Result<InputHandle<V>>
-        where
-            V: InputValue;
+    where
+        V: InputValue;
 }
 
 pub trait AttrBuilder: InputBuilder {
@@ -25,16 +26,12 @@ pub trait AttrBuilder: InputBuilder {
         name: &str,
         config: config::Attr,
     ) -> Result<BoxedUnboundAttrDecl<V>>
-        where
-            V: UnboundAttrFactory;
+    where
+        V: UnboundAttrFactory;
 
-    fn bound_attr<V>(
-        &mut self,
-        name: &str,
-        config: config::Attr,
-    ) -> Result<BoxedBoundAttrDecl<V>>
-        where
-            V: BoundAttrFactory;
+    fn bound_attr<V>(&mut self, name: &str, config: config::Attr) -> Result<BoxedBoundAttrDecl<V>>
+    where
+        V: BoundAttrFactory;
 }
 
 pub trait NodeBuilder: AttrBuilder {
@@ -66,7 +63,10 @@ impl<Registry: self::Registry> Builder<Registry> {
         return self.scene;
     }
 
-    pub fn output(&mut self, config: config::Output) -> Result<BoxedOutputDecl<BoxedNodeDecl<color::RGBColor>>> {
+    pub fn output(
+        &mut self,
+        config: config::Output,
+    ) -> Result<BoxedOutputDecl<BoxedNodeDecl<color::RGBColor>>> {
         return Registry::Output::manufacture(&config.kind)
             .ok_or_else(|| format_err!("Unknown output type: {}", config.kind))?
             .produce(config.config, self)
@@ -80,12 +80,13 @@ impl<Registry: self::Registry> NodeBuilder for Builder<Registry> {
         name: &str,
         config: config::Node,
     ) -> Result<NodeHandle<BoxedNodeDecl<color::RGBColor>>> {
-        let decl =
-            Registry::Node::manufacture(&config.kind)
-                .ok_or_else(|| format_err!("Unknown node type: {}", config.kind))?
-                .produce(config.config, self)
-                .context(format!("Failed to build node: {} (type={}) @{}",
-                                 config.name, config.kind, name))?;
+        let decl = Registry::Node::manufacture(&config.kind)
+            .ok_or_else(|| format_err!("Unknown node type: {}", config.kind))?
+            .produce(config.config, self)
+            .context(format!(
+                "Failed to build node: {} (type={}) @{}",
+                config.name, config.kind, name
+            ))?;
         return self.scene.node(&config.name, decl);
     }
 }
@@ -96,37 +97,45 @@ impl<Registry: self::Registry> AttrBuilder for Builder<Registry> {
         name: &str,
         config: config::Attr,
     ) -> Result<BoxedUnboundAttrDecl<V>>
-        where
-            V: UnboundAttrFactory,
+    where
+        V: UnboundAttrFactory,
     {
         match config {
-            config::Attr::Attr { kind, config } => {
+            config::Attr::Attr {
+                kind,
+                config,
+            } => {
                 return Registry::UnboundAttr::manufacture(&kind)
                     .ok_or_else(|| format_err!("Unknown unbound attribute type: {}", kind))?
                     .produce(config, self)
                     .context(format!("Failed to build attr: (type={}) @{}", kind, name));
             }
-            config::Attr::Input { input, initial } => V::make_input(self, input, initial),
+            config::Attr::Input {
+                input,
+                initial,
+            } => V::make_input(self, input, initial),
             config::Attr::Fixed(value) => V::make_fixed(self, value),
         }
     }
 
-    fn bound_attr<V>(
-        &mut self,
-        name: &str,
-        config: config::Attr,
-    ) -> Result<BoxedBoundAttrDecl<V>>
-        where
-            V: BoundAttrFactory,
+    fn bound_attr<V>(&mut self, name: &str, config: config::Attr) -> Result<BoxedBoundAttrDecl<V>>
+    where
+        V: BoundAttrFactory,
     {
         match config {
-            config::Attr::Attr { kind, config } => {
+            config::Attr::Attr {
+                kind,
+                config,
+            } => {
                 return Registry::BoundAttr::manufacture(&kind)
                     .ok_or_else(|| format_err!("Unknown bound attribute type: {}", kind))?
                     .produce(config, self)
                     .context(format!("Failed to build attr: (type={}) @{}", kind, name));
             }
-            config::Attr::Input { input, initial } => V::make_input(self, input, initial),
+            config::Attr::Input {
+                input,
+                initial,
+            } => V::make_input(self, input, initial),
             config::Attr::Fixed(value) => V::make_fixed(self, value),
         }
     }
@@ -134,8 +143,8 @@ impl<Registry: self::Registry> AttrBuilder for Builder<Registry> {
 
 impl<Registry: self::Registry> InputBuilder for Builder<Registry> {
     fn input<V>(&mut self, config: config::Input) -> Result<InputHandle<V>>
-        where
-            V: InputValue,
+    where
+        V: InputValue,
     {
         return self.scene.input(&config.input);
     }

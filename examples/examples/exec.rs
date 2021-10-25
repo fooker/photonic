@@ -11,14 +11,13 @@ const FPS: usize = 60;
 async fn main() -> Result<!, Error> {
     let mut scene = Scene::new(SIZE);
 
-    let exec = scene.node(
-        "exec",
-        ExecNodeDecl {
-            command: "target/debug/examples/exec-sub".to_string(),
-        },
-    )?;
+    let exec = scene.node("exec", ExecNodeDecl {
+        command: "target/debug/examples/exec-sub".to_string(),
+    })?;
 
-    let (main, _) = scene.run(exec, ConsoleOutputDecl { waterfall: true })?;
+    let (main, _) = scene.run(exec, ConsoleOutputDecl {
+        waterfall: true,
+    })?;
 
     main.run(FPS).await?;
 }

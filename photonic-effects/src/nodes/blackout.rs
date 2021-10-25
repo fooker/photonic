@@ -34,7 +34,7 @@ where
 pub struct BlackoutNodeDecl<Source, Active>
 where
     Source: NodeDecl,
-    Active: UnboundAttrDecl<Element=bool>,
+    Active: UnboundAttrDecl<Element = bool>,
 {
     pub source: NodeHandle<Source>,
     pub active: Active,
@@ -50,7 +50,7 @@ pub struct BlackoutNode<Source, Active> {
 impl<Source, Active, E> NodeDecl for BlackoutNodeDecl<Source, Active>
 where
     Source: NodeDecl<Element = E>,
-    Active: UnboundAttrDecl<Element=bool>,
+    Active: UnboundAttrDecl<Element = bool>,
     E: Lerp + Black,
 {
     type Element = E;
@@ -68,7 +68,7 @@ where
 impl<'a, Source, Active> RenderType<'a, Self> for BlackoutNode<Source, Active>
 where
     Source: Node,
-    Active: self::Attr<Element=bool>,
+    Active: self::Attr<Element = bool>,
     Source::Element: Lerp + Black,
 {
     type Render = BlackoutRenderer<<Source as RenderType<'a, Source>>::Render>;
@@ -77,7 +77,7 @@ where
 impl<Source, Active> Node for BlackoutNode<Source, Active>
 where
     Source: Node,
-    Active: self::Attr<Element=bool>,
+    Active: self::Attr<Element = bool>,
     Source::Element: Lerp + Black,
 {
     const KIND: &'static str = "blackout";
@@ -103,11 +103,11 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::config;
-    use photonic_dyn::model::NodeModel;
-    use photonic_dyn::builder::NodeBuilder;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::color;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
     use anyhow::Result;
     use serde::Deserialize;
@@ -120,14 +120,15 @@ pub mod model {
     }
 
     impl NodeModel for BlackoutConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-            return Ok(BoxedNodeDecl::wrap(
-                super::BlackoutNodeDecl {
-                    source: builder.node("source", self.source)?,
-                    active: builder.unbound_attr("active", self.active)?,
-                    range: self.range,
-                },
-            ));
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(super::BlackoutNodeDecl {
+                source: builder.node("source", self.source)?,
+                active: builder.unbound_attr("active", self.active)?,
+                range: self.range,
+            }));
         }
     }
 }

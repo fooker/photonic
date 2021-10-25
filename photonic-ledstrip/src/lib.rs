@@ -2,30 +2,30 @@
 #![allow(clippy::needless_return)]
 
 use std::marker::PhantomData;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use anyhow::{Error, Result};
 
-use photonic_core::{Buffer, Output};
 use photonic_core::color::RGBColor;
 use photonic_core::math::clamp;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::output::OutputDecl;
+use photonic_core::{Buffer, Output};
 
 use crate::chips::{Chip, Color};
 use crate::controllers::Controller;
 
-pub mod controllers;
-pub mod chips;
 pub mod buffer;
+pub mod chips;
+pub mod controllers;
 pub mod registry;
 
 #[cfg_attr(feature = "dyn", derive(serde::Deserialize))]
 pub struct LedStripOutputDecl<Controller, Chip>
-    where
-        Controller: self::Controller,
-        Chip: self::Chip,
+where
+    Controller: self::Controller,
+    Chip: self::Chip,
 {
     pub config: Controller::Config,
 
@@ -37,9 +37,9 @@ pub struct LedStripOutputDecl<Controller, Chip>
 }
 
 pub struct LedStripOutput<Controller, Chip>
-    where
-        Controller: self::Controller,
-        Chip: self::Chip,
+where
+    Controller: self::Controller,
+    Chip: self::Chip,
 {
     controller: PhantomData<Controller>,
     chip: PhantomData<Chip>,
@@ -53,11 +53,11 @@ pub struct LedStripOutput<Controller, Chip>
 }
 
 impl<Controller, Chip, Node> Output<Node> for LedStripOutput<Controller, Chip>
-    where
-        Controller: self::Controller,
-        Chip: self::Chip,
-        Node: self::Node,
-        Node::Element: Into<Chip::Element>,
+where
+    Controller: self::Controller,
+    Chip: self::Chip,
+    Node: self::Node,
+    Node::Element: Into<Chip::Element>,
 {
     const KIND: &'static str = "LED Strip";
 
@@ -66,11 +66,15 @@ impl<Controller, Chip, Node> Output<Node> for LedStripOutput<Controller, Chip>
             // TODO: Implement this using const generics
             for (i, chunk) in self.writer.chunks_mut(Chip::CHANNELS).enumerate() {
                 let color = render.get(i)?;
-                Chip::expand(Chip::Element::transform(color.into(),
-                                                      self.brightness,
-                                                      self.gamma_factor,
-                                                      self.correction),
-                             chunk);
+                Chip::expand(
+                    Chip::Element::transform(
+                        color.into(),
+                        self.brightness,
+                        self.gamma_factor,
+                        self.correction,
+                    ),
+                    chunk,
+                );
             }
         }
 
@@ -81,11 +85,11 @@ impl<Controller, Chip, Node> Output<Node> for LedStripOutput<Controller, Chip>
 }
 
 impl<Controller, Chip, Node> OutputDecl<Node> for LedStripOutputDecl<Controller, Chip>
-    where
-        Controller: self::Controller + Send + Sync + 'static,
-        Chip: self::Chip,
-        Node: self::NodeDecl,
-        Node::Element: Into<Chip::Element>,
+where
+    Controller: self::Controller + Send + Sync + 'static,
+    Chip: self::Chip,
+    Node: self::NodeDecl,
+    Node::Element: Into<Chip::Element>,
 {
     type Target = LedStripOutput<Controller, Chip>;
 
@@ -102,8 +106,7 @@ impl<Controller, Chip, Node> OutputDecl<Node> for LedStripOutputDecl<Controller,
                 while running.load(Ordering::SeqCst) {
                     reader.update();
 
-                    let channels = reader.iter()
-                        .map(|channel| (channel * 255.0 + 0.5) as u8);
+                    let channels = reader.iter().map(|channel| (channel * 255.0 + 0.5) as u8);
 
                     controller.send(channels).await?;
                 }
@@ -125,9 +128,9 @@ impl<Controller, Chip, Node> OutputDecl<Node> for LedStripOutputDecl<Controller,
 }
 
 impl<Controller, Chip> Drop for LedStripOutput<Controller, Chip>
-    where
-        Controller: self::Controller,
-        Chip: self::Chip,
+where
+    Controller: self::Controller,
+    Chip: self::Chip,
 {
     fn drop(&mut self) {
         self.running.store(false, Ordering::SeqCst);
@@ -137,9 +140,5 @@ impl<Controller, Chip> Drop for LedStripOutput<Controller, Chip>
 pub fn rgb2rgbw(color: RGBColor) -> (RGBColor, f64) {
     let white = f64::min(f64::min(color.red, color.blue), color.blue);
 
-    return (RGBColor::new(
-        color.red - white,
-        color.green - white,
-        color.blue - white,
-    ), white);
+    return (RGBColor::new(color.red - white, color.green - white, color.blue - white), white);
 }

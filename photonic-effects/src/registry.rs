@@ -7,13 +7,14 @@ use photonic_dyn::builder::{AttrBuilder, NodeBuilder};
 use photonic_dyn::model::AttrValueFactory;
 use photonic_dyn::registry::{self, BoundAttrRegistry, Factory, NodeRegistry, UnboundAttrRegistry};
 
-use super::attrs;
-use super::nodes;
+use super::{attrs, nodes};
 
 pub struct Registry;
 
 impl NodeRegistry for Registry {
-    fn manufacture<Builder: NodeBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedNodeDecl<RGBColor>, Builder>>> {
+    fn manufacture<Builder: NodeBuilder>(
+        kind: &str,
+    ) -> Option<Box<dyn Factory<BoxedNodeDecl<RGBColor>, Builder>>> {
         return Some(match kind {
             "afterglow" => registry::node::<Builder, nodes::afterglow::model::AfterglowConfig>(),
             "alert" => registry::node::<Builder, nodes::alert::model::AlertConfig>(),
@@ -34,24 +35,34 @@ impl NodeRegistry for Registry {
 }
 
 impl UnboundAttrRegistry for Registry {
-    fn manufacture<V: AttrValueFactory, Builder: AttrBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedUnboundAttrDecl<V>, Builder>>> {
+    fn manufacture<V: AttrValueFactory, Builder: AttrBuilder>(
+        kind: &str,
+    ) -> Option<Box<dyn Factory<BoxedUnboundAttrDecl<V>, Builder>>> {
         return Some(match kind {
-            "button" => registry::unbound_attr::<Builder, V, attrs::button::model::ButtonModel<V>>(),
+            "button" => {
+                registry::unbound_attr::<Builder, V, attrs::button::model::ButtonModel<V>>()
+            }
             "fader" => registry::unbound_attr::<Builder, V, attrs::fader::model::FaderModel>(),
-            "sequence" => registry::unbound_attr::<Builder, V, attrs::sequence::model::SequenceModel<V>>(),
+            "sequence" => {
+                registry::unbound_attr::<Builder, V, attrs::sequence::model::SequenceModel<V>>()
+            }
             _ => return None,
         });
     }
 }
 
 impl BoundAttrRegistry for Registry {
-    fn manufacture<V: AttrValueFactory + Bounded, Builder: AttrBuilder>(kind: &str) -> Option<Box<dyn Factory<BoxedBoundAttrDecl<V>, Builder>>> {
+    fn manufacture<V: AttrValueFactory + Bounded, Builder: AttrBuilder>(
+        kind: &str,
+    ) -> Option<Box<dyn Factory<BoxedBoundAttrDecl<V>, Builder>>> {
         return Some(match kind {
             "button" => registry::bound_attr::<Builder, V, attrs::button::model::ButtonModel<V>>(),
             "fader" => registry::bound_attr::<Builder, V, attrs::fader::model::FaderModel>(),
             "looper" => registry::bound_attr::<Builder, V, attrs::looper::model::LooperModel<V>>(),
             "random" => registry::bound_attr::<Builder, V, attrs::random::model::RandomModel>(),
-            "sequence" => registry::bound_attr::<Builder, V, attrs::sequence::model::SequenceModel<V>>(),
+            "sequence" => {
+                registry::bound_attr::<Builder, V, attrs::sequence::model::SequenceModel<V>>()
+            }
             _ => return None,
         });
     }

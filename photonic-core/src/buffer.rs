@@ -12,8 +12,8 @@ pub struct Buffer<E> {
 
 impl<E> Buffer<E> {
     pub fn update<F>(&mut self, f: F)
-        where
-            F: Fn(usize, &E) -> E,
+    where
+        F: Fn(usize, &E) -> E,
     {
         for (i, e) in self.data.iter_mut().enumerate() {
             *e = f(i, e);
@@ -21,8 +21,8 @@ impl<E> Buffer<E> {
     }
 
     pub fn try_update<F>(&mut self, f: F) -> Result<()>
-        where
-            F: Fn(usize, &E) -> Result<E>,
+    where
+        F: Fn(usize, &E) -> Result<E>,
     {
         for (i, e) in self.data.iter_mut().enumerate() {
             *e = f(i, e)?;
@@ -30,13 +30,13 @@ impl<E> Buffer<E> {
         return Ok(());
     }
 
-    pub fn update_from(&mut self, it: impl Iterator<Item=E>) {
+    pub fn update_from(&mut self, it: impl Iterator<Item = E>) {
         for (e, u) in self.data.iter_mut().zip(it) {
             *e = u;
         }
     }
 
-    pub fn try_update_from(&mut self, it: impl Iterator<Item=Result<E>>) -> Result<()> {
+    pub fn try_update_from(&mut self, it: impl Iterator<Item = Result<E>>) -> Result<()> {
         for (e, u) in self.data.iter_mut().zip(it) {
             *e = u?;
         }
@@ -59,8 +59,8 @@ impl<E> DerefMut for Buffer<E> {
 }
 
 impl<E> Buffer<E>
-    where
-        E: Default,
+where
+    E: Default,
 {
     pub fn new(size: usize) -> Self {
         Self::from_generator(size, |_| E::default())
@@ -68,8 +68,8 @@ impl<E> Buffer<E>
 }
 
 impl<E> Buffer<E>
-    where
-        E: Black,
+where
+    E: Black,
 {
     pub fn black(size: usize) -> Self {
         Self::from_generator(size, |_| E::black())
@@ -78,9 +78,9 @@ impl<E> Buffer<E>
 
 impl<E> Buffer<E> {
     pub fn from_generator<F, R>(size: usize, generator: F) -> Self
-        where
-            F: FnMut(usize) -> R,
-            R: Into<E>,
+    where
+        F: FnMut(usize) -> R,
+        R: Into<E>,
     {
         Self {
             data: (0..size).map(generator).map(|v| v.into()).collect(),
@@ -99,31 +99,33 @@ impl<E> Buffer<E> {
         self.data[index % self.data.len()] = value
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=&E> {
+    pub fn iter(&self) -> impl Iterator<Item = &E> {
         self.data.iter()
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item=&mut E> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut E> {
         self.data.iter_mut()
     }
 }
 
 impl<'a, E> RenderType<'a, Self> for Buffer<E>
-    where
-        E: Copy + 'static,
+where
+    E: Copy + 'static,
 {
     type Render = &'a Self;
 }
 
 impl<E> Node for Buffer<E>
-    where
-        E: Copy + 'static,
+where
+    E: Copy + 'static,
 {
     type Element = E;
 
     const KIND: &'static str = "buffer";
 
-    fn update(&mut self, _duration: Duration) -> Result<()> { Ok(()) }
+    fn update(&mut self, _duration: Duration) -> Result<()> {
+        Ok(())
+    }
 
     fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
         Ok(self)
@@ -131,8 +133,8 @@ impl<E> Node for Buffer<E>
 }
 
 impl<'a, E> Render for Buffer<E>
-    where
-        E: Copy,
+where
+    E: Copy,
 {
     type Element = E;
 
@@ -154,8 +156,8 @@ impl<E> AsMut<[E]> for Buffer<E> {
 }
 
 impl<'a, E> Render for &'a Buffer<E>
-    where
-        E: Copy,
+where
+    E: Copy,
 {
     type Element = E;
 

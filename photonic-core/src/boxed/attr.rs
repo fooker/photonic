@@ -3,8 +3,8 @@ use std::time::Duration;
 use anyhow::Error;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounded, Bounds, UnboundAttrDecl, Update};
-use crate::scene::AttrBuilder;
 use crate::boxed::Wrap;
+use crate::scene::AttrBuilder;
 
 trait AsBoxedUnboundAttrDecl<V> {
     fn materialize(self: Box<Self>, builder: &mut AttrBuilder) -> Result<BoxedAttr<V>, Error>;
@@ -20,7 +20,7 @@ trait AsBoxedBoundAttrDecl<V> {
 
 impl<T, V> AsBoxedUnboundAttrDecl<V> for T
 where
-    T: UnboundAttrDecl<Element=V>,
+    T: UnboundAttrDecl<Element = V>,
     T::Target: 'static,
     V: AttrValue,
 {
@@ -31,7 +31,7 @@ where
 
 impl<T, V> AsBoxedBoundAttrDecl<V> for T
 where
-    T: BoundAttrDecl<Element=V>,
+    T: BoundAttrDecl<Element = V>,
     T::Target: 'static,
     V: AttrValue + Bounded,
 {
@@ -55,7 +55,7 @@ pub struct BoxedBoundAttrDecl<V> {
 impl<V, Decl> Wrap<Decl> for BoxedUnboundAttrDecl<V>
 where
     V: AttrValue,
-    Decl: UnboundAttrDecl<Element=V> + 'static,
+    Decl: UnboundAttrDecl<Element = V> + 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -64,10 +64,10 @@ where
     }
 }
 
-impl<V, Decl> Wrap<Decl> for  BoxedBoundAttrDecl<V>
+impl<V, Decl> Wrap<Decl> for BoxedBoundAttrDecl<V>
 where
     V: AttrValue + Bounded,
-    Decl: BoundAttrDecl<Element=V> + 'static,
+    Decl: BoundAttrDecl<Element = V> + 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -114,7 +114,7 @@ where
 
 impl<T, V> AsBoxedAttr<V> for T
 where
-    T: Attr<Element=V>,
+    T: Attr<Element = V>,
     V: AttrValue,
 {
     fn get(&self) -> V {
@@ -133,7 +133,7 @@ pub struct BoxedAttr<V> {
 impl<V, Attr> Wrap<Attr> for BoxedAttr<V>
 where
     V: AttrValue,
-    Attr: self::Attr<Element=V> + 'static,
+    Attr: self::Attr<Element = V> + 'static,
 {
     fn wrap(attr: Attr) -> Self {
         return Self {

@@ -36,7 +36,7 @@ where
 pub struct BrightnessNodeDecl<Source, Brightness>
 where
     Source: NodeDecl,
-    Brightness: BoundAttrDecl<Element=f64>,
+    Brightness: BoundAttrDecl<Element = f64>,
 {
     pub source: NodeHandle<Source>,
     pub brightness: Brightness,
@@ -52,7 +52,7 @@ pub struct BrightnessNode<Source, Brightness> {
 impl<Source, Brightness, E> NodeDecl for BrightnessNodeDecl<Source, Brightness>
 where
     Source: NodeDecl<Element = E>,
-    Brightness: BoundAttrDecl<Element=f64>,
+    Brightness: BoundAttrDecl<Element = f64>,
     E: Lerp + Black,
 {
     type Element = E;
@@ -70,7 +70,7 @@ where
 impl<'a, Source, Brightness> RenderType<'a, Self> for BrightnessNode<Source, Brightness>
 where
     Source: Node,
-    Brightness: self::Attr<Element=f64>,
+    Brightness: self::Attr<Element = f64>,
     Source::Element: Lerp + Black,
 {
     type Render = BrightnessRenderer<<Source as RenderType<'a, Source>>::Render>;
@@ -79,7 +79,7 @@ where
 impl<Source, Brightness> Node for BrightnessNode<Source, Brightness>
 where
     Source: Node,
-    Brightness: self::Attr<Element=f64>,
+    Brightness: self::Attr<Element = f64>,
     Source::Element: Lerp + Black,
 {
     const KIND: &'static str = "brightness";
@@ -105,11 +105,11 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::config;
-    use photonic_dyn::model::NodeModel;
-    use photonic_dyn::builder::NodeBuilder;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::color;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
     use anyhow::Result;
     use serde::Deserialize;
@@ -122,14 +122,15 @@ pub mod model {
     }
 
     impl NodeModel for BrightnessConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-            return Ok(BoxedNodeDecl::wrap(
-                super::BrightnessNodeDecl {
-                    source: builder.node("source", self.source)?,
-                    brightness: builder.bound_attr("brightness", self.brightness)?,
-                    range: self.range,
-                },
-            ));
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(super::BrightnessNodeDecl {
+                source: builder.node("source", self.source)?,
+                brightness: builder.bound_attr("brightness", self.brightness)?,
+                range: self.range,
+            }));
         }
     }
 }

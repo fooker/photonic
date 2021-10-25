@@ -29,9 +29,7 @@ where
     type Element = E;
 
     fn get(&self, index: usize) -> Result<Self::Element> {
-        let i = self
-            .noise
-            .get([index as f64 / self.scale, self.time / self.scale]);
+        let i = self.noise.get([index as f64 / self.scale, self.time / self.scale]);
         let i = math::remap(i, (-1.0, 1.0), (0.0, 1.0));
 
         return Ok(E::lerp(self.range.0, self.range.1, i));
@@ -132,11 +130,11 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::config;
-    use photonic_dyn::model::NodeModel;
-    use photonic_dyn::builder::NodeBuilder;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::color;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
     use anyhow::Result;
     use serde::Deserialize;
@@ -149,15 +147,16 @@ pub mod model {
     }
 
     impl NodeModel for PlasmaConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-            return Ok(BoxedNodeDecl::wrap(
-                super::PlasmaNodeDecl {
-                    range: builder.unbound_attr("range", self.range)?,
-                    scale: builder.unbound_attr("scale", self.scale)?,
-                    speed: builder.unbound_attr("speed", self.speed)?,
-                    phantom: Default::default(),
-                },
-            ));
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(super::PlasmaNodeDecl {
+                range: builder.unbound_attr("range", self.range)?,
+                scale: builder.unbound_attr("scale", self.scale)?,
+                speed: builder.unbound_attr("speed", self.speed)?,
+                phantom: Default::default(),
+            }));
         }
     }
 }

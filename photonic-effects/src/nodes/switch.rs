@@ -9,12 +9,7 @@ use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::{NodeBuilder, NodeHandle};
 
 pub enum SwitchRenderer<Source> {
-    Blending {
-        source: Source,
-        target: Source,
-
-        blend: f64,
-    },
+    Blending { source: Source, target: Source, blend: f64 },
 
     Full(Source),
 }
@@ -154,12 +149,8 @@ where
             let sources = self.sources.as_ptr();
 
             // We guarantee to have two distinct indices in bounds
-            let (source, target) = unsafe {
-                (
-                    & *sources.add(self.source),
-                    & *sources.add(self.target),
-                )
-            };
+            let (source, target) =
+                unsafe { (&*sources.add(self.source), &*sources.add(self.target)) };
 
             return Ok(SwitchRenderer::Blending {
                 source: source.render()?,
@@ -172,15 +163,15 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::config;
-    use photonic_dyn::model::NodeModel;
-    use photonic_dyn::builder::NodeBuilder;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::color;
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
+    use crate::attrs::fader::model::EasingModel;
     use anyhow::Result;
     use serde::Deserialize;
-    use crate::attrs::fader::model::EasingModel;
 
     #[derive(Deserialize)]
     pub struct SwitchConfig {
@@ -190,16 +181,19 @@ pub mod model {
     }
 
     impl NodeModel for SwitchConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-            return Ok(BoxedNodeDecl::wrap(
-                super::SwitchNodeDecl {
-                    sources: self.sources.into_iter()
-                        .map(|source| builder.node("source", source))
-                        .collect::<Result<_>>()?,
-                    fade: builder.bound_attr("fade", self.fade)?,
-                    easing: self.easing.map(EasingModel::resemble).transpose()?,
-                },
-            ));
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(super::SwitchNodeDecl {
+                sources: self
+                    .sources
+                    .into_iter()
+                    .map(|source| builder.node("source", source))
+                    .collect::<Result<_>>()?,
+                fade: builder.bound_attr("fade", self.fade)?,
+                easing: self.easing.map(EasingModel::resemble).transpose()?,
+            }));
         }
     }
 }

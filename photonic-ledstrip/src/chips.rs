@@ -1,11 +1,14 @@
 use photonic_core::color::RGBColor;
 
 pub trait Color: Sized {
-    fn transform(self,
-                 brightness: f64,
-                 gamma_factor: Option<f64>,
-                 correction: Option<Self>) -> Self
-        where Self: Sized;
+    fn transform(
+        self,
+        brightness: f64,
+        gamma_factor: Option<f64>,
+        correction: Option<Self>,
+    ) -> Self
+    where
+        Self: Sized;
 }
 
 #[derive(Copy, Clone)]
@@ -17,11 +20,10 @@ pub struct RGB {
 }
 
 impl Color for RGB {
-    fn transform(self,
-                 brightness: f64,
-                 gamma_factor: Option<f64>,
-                 correction: Option<Self>) -> Self
-        where Self: Sized {
+    fn transform(self, brightness: f64, gamma_factor: Option<f64>, correction: Option<Self>) -> Self
+    where
+        Self: Sized,
+    {
         // Apply brightness
         let result = Self {
             red: self.red * brightness,
@@ -36,7 +38,9 @@ impl Color for RGB {
                 green: f64::powf(result.green, gamma_factor),
                 blue: f64::powf(result.blue, gamma_factor),
             }
-        } else { result };
+        } else {
+            result
+        };
 
         // Apply correction
         let color = if let Some(correction) = correction {
@@ -45,7 +49,9 @@ impl Color for RGB {
                 green: color.green * correction.green,
                 blue: color.blue * correction.blue,
             }
-        } else { color };
+        } else {
+            color
+        };
 
         return color;
     }
@@ -71,11 +77,10 @@ pub struct RGBW {
 }
 
 impl Color for RGBW {
-    fn transform(self,
-                 brightness: f64,
-                 gamma_factor: Option<f64>,
-                 correction: Option<Self>) -> Self
-        where Self: Sized {
+    fn transform(self, brightness: f64, gamma_factor: Option<f64>, correction: Option<Self>) -> Self
+    where
+        Self: Sized,
+    {
         // Apply brightness
         let color = Self {
             red: self.red * brightness,
@@ -92,7 +97,9 @@ impl Color for RGBW {
                 blue: f64::powf(color.blue, gamma_factor),
                 white: f64::powf(color.white, gamma_factor),
             }
-        } else { color };
+        } else {
+            color
+        };
 
         // Apply correction
         let color = if let Some(correction) = correction {
@@ -102,7 +109,9 @@ impl Color for RGBW {
                 blue: color.blue * correction.blue,
                 white: color.white * correction.white,
             }
-        } else { color };
+        } else {
+            color
+        };
 
         return color;
     }
@@ -135,7 +144,9 @@ pub trait Offset<C, const N: usize> {
 macro_rules! impl_offset {
     ($name:ident<$element:ty>[$n:literal] => $e:ident) => {
         impl Offset<$element, $n> for $name {
-            fn get(element: $element) -> f64 { element.$e }
+            fn get(element: $element) -> f64 {
+                element.$e
+            }
         }
     };
 }
@@ -143,11 +154,11 @@ macro_rules! impl_offset {
 macro_rules! impl_chip {
     ($name:ident<$element:ty> => $element0:ident, $element1:ident, $element2:ident) => {
         pub struct $name;
-        
+
         impl_offset!($name<$element>[0] => $element0);
         impl_offset!($name<$element>[1] => $element1);
         impl_offset!($name<$element>[2] => $element2);
-        
+
         impl Chip for $name {
             type Element = $element;
             // type Channels = [f64; 3];

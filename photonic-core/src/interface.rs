@@ -58,10 +58,7 @@ pub struct Introspection {
 
 impl Introspection {
     pub fn from(root: Arc<NodeInfo>) -> Arc<Self> {
-        let nodes = root
-            .iter()
-            .map(|node| (node.name.clone(), node.clone()))
-            .collect();
+        let nodes = root.iter().map(|node| (node.name.clone(), node.clone())).collect();
 
         let inputs = root
             .iter()

@@ -11,11 +11,11 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use spidev::{Spidev, SpidevOptions, SpidevTransfer, SpiModeFlags};
+use spidev::{SpiModeFlags, Spidev, SpidevOptions, SpidevTransfer};
 
 use super::Controller;
-use std::os::unix::prelude::AsRawFd;
 use nix::fcntl;
+use std::os::unix::prelude::AsRawFd;
 use std::time::Duration;
 
 // struct AsyncSpidev {
@@ -68,7 +68,8 @@ impl SPI {
 
     /// Expected frequency of the SPI bus.
     /// Each `PATTERN_BITS` bits must be send out in `BIT_DURATION`.
-    const BUS_FREQ: u32 = Self::PATTERN_BITS as u32 * 1_000_000_000 / Self::BIT_DURATION.as_nanos() as u32;
+    const BUS_FREQ: u32 =
+        Self::PATTERN_BITS as u32 * 1_000_000_000 / Self::BIT_DURATION.as_nanos() as u32;
 
     /// Time the data line is held low to trigger a reset of the WS281x bus.
     const RESET_DURATION: Duration = Duration::from_micros(100);
@@ -80,21 +81,23 @@ pub struct Config {
 }
 
 #[async_trait::async_trait]
-impl Controller for SPI
-{
+impl Controller for SPI {
     type Config = self::Config;
 
     fn new(channels: usize, config: Self::Config) -> Result<Self> {
         let mut spi = Spidev::open(config.dev)?;
-        spi.configure(&SpidevOptions::new()
-            .bits_per_word(8)
-            .max_speed_hz(Self::BUS_FREQ as u32)
-            .mode(SpiModeFlags::SPI_MODE_0)
-            .build())?;
+        spi.configure(
+            &SpidevOptions::new()
+                .bits_per_word(8)
+                .max_speed_hz(Self::BUS_FREQ as u32)
+                .mode(SpiModeFlags::SPI_MODE_0)
+                .build(),
+        )?;
 
         // Make the underlying file non blocking
         {
-            let flags = fcntl::OFlag::from_bits_truncate(fcntl::fcntl(spi.as_raw_fd(), fcntl::F_GETFL)?);
+            let flags =
+                fcntl::OFlag::from_bits_truncate(fcntl::fcntl(spi.as_raw_fd(), fcntl::F_GETFL)?);
             fcntl::fcntl(spi.as_raw_fd(), fcntl::F_SETFL(flags | fcntl::OFlag::O_NONBLOCK))?;
         }
 
@@ -111,14 +114,19 @@ impl Controller for SPI
         });
     }
 
-    async fn send(&mut self, channels: impl Iterator<Item=u8> + Send + 'async_trait) -> Result<()> {
+    async fn send(
+        &mut self,
+        channels: impl Iterator<Item = u8> + Send + 'async_trait,
+    ) -> Result<()> {
         #[allow(clippy::identity_op)]
-        let data = channels.flat_map(|channel| [
-            Self::PATTERNS[((channel >> 6) & 0b0000_0011) as usize],
-            Self::PATTERNS[((channel >> 4) & 0b0000_0011) as usize],
-            Self::PATTERNS[((channel >> 2) & 0b0000_0011) as usize],
-            Self::PATTERNS[((channel >> 0) & 0b0000_0011) as usize],
-        ]);
+        let data = channels.flat_map(|channel| {
+            [
+                Self::PATTERNS[((channel >> 6) & 0b0000_0011) as usize],
+                Self::PATTERNS[((channel >> 4) & 0b0000_0011) as usize],
+                Self::PATTERNS[((channel >> 2) & 0b0000_0011) as usize],
+                Self::PATTERNS[((channel >> 0) & 0b0000_0011) as usize],
+            ]
+        });
 
         for (buffer, data) in std::iter::zip(self.buffer.iter_mut(), data) {
             *buffer = data;

@@ -152,7 +152,11 @@ pub trait BoundAttrDecl {
     type Element: AttrValue + Bounded;
     type Target: Attr<Element = Self::Element> + 'static;
 
-    fn materialize(self, bounds: Bounds<Self::Element>, builder: &mut AttrBuilder) -> Result<Self::Target>;
+    fn materialize(
+        self,
+        bounds: Bounds<Self::Element>,
+        builder: &mut AttrBuilder,
+    ) -> Result<Self::Target>;
 }
 
 pub struct FixedAttr<V>(V)
@@ -199,7 +203,11 @@ where
     type Element = V;
     type Target = FixedAttr<Self::Element>;
 
-    fn materialize(self, bounds: Bounds<Self::Element>, _builder: &mut AttrBuilder) -> Result<Self::Target> {
+    fn materialize(
+        self,
+        bounds: Bounds<Self::Element>,
+        _builder: &mut AttrBuilder,
+    ) -> Result<Self::Target> {
         let value = bounds.ensure(self.0)?;
 
         return Ok(FixedAttr(value));
@@ -252,10 +260,7 @@ where
     V: AttrValue + Bounded,
 {
     fn checked(self, min: &Self, max: &Self) -> Result<Self> {
-        return Ok(Self(
-            self.0.checked(&min.0, &max.0)?,
-            self.1.checked(&min.1, &max.1)?,
-        ));
+        return Ok(Self(self.0.checked(&min.0, &max.0)?, self.1.checked(&min.1, &max.1)?));
     }
 }
 
@@ -280,7 +285,7 @@ where
 impl<V, T> BoundAttrDecl for Box<T>
 where
     V: AttrValue + Bounded,
-    T: BoundAttrDecl<Element=V>,
+    T: BoundAttrDecl<Element = V>,
 {
     type Element = V;
     type Target = T::Target;
@@ -293,7 +298,7 @@ where
 impl<V, T> UnboundAttrDecl for Box<T>
 where
     V: AttrValue,
-    T: UnboundAttrDecl<Element=V>,
+    T: UnboundAttrDecl<Element = V>,
 {
     type Element = V;
     type Target = T::Target;

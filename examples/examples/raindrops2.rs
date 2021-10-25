@@ -32,18 +32,9 @@ async fn main() -> Result<!, Error> {
 
     let raindrops_color = SequenceDecl {
         values: vec![
-            Range(
-                HSLColor::new(245.31, 0.5, 0.5),
-                HSLColor::new(333.47, 0.7, 0.5),
-            ),
-            Range(
-                HSLColor::new(0.0, 0.45, 0.5),
-                HSLColor::new(17.5, 0.55, 0.5),
-            ),
-            Range(
-                HSLColor::new(187.5, 0.25, 0.5),
-                HSLColor::new(223.92, 0.5, 0.5),
-            ),
+            Range(HSLColor::new(245.31, 0.5, 0.5), HSLColor::new(333.47, 0.7, 0.5)),
+            Range(HSLColor::new(0.0, 0.45, 0.5), HSLColor::new(17.5, 0.55, 0.5)),
+            Range(HSLColor::new(187.5, 0.25, 0.5), HSLColor::new(223.92, 0.5, 0.5)),
         ],
         next: Some(next),
         prev: Some(prev),
@@ -53,39 +44,29 @@ async fn main() -> Result<!, Error> {
         easing: Easing::with(animation::linear, Duration::from_secs(4)),
     };
 
-    let raindrops = scene.node(
-        "raindrops",
-        RaindropsNodeDecl {
-            rate: 0.3_f64.fixed(),
-            color: raindrops_color,
-            decay: (0.96, 0.98).fixed(),
-        },
-    )?;
+    let raindrops = scene.node("raindrops", RaindropsNodeDecl {
+        rate: 0.3_f64.fixed(),
+        color: raindrops_color,
+        decay: (0.96, 0.98).fixed(),
+    })?;
 
     let brightness = scene.input("brightness")?;
-    let brightness = scene.node(
-        "brightness",
-        BrightnessNodeDecl {
-            source: raindrops,
-            brightness: brightness.attr(1.0),
-            range: None,
-        },
-    )?;
+    let brightness = scene.node("brightness", BrightnessNodeDecl {
+        source: raindrops,
+        brightness: brightness.attr(1.0),
+        range: None,
+    })?;
 
     let blackout = scene.input("blackout")?;
-    let blackout = scene.node(
-        "blackout",
-        BlackoutNodeDecl {
-            source: brightness,
-            active: blackout.attr(false),
-            range: None,
-        },
-    )?;
+    let blackout = scene.node("blackout", BlackoutNodeDecl {
+        source: brightness,
+        active: blackout.attr(false),
+        range: None,
+    })?;
 
-    let (main, registry) = scene.run(
-        blackout.transform(Into::into),
-        ConsoleOutputDecl { waterfall: true },
-    )?;
+    let (main, registry) = scene.run(blackout.transform(Into::into), ConsoleOutputDecl {
+        waterfall: true,
+    })?;
 
     println!("{:#?}", registry.root);
 

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use rand::prelude::{SeedableRng, Rng, SmallRng};
+use rand::prelude::{Rng, SeedableRng, SmallRng};
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds, Range, UnboundAttrDecl};
 use photonic_core::color::{Black, HSLColor};
@@ -43,9 +43,7 @@ impl Random {
     }
 
     pub fn rate(&mut self, value: f64, duration: Duration) -> bool {
-        return self
-            .0
-            .gen_bool(math::clamp(duration.as_secs_f64() * value, (0.0, 1.0)));
+        return self.0.gen_bool(math::clamp(duration.as_secs_f64() * value, (0.0, 1.0)));
     }
 
     pub fn color(&mut self, c1: HSLColor, c2: HSLColor) -> HSLColor {
@@ -60,7 +58,7 @@ impl Random {
             return values.0;
         }
 
-        return self.0.gen_range(values.0 ..= values.1);
+        return self.0.gen_range(values.0..=values.1);
     }
 }
 
@@ -93,14 +91,10 @@ where
         return Ok(Self::Target {
             rate: builder.bound_attr("rate", self.rate, Bounds::normal())?,
             color: builder.unbound_attr("color", self.color)?,
-            decay: builder.bound_attr(
-                "decay",
-                self.decay,
-                Bounds {
-                    min: Range(0.0, 0.0),
-                    max: Range(1.0, 1.0),
-                },
-            )?,
+            decay: builder.bound_attr("decay", self.decay, Bounds {
+                min: Range(0.0, 0.0),
+                max: Range(1.0, 1.0),
+            })?,
             raindrops: vec![Raindrop::default(); size],
             random: Random::new(),
         });
@@ -153,11 +147,11 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::config;
-    use photonic_dyn::model::NodeModel;
-    use photonic_dyn::builder::NodeBuilder;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::{color, NodeDecl};
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
     use anyhow::Result;
     use serde::Deserialize;
@@ -170,14 +164,17 @@ pub mod model {
     }
 
     impl NodeModel for RaindropsConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
             return Ok(BoxedNodeDecl::wrap(
                 super::RaindropsNodeDecl {
                     rate: builder.bound_attr("rate", self.rate)?,
                     color: builder.unbound_attr("color", self.color)?,
                     decay: builder.bound_attr("decay", self.decay)?,
                 }
-                    .map(Into::into),
+                .map(Into::into),
             ));
         }
     }

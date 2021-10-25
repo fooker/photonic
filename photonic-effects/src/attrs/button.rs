@@ -146,8 +146,8 @@ pub mod model {
 
     #[derive(Deserialize)]
     pub struct ButtonModel<V>
-        where
-            V: AttrValueFactory,
+    where
+        V: AttrValueFactory,
     {
         pub value: (V::Model, V::Model),
         pub hold_time: Duration,
@@ -155,32 +155,28 @@ pub mod model {
     }
 
     impl<V> UnboundAttrModel<V> for ButtonModel<V>
-        where
-            V: AttrValueFactory,
+    where
+        V: AttrValueFactory,
     {
         fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedUnboundAttrDecl<V>> {
-            return Ok(BoxedUnboundAttrDecl::wrap(
-                super::ButtonDecl {
-                    value: (V::assemble(self.value.0)?, V::assemble(self.value.1)?),
-                    hold_time: self.hold_time,
-                    trigger: builder.input(self.trigger)?,
-                },
-            ));
+            return Ok(BoxedUnboundAttrDecl::wrap(super::ButtonDecl {
+                value: (V::assemble(self.value.0)?, V::assemble(self.value.1)?),
+                hold_time: self.hold_time,
+                trigger: builder.input(self.trigger)?,
+            }));
         }
     }
 
     impl<V> BoundAttrModel<V> for ButtonModel<V>
-        where
-            V: AttrValueFactory + Bounded,
+    where
+        V: AttrValueFactory + Bounded,
     {
         fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
-            return Ok(BoxedBoundAttrDecl::wrap(
-                super::ButtonDecl {
-                    value: (V::assemble(self.value.0)?, V::assemble(self.value.1)?),
-                    hold_time: self.hold_time,
-                    trigger: builder.input(self.trigger)?,
-                },
-            ));
+            return Ok(BoxedBoundAttrDecl::wrap(super::ButtonDecl {
+                value: (V::assemble(self.value.0)?, V::assemble(self.value.1)?),
+                hold_time: self.hold_time,
+                trigger: builder.input(self.trigger)?,
+            }));
         }
     }
 }

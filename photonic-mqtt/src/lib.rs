@@ -25,7 +25,10 @@ impl MqttInterface {
             .set_keep_alive(KeepAlive::from_secs(1))
             .build()?;
 
-        return Ok(Self { client, realm });
+        return Ok(Self {
+            client,
+            realm,
+        });
     }
 }
 

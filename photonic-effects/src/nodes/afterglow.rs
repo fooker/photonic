@@ -4,23 +4,24 @@ use anyhow::Result;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
 use photonic_core::buffer::Buffer;
-use photonic_core::color::{Black, palette::{ComponentWise, Shade}};
+use photonic_core::color::palette::{ComponentWise, Shade};
+use photonic_core::color::Black;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::{NodeBuilder, NodeHandle};
 use std::cell::RefCell;
 
 pub struct AfterglowRenderer<'a, Source>
-    where
-        Source: Render,
+where
+    Source: Render,
 {
     source: Source,
     buffer: &'a RefCell<Buffer<Source::Element>>,
 }
 
 impl<'a, Source> Render for AfterglowRenderer<'a, Source>
-    where
-        Source: Render,
-        Source::Element: ComponentWise<Scalar=f64> + Copy,
+where
+    Source: Render,
+    Source::Element: ComponentWise<Scalar = f64> + Copy,
 {
     type Element = Source::Element;
 
@@ -35,17 +36,17 @@ impl<'a, Source> Render for AfterglowRenderer<'a, Source>
 }
 
 pub struct AfterglowNodeDecl<Source, Decay>
-    where
-        Source: NodeDecl,
-        Decay: BoundAttrDecl<Element=f64>,
+where
+    Source: NodeDecl,
+    Decay: BoundAttrDecl<Element = f64>,
 {
     pub source: NodeHandle<Source>,
     pub decay: Decay,
 }
 
 pub struct AfterglowNode<Source, Decay>
-    where
-        Source: Node,
+where
+    Source: Node,
 {
     source: Source,
     decay: Decay,
@@ -54,10 +55,10 @@ pub struct AfterglowNode<Source, Decay>
 }
 
 impl<Source, Decay> NodeDecl for AfterglowNodeDecl<Source, Decay>
-    where
-        Source: NodeDecl,
-        Decay: BoundAttrDecl<Element=f64>,
-        Source::Element: Black + Shade<Scalar=f64> + ComponentWise<Scalar=f64> + Copy + 'static,
+where
+    Source: NodeDecl,
+    Decay: BoundAttrDecl<Element = f64>,
+    Source::Element: Black + Shade<Scalar = f64> + ComponentWise<Scalar = f64> + Copy + 'static,
 {
     type Element = Source::Element;
     type Target = AfterglowNode<Source::Target, Decay::Target>;
@@ -72,19 +73,19 @@ impl<Source, Decay> NodeDecl for AfterglowNodeDecl<Source, Decay>
 }
 
 impl<'a, Source, Decay> RenderType<'a, Self> for AfterglowNode<Source, Decay>
-    where
-        Source: Node,
-        Decay: self::Attr<Element=f64>,
-        Source::Element: Black + Shade<Scalar=f64> + ComponentWise<Scalar=f64> + Copy + 'static,
+where
+    Source: Node,
+    Decay: self::Attr<Element = f64>,
+    Source::Element: Black + Shade<Scalar = f64> + ComponentWise<Scalar = f64> + Copy + 'static,
 {
     type Render = AfterglowRenderer<'a, <Source as RenderType<'a, Source>>::Render>;
 }
 
 impl<Source, Decay> Node for AfterglowNode<Source, Decay>
-    where
-        Source: Node,
-        Decay: self::Attr<Element=f64>,
-        Source::Element: Black + Shade<Scalar=f64> + ComponentWise<Scalar=f64> + Copy + 'static,
+where
+    Source: Node,
+    Decay: self::Attr<Element = f64>,
+    Source::Element: Black + Shade<Scalar = f64> + ComponentWise<Scalar = f64> + Copy + 'static,
 {
     const KIND: &'static str = "afterglow";
 
@@ -127,13 +128,14 @@ pub mod model {
     }
 
     impl NodeModel for AfterglowConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-            return Ok(BoxedNodeDecl::wrap(
-                super::AfterglowNodeDecl {
-                    source: builder.node("source", self.source)?,
-                    decay: builder.bound_attr("decay", self.decay)?,
-                },
-            ));
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(super::AfterglowNodeDecl {
+                source: builder.node("source", self.source)?,
+                decay: builder.bound_attr("decay", self.decay)?,
+            }));
         }
     }
 }

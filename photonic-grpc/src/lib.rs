@@ -14,17 +14,9 @@ use photonic_grpc_proto as proto;
 use photonic_grpc_proto::{InputSendRequest, InputSendResponse};
 
 fn into_node(node: &NodeInfo) -> proto::NodeInfo {
-    let nodes = node
-        .nodes
-        .iter()
-        .map(|(k, v)| (k.clone(), v.name.clone()))
-        .collect();
+    let nodes = node.nodes.iter().map(|(k, v)| (k.clone(), v.name.clone())).collect();
 
-    let attrs = node
-        .attrs
-        .iter()
-        .map(|(k, v)| (k.clone(), into_attr(v.as_ref())))
-        .collect();
+    let attrs = node.attrs.iter().map(|(k, v)| (k.clone(), into_attr(v.as_ref()))).collect();
 
     return proto::NodeInfo {
         name: node.name.clone(),
@@ -35,17 +27,9 @@ fn into_node(node: &NodeInfo) -> proto::NodeInfo {
 }
 
 fn into_attr(attr: &AttrInfo) -> proto::AttrInfo {
-    let attrs = attr
-        .attrs
-        .iter()
-        .map(|(k, v)| (k.clone(), into_attr(v.as_ref())))
-        .collect();
+    let attrs = attr.attrs.iter().map(|(k, v)| (k.clone(), into_attr(v.as_ref()))).collect();
 
-    let inputs = attr
-        .inputs
-        .iter()
-        .map(|(k, v)| (k.clone(), v.name.clone()))
-        .collect();
+    let inputs = attr.inputs.iter().map(|(k, v)| (k.clone(), v.name.clone())).collect();
 
     return proto::AttrInfo {
         kind: attr.kind.to_string(),
@@ -159,10 +143,7 @@ impl proto::interface_server::Interface for InterfaceService {
                 return Err(Status::invalid_argument("Value missing"));
             }
         } else {
-            return Err(Status::not_found(format!(
-                "No such input: {}",
-                request.name
-            )));
+            return Err(Status::not_found(format!("No such input: {}", request.name)));
         }
 
         return Ok(tonic::Response::new(InputSendResponse {}));
@@ -175,14 +156,18 @@ pub struct GrpcInterface {
 
 impl GrpcInterface {
     pub fn bind(address: SocketAddr) -> Self {
-        return Self { address };
+        return Self {
+            address,
+        };
     }
 }
 
 #[async_trait]
 impl Interface for GrpcInterface {
     async fn listen(self, introspection: Arc<Introspection>) -> Result<(), Error> {
-        let service = InterfaceService { introspection };
+        let service = InterfaceService {
+            introspection,
+        };
 
         tonic::transport::Server::builder()
             .add_service(proto::interface_server::InterfaceServer::new(service))

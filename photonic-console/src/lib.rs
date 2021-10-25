@@ -22,9 +22,9 @@ pub struct ConsoleOutput {
 }
 
 impl<Node> OutputDecl<Node> for ConsoleOutputDecl
-    where
-        Node: self::NodeDecl,
-        Node::Element: Into<RGBColor>,
+where
+    Node: self::NodeDecl,
+    Node::Element: Into<RGBColor>,
 {
     type Target = ConsoleOutput;
 
@@ -37,9 +37,9 @@ impl<Node> OutputDecl<Node> for ConsoleOutputDecl
 }
 
 impl<Node> Output<Node> for ConsoleOutput
-    where
-        Node: self::Node,
-        Node::Element: Into<RGBColor>,
+where
+    Node: self::Node,
+    Node::Element: Into<RGBColor>,
 {
     const KIND: &'static str = "console";
 
@@ -50,11 +50,7 @@ impl<Node> Output<Node> for ConsoleOutput
         for i in 0..self.size {
             let rgb: LinSrgb<u8> = render.get(i)?.into().into_format();
             let (r, g, b) = rgb.into_components();
-            write!(
-                &mut buf,
-                "\x1b[48;2;{:03};{:03};{:03}m ",
-                r, g, b
-            )?;
+            write!(&mut buf, "\x1b[48;2;{:03};{:03};{:03}m ", r, g, b)?;
         }
 
         write!(&mut buf, "\x1b[0m")?;

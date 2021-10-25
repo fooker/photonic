@@ -3,15 +3,12 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use photonic_core::color::Black;
-use photonic_core::color::RGBColor;
-use photonic_ledstrip::controllers::Controller;
-use photonic_ledstrip::controllers::spi;
-use photonic_ledstrip::{chips, LedStripOutput};
-use photonic_ledstrip::LedStripOutputDecl;
-use photonic_core::{OutputDecl, Output, Node, NodeDecl};
+use photonic_core::color::{Black, RGBColor};
 use photonic_core::node::{Render, RenderType};
 use photonic_core::scene::NodeBuilder;
+use photonic_core::{Node, NodeDecl, Output, OutputDecl};
+use photonic_ledstrip::controllers::{spi, Controller};
+use photonic_ledstrip::{chips, LedStripOutput, LedStripOutputDecl};
 
 const SIZE: usize = 100;
 
@@ -19,14 +16,19 @@ struct Example {
     state: usize,
 }
 
-impl <'a> RenderType<'a, Self> for Example { type Render = &'a Self; }
+impl<'a> RenderType<'a, Self> for Example {
+    type Render = &'a Self;
+}
 
 impl NodeDecl for Example {
     type Element = RGBColor;
 
     type Target = Example;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> where Self::Target: Sized {
+    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target>
+    where
+        Self::Target: Sized,
+    {
         return Ok(self);
     }
 }
@@ -77,13 +79,15 @@ impl Render for &Example {
 
 impl Default for Example {
     fn default() -> Self {
-        return Self { state: 0 };
+        return Self {
+            state: 0,
+        };
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let output: LedStripOutputDecl::<spi::SPI, chips::Sk6812Grbw> = LedStripOutputDecl {
+    let output: LedStripOutputDecl<spi::SPI, chips::Sk6812Grbw> = LedStripOutputDecl {
         config: spi::Config {
             dev: "/dev/spidev0.0".into(),
         },

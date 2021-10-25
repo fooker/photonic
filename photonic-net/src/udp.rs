@@ -5,10 +5,10 @@ use std::time::Duration;
 use anyhow::Result;
 
 use photonic_core::buffer::Buffer;
+use photonic_core::color::palette::LinSrgb;
 use photonic_core::color::{Black, RGBColor};
 use photonic_core::node::{Node, NodeDecl, RenderType};
 use photonic_core::scene::*;
-use photonic_core::color::palette::LinSrgb;
 
 pub trait Format {
     type Element: Copy;

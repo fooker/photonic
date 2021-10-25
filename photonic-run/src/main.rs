@@ -7,21 +7,17 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use anyhow::{Error, format_err, Result};
+use anyhow::{format_err, Error, Result};
 use clap::Clap;
 
 use photonic_core::Introspection;
-use photonic_dyn::{config, registry};
 use photonic_dyn::builder::{Builder, NodeBuilder};
-use photonic_dyn::registry::{CombinedOutputRegistry};
+use photonic_dyn::registry::CombinedOutputRegistry;
+use photonic_dyn::{config, registry};
 
 enum Interface {
     Grpc(SocketAddr),
-    Mqtt {
-        host: String,
-        port: u16,
-        realm: String,
-    },
+    Mqtt { host: String, port: u16, realm: String },
     Varlink(SocketAddr),
 }
 
@@ -61,9 +57,11 @@ impl Interface {
     fn serve(self, introspection: Arc<Introspection>) -> Result<()> {
         return match self {
             Self::Grpc(addr) => introspection.serve(photonic_grpc::GrpcInterface::bind(addr)),
-            Self::Mqtt { host, port, realm } => {
-                introspection.serve(photonic_mqtt::MqttInterface::connect(host, port, realm)?)
-            }
+            Self::Mqtt {
+                host,
+                port,
+                realm,
+            } => introspection.serve(photonic_mqtt::MqttInterface::connect(host, port, realm)?),
             Self::Varlink(_) => todo!(),
         };
     }
@@ -105,7 +103,7 @@ async fn main() -> Result<()> {
         Some("toml") => toml::from_slice(&std::fs::read(&args.scene)?)?,
         Some("sexp") => serde_lexpr::from_reader(File::open(&args.scene)?)?,
         Some("ron") => ron::from_str(&std::fs::read_to_string(&args.scene)?)?,
-        _ => anyhow::bail!("Unknown scene file extension")
+        _ => anyhow::bail!("Unknown scene file extension"),
     };
 
     let mut builder = Builder::<Registry>::new(config.size);

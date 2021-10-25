@@ -5,12 +5,12 @@ use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
-use anyhow::{Result, format_err, Context};
+use anyhow::{format_err, Context, Result};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use shared_memory::{ReadRaw, SharedMemCast, SharedMemRaw};
 
-use photonic_core::color::*;
 use photonic_core::color::palette::LinSrgb;
+use photonic_core::color::*;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::*;
 
@@ -54,20 +54,14 @@ impl NodeDecl for ExecNodeDecl {
     fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target> {
         let command = shlex::split(&self.command)
             .ok_or_else(|| format_err!("Invalid command: {}", &self.command))?;
-        let (command, args) = command
-            .split_first()
-            .ok_or_else(|| format_err!("Empty command"))?;
+        let (command, args) = command.split_first().ok_or_else(|| format_err!("Empty command"))?;
 
         // Create shared memory region for color buffer
         let shm = SharedMemRaw::create(
-            &format!(
-                "photonic-{}-{}",
-                std::process::id(),
-                ID.fetch_add(1, Ordering::SeqCst)
-            ),
+            &format!("photonic-{}-{}", std::process::id(), ID.fetch_add(1, Ordering::SeqCst)),
             size * 3,
         )
-            .expect("Failed to create SHM");
+        .expect("Failed to create SHM");
 
         // Spawn a child process
         let child = Command::new(command)
@@ -79,7 +73,10 @@ impl NodeDecl for ExecNodeDecl {
             .stderr(Stdio::inherit())
             .spawn()?;
 
-        return Ok(Self::Target { child, shm });
+        return Ok(Self::Target {
+            child,
+            shm,
+        });
     }
 }
 
@@ -93,11 +90,9 @@ impl Node for ExecNode {
     type Element = RGBColor;
 
     fn update(&mut self, duration: Duration) -> Result<()> {
-        let stdin = self.child.stdin.as_mut()
-            .context("StdIn missing")?;
+        let stdin = self.child.stdin.as_mut().context("StdIn missing")?;
 
-        let stdout = self.child.stdout.as_mut()
-            .context("StdOut missing")?;
+        let stdout = self.child.stdout.as_mut().context("StdOut missing")?;
 
         // Send the duration to the child process
         stdin
@@ -112,6 +107,8 @@ impl Node for ExecNode {
     }
 
     fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
-        return Ok(ExecRenderer { shm: &self.shm });
+        return Ok(ExecRenderer {
+            shm: &self.shm,
+        });
     }
 }

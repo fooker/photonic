@@ -54,8 +54,13 @@ pub async fn main() -> Result<(), Error> {
 
     let output: Box<dyn Serialize> = match opts.command {
         Command::Nodes => Box::new(client.nodes().await?),
-        Command::Node { name } => Box::new(client.node(name).await?),
-        Command::Send { name, value } => Box::new(client.send(name, value).await?),
+        Command::Node {
+            name,
+        } => Box::new(client.node(name).await?),
+        Command::Send {
+            name,
+            value,
+        } => Box::new(client.send(name, value).await?),
     };
 
     println!("{}", serde_yaml::to_string(&output)?);

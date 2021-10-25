@@ -71,20 +71,11 @@ where
         bounds: Bounds<V>,
         builder: &mut AttrBuilder,
     ) -> Result<Self::Target, Error> {
-        let values = self
-            .values
-            .into_iter()
-            .map(|v| bounds.ensure(v))
-            .collect::<Result<Vec<_>, Error>>()?;
+        let values =
+            self.values.into_iter().map(|v| bounds.ensure(v)).collect::<Result<Vec<_>, Error>>()?;
 
-        let next = self
-            .next
-            .map(|input| builder.input("next", input))
-            .transpose()?;
-        let prev = self
-            .prev
-            .map(|input| builder.input("prev", input))
-            .transpose()?;
+        let next = self.next.map(|input| builder.input("next", input)).transpose()?;
+        let prev = self.prev.map(|input| builder.input("prev", input)).transpose()?;
 
         return Ok(Sequence {
             values,
@@ -102,14 +93,8 @@ where
     type Element = V;
     type Target = Sequence<V>;
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
-        let next = self
-            .next
-            .map(|input| builder.input("next", input))
-            .transpose()?;
-        let prev = self
-            .prev
-            .map(|input| builder.input("prev", input))
-            .transpose()?;
+        let next = self.next.map(|input| builder.input("next", input)).transpose()?;
+        let prev = self.prev.map(|input| builder.input("prev", input)).transpose()?;
 
         return Ok(Sequence {
             values: self.values,
@@ -134,8 +119,8 @@ pub mod model {
 
     #[derive(Deserialize)]
     pub struct SequenceModel<V>
-        where
-            V: AttrValueFactory,
+    where
+        V: AttrValueFactory,
     {
         pub values: Vec<V::Model>,
         pub next: Option<config::Input>,
@@ -143,40 +128,28 @@ pub mod model {
     }
 
     impl<V> UnboundAttrModel<V> for SequenceModel<V>
-        where
-            V: AttrValueFactory,
+    where
+        V: AttrValueFactory,
     {
         fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedUnboundAttrDecl<V>> {
-            return Ok(BoxedUnboundAttrDecl::wrap(
-                super::SequenceDecl {
-                    values: self
-                        .values
-                        .into_iter()
-                        .map(V::assemble)
-                        .collect::<Result<Vec<_>>>()?,
-                    next: self.next.map(|i| builder.input(i)).transpose()?,
-                    prev: self.prev.map(|i| builder.input(i)).transpose()?,
-                },
-            ));
+            return Ok(BoxedUnboundAttrDecl::wrap(super::SequenceDecl {
+                values: self.values.into_iter().map(V::assemble).collect::<Result<Vec<_>>>()?,
+                next: self.next.map(|i| builder.input(i)).transpose()?,
+                prev: self.prev.map(|i| builder.input(i)).transpose()?,
+            }));
         }
     }
 
     impl<V> BoundAttrModel<V> for SequenceModel<V>
-        where
-            V: AttrValueFactory + Bounded,
+    where
+        V: AttrValueFactory + Bounded,
     {
         fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
-            return Ok(BoxedBoundAttrDecl::wrap(
-                super::SequenceDecl {
-                    values: self
-                        .values
-                        .into_iter()
-                        .map(V::assemble)
-                        .collect::<Result<Vec<_>>>()?,
-                    next: self.next.map(|i| builder.input(i)).transpose()?,
-                    prev: self.prev.map(|i| builder.input(i)).transpose()?,
-                },
-            ));
+            return Ok(BoxedBoundAttrDecl::wrap(super::SequenceDecl {
+                values: self.values.into_iter().map(V::assemble).collect::<Result<Vec<_>>>()?,
+                next: self.next.map(|i| builder.input(i)).transpose()?,
+                prev: self.prev.map(|i| builder.input(i)).transpose()?,
+            }));
         }
     }
 }

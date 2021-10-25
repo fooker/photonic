@@ -40,9 +40,9 @@ pub struct AlertNode<Hue, Block, Speed> {
 
 impl<Hue, Block, Speed> NodeDecl for AlertNodeDecl<Hue, Block, Speed>
 where
-    Hue: BoundAttrDecl<Element=f64>,
-    Block: BoundAttrDecl<Element=i64>,
-    Speed: UnboundAttrDecl<Element=f64>,
+    Hue: BoundAttrDecl<Element = f64>,
+    Block: BoundAttrDecl<Element = i64>,
+    Speed: UnboundAttrDecl<Element = f64>,
 {
     type Element = HSVColor;
     type Target = AlertNode<Hue::Target, Block::Target, Speed::Target>;
@@ -60,18 +60,18 @@ where
 
 impl<'a, Hue, Block, Speed> RenderType<'a, Self> for AlertNode<Hue, Block, Speed>
 where
-    Hue: Attr<Element=f64>,
-    Block: Attr<Element=i64>,
-    Speed: Attr<Element=f64>,
+    Hue: Attr<Element = f64>,
+    Block: Attr<Element = i64>,
+    Speed: Attr<Element = f64>,
 {
     type Render = AlertRenderer;
 }
 
 impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
 where
-    Hue: Attr<Element=f64>,
-    Block: Attr<Element=i64>,
-    Speed: Attr<Element=f64>,
+    Hue: Attr<Element = f64>,
+    Block: Attr<Element = i64>,
+    Speed: Attr<Element = f64>,
 {
     const KIND: &'static str = "alert";
 
@@ -101,11 +101,11 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::config;
-    use photonic_dyn::model::NodeModel;
-    use photonic_dyn::builder::NodeBuilder;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::{color, NodeDecl};
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
     use anyhow::Result;
     use serde::Deserialize;
@@ -118,14 +118,17 @@ pub mod model {
     }
 
     impl NodeModel for AlertConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
             return Ok(BoxedNodeDecl::wrap(
                 super::AlertNodeDecl {
                     hue: builder.bound_attr("hue", self.hue)?,
                     block: builder.bound_attr("block", self.block)?,
                     speed: builder.unbound_attr("speed", self.speed)?,
                 }
-                    .map(Into::into),
+                .map(Into::into),
             ));
         }
     }

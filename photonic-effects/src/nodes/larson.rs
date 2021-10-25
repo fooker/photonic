@@ -61,9 +61,9 @@ pub struct LarsonNode<Hue, Speed, Width> {
 
 impl<Hue, Speed, Width> NodeDecl for LarsonNodeDecl<Hue, Speed, Width>
 where
-    Hue: BoundAttrDecl<Element=f64>,
-    Speed: UnboundAttrDecl<Element=f64>,
-    Width: BoundAttrDecl<Element=f64>,
+    Hue: BoundAttrDecl<Element = f64>,
+    Speed: UnboundAttrDecl<Element = f64>,
+    Width: BoundAttrDecl<Element = f64>,
 {
     type Element = HSVColor;
     type Target = LarsonNode<Hue::Target, Speed::Target, Width::Target>;
@@ -82,18 +82,18 @@ where
 
 impl<Hue, Speed, Width> RenderType<'_, Self> for LarsonNode<Hue, Speed, Width>
 where
-    Hue: Attr<Element=f64>,
-    Speed: Attr<Element=f64>,
-    Width: Attr<Element=f64>,
+    Hue: Attr<Element = f64>,
+    Speed: Attr<Element = f64>,
+    Width: Attr<Element = f64>,
 {
     type Render = LarsonRenderer;
 }
 
 impl<Hue, Speed, Width> Node for LarsonNode<Hue, Speed, Width>
 where
-    Hue: Attr<Element=f64>,
-    Speed: Attr<Element=f64>,
-    Width: Attr<Element=f64>,
+    Hue: Attr<Element = f64>,
+    Speed: Attr<Element = f64>,
+    Width: Attr<Element = f64>,
 {
     const KIND: &'static str = "larson";
 
@@ -136,11 +136,11 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
-    use photonic_dyn::config;
-    use photonic_dyn::model::NodeModel;
-    use photonic_dyn::builder::NodeBuilder;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
     use photonic_core::{color, NodeDecl};
+    use photonic_dyn::builder::NodeBuilder;
+    use photonic_dyn::config;
+    use photonic_dyn::model::NodeModel;
 
     use anyhow::Result;
     use serde::Deserialize;
@@ -153,13 +153,17 @@ pub mod model {
     }
 
     impl NodeModel for LarsonConfig {
-        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+        fn assemble(
+            self,
+            builder: &mut impl NodeBuilder,
+        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
             return Ok(BoxedNodeDecl::wrap(
                 super::LarsonNodeDecl {
                     hue: builder.bound_attr("hue", self.hue)?,
                     speed: builder.unbound_attr("speed", self.speed)?,
                     width: builder.bound_attr("width", self.width)?,
-                }.map(Into::into),
+                }
+                .map(Into::into),
             ));
         }
     }

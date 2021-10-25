@@ -1,0 +1,14 @@
+version = "Two"
+edition = "2018"
+
+max_width = 100
+use_small_heuristics = "Max"
+
+newline_style = "Unix"
+
+where_single_line = false
+struct_lit_single_line = false
+overflow_delimited_expr = true
+use_field_init_shorthand = true
+
+imports_granularity = "Module"

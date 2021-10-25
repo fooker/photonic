@@ -1,9 +1,12 @@
 use anyhow::{format_err, Result};
-use serde::{Deserialize, de::DeserializeOwned};
+use serde::de::DeserializeOwned;
+use serde::Deserialize;
 use serde_json::Value;
 
 use photonic_core::attr::{AsFixedAttr, AttrValue, Bounded, Range};
-use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl, Wrap};
+use photonic_core::boxed::{
+    BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl, Wrap,
+};
 use photonic_core::color;
 use photonic_core::input::InputValue;
 use photonic_core::node::NodeDecl;
@@ -14,14 +17,20 @@ use crate::config;
 use photonic_core::color::RGBColor;
 
 pub trait OutputModel: DeserializeOwned {
-    fn assemble(self, builder: &mut dyn OutputBuilder) -> Result<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>>;
+    fn assemble(
+        self,
+        builder: &mut dyn OutputBuilder,
+    ) -> Result<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>>;
 }
 
 impl<T> OutputModel for T
-    where
-        T: OutputDecl<BoxedNodeDecl<RGBColor>> + DeserializeOwned + 'static,
+where
+    T: OutputDecl<BoxedNodeDecl<RGBColor>> + DeserializeOwned + 'static,
 {
-    fn assemble(self, _builder: &mut dyn OutputBuilder) -> Result<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>> {
+    fn assemble(
+        self,
+        _builder: &mut dyn OutputBuilder,
+    ) -> Result<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>> {
         return Ok(BoxedOutputDecl::wrap(self));
     }
 }
@@ -31,9 +40,9 @@ pub trait NodeModel: DeserializeOwned {
 }
 
 impl<T> NodeModel for T
-    where
-        T: NodeDecl + DeserializeOwned + 'static,
-        T::Element: Into<color::RGBColor>,
+where
+    T: NodeDecl + DeserializeOwned + 'static,
+    T::Element: Into<color::RGBColor>,
 {
     fn assemble(self, _builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
         let decl = self.map(Into::into);
@@ -42,15 +51,15 @@ impl<T> NodeModel for T
 }
 
 pub trait UnboundAttrModel<V>: DeserializeOwned
-    where
-        V: AttrValueFactory,
+where
+    V: AttrValueFactory,
 {
     fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedUnboundAttrDecl<V>>;
 }
 
 pub trait BoundAttrModel<V>: DeserializeOwned
-    where
-        V: AttrValueFactory + Bounded,
+where
+    V: AttrValueFactory + Bounded,
 {
     fn assemble(self, builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>>;
 }
@@ -61,7 +70,10 @@ pub trait UnboundAttrFactory: AttrValueFactory {
         input: config::Input,
         initial: Value,
     ) -> Result<BoxedUnboundAttrDecl<Self>>;
-    fn make_fixed(builder: &mut impl InputBuilder, value: Value) -> Result<BoxedUnboundAttrDecl<Self>>;
+    fn make_fixed(
+        builder: &mut impl InputBuilder,
+        value: Value,
+    ) -> Result<BoxedUnboundAttrDecl<Self>>;
 }
 
 pub trait BoundAttrFactory: AttrValueFactory + Bounded {
@@ -70,7 +82,10 @@ pub trait BoundAttrFactory: AttrValueFactory + Bounded {
         input: config::Input,
         initial: Value,
     ) -> Result<BoxedBoundAttrDecl<Self>>;
-    fn make_fixed(builder: &mut impl InputBuilder, value: Value) -> Result<BoxedBoundAttrDecl<Self>>;
+    fn make_fixed(
+        builder: &mut impl InputBuilder,
+        value: Value,
+    ) -> Result<BoxedBoundAttrDecl<Self>>;
 }
 
 pub trait AttrValueFactory: AttrValue + Sized {
@@ -104,8 +119,8 @@ impl AttrValueFactory for f64 {
 }
 
 impl<T> UnboundAttrFactory for T
-    where
-        T: AttrValueFactory,
+where
+    T: AttrValueFactory,
 {
     default fn make_input(
         _builder: &mut impl InputBuilder,
@@ -129,8 +144,8 @@ impl<T> UnboundAttrFactory for T
 }
 
 impl<T> BoundAttrFactory for T
-    where
-        T: AttrValueFactory + Bounded,
+where
+    T: AttrValueFactory + Bounded,
 {
     default fn make_input(
         _builder: &mut impl InputBuilder,
@@ -154,8 +169,8 @@ impl<T> BoundAttrFactory for T
 }
 
 impl<T> UnboundAttrFactory for T
-    where
-        T: AttrValueFactory + InputValue,
+where
+    T: AttrValueFactory + InputValue,
 {
     fn make_input(
         builder: &mut impl InputBuilder,
@@ -172,8 +187,8 @@ impl<T> UnboundAttrFactory for T
 }
 
 impl<T> BoundAttrFactory for T
-    where
-        T: AttrValueFactory + Bounded + InputValue,
+where
+    T: AttrValueFactory + Bounded + InputValue,
 {
     fn make_input(
         builder: &mut impl InputBuilder,
@@ -191,12 +206,12 @@ impl<T> BoundAttrFactory for T
 
 #[derive(Deserialize)]
 pub struct RangeModel<V>(pub V::Model, pub V::Model)
-    where
-        V: AttrValueFactory;
+where
+    V: AttrValueFactory;
 
 impl<V> AttrValueFactory for Range<V>
-    where
-        V: AttrValueFactory,
+where
+    V: AttrValueFactory,
 {
     type Model = RangeModel<V>;
 
