@@ -185,9 +185,9 @@ pub mod model {
     {
         default fn assemble(self, _builder: &mut impl AttrBuilder) -> Result<BoxedUnboundAttrDecl<V>> {
             return Err(format_err!(
-            "Fader is not supported for Attributes of Type {}",
-            std::any::type_name::<V>()
-        ));
+                "Fader is not supported for Attributes of Type {}",
+                std::any::type_name::<V>()
+            ));
         }
     }
 
@@ -211,9 +211,9 @@ pub mod model {
     {
         default fn assemble(self, _builder: &mut impl AttrBuilder) -> Result<BoxedBoundAttrDecl<V>> {
             return Err(format_err!(
-            "Fader is not supported for Attributes of Type {}",
-            std::any::type_name::<V>()
-        ));
+                "Fader is not supported for Attributes of Type {}",
+                std::any::type_name::<V>()
+            ));
         }
     }
 

@@ -40,15 +40,15 @@ impl<P> NodeDecl for WasmNodeDecl<P>
         let instance = Instance::new(&mut store, &module, &[])?;
 
         let init = instance.get_func(&mut store, "init")
-            .ok_or(anyhow!("No function 'init' in wasm module"))?
+            .ok_or_else(|| anyhow!("No function 'init' in wasm module"))?
             .typed::<u64, (), _>(&store)?;
 
         let update = instance.get_func(&mut store, "update")
-            .ok_or(anyhow!("No function 'init' in wasm module"))?
+            .ok_or_else(|| anyhow!("No function 'init' in wasm module"))?
             .typed::<f64, (), _>(&store)?;
 
         let render = instance.get_func(&mut store, "render")
-            .ok_or(anyhow!("No function 'init' in wasm module"))?
+            .ok_or_else(|| anyhow!("No function 'init' in wasm module"))?
             .typed::<u64, (f64, f64, f64), _>(&store)?;
 
         init.call(&mut store, size as u64)?;
