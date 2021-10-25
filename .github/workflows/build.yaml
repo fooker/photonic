@@ -46,7 +46,31 @@ jobs:
         with:
           toolchain: nightly
           override: true
-          components: rustfmt, clippy
+          components: clippy
+      - uses: actions/cache@v1
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-{{ steps.toolchain.outputs.rustc_hash }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all --all-features
+
+  format:
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt
       - uses: actions/cache@v1
         with:
           path: |
@@ -60,10 +84,6 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all --all-features
 
   test:
     runs-on: ubuntu-latest
