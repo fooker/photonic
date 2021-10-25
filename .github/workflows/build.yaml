@@ -106,4 +106,4 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --release --all-features --all-targets --verbose
+          args: --release --all-features --verbose
