@@ -19,46 +19,38 @@ pub trait Factory<T, Builder> {
     ) -> Result<T>;
 }
 
-impl<Builder> dyn Factory<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>, Builder> {
-    pub fn output<X>() -> Box<dyn Factory<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>, Builder>>
-        where
-            X: OutputModel + 'static,
-            Builder: OutputBuilder,
-    {
-        return Box::new(OutputFactory::<X>(Default::default()));
-    }
+pub fn output<Builder, X>() -> Box<dyn Factory<BoxedOutputDecl<BoxedNodeDecl<RGBColor>>, Builder>>
+    where
+        X: OutputModel + 'static,
+        Builder: OutputBuilder,
+{
+    return Box::new(OutputFactory::<X>(Default::default()));
 }
 
-impl<Builder> dyn Factory<BoxedNodeDecl<color::RGBColor>, Builder> {
-    pub fn node<X>() -> Box<dyn Factory<BoxedNodeDecl<color::RGBColor>, Builder>>
-        where
-            X: NodeModel + 'static,
-            Builder: NodeBuilder,
-    {
-        return Box::new(NodeFactory::<X>(Default::default()));
-    }
+pub fn node<Builder, X>() -> Box<dyn Factory<BoxedNodeDecl<color::RGBColor>, Builder>>
+    where
+        X: NodeModel + 'static,
+        Builder: NodeBuilder,
+{
+    return Box::new(NodeFactory::<X>(Default::default()));
 }
 
-impl<Builder> dyn Factory<BoxedBoundAttrDecl<color::RGBColor>, Builder> {
-    pub fn bound_attr<V, X>() -> Box<dyn Factory<BoxedBoundAttrDecl<V>, Builder>>
-        where
-            V: AttrValueFactory + Bounded,
-            X: BoundAttrModel<V> + 'static,
-            Builder: AttrBuilder,
-    {
-        return Box::new(BoundAttrFactory::<X>(Default::default()));
-    }
+pub fn bound_attr<Builder, V, X>() -> Box<dyn Factory<BoxedBoundAttrDecl<V>, Builder>>
+    where
+        V: AttrValueFactory + Bounded,
+        X: BoundAttrModel<V> + 'static,
+        Builder: AttrBuilder,
+{
+    return Box::new(BoundAttrFactory::<X>(Default::default()));
 }
 
-impl<Builder> dyn Factory<BoxedUnboundAttrDecl<color::RGBColor>, Builder> {
-    pub fn unbound_attr<V, X>() -> Box<dyn Factory<BoxedUnboundAttrDecl<V>, Builder>>
-        where
-            V: AttrValueFactory,
-            X: UnboundAttrModel<V> + 'static,
-            Builder: AttrBuilder,
-    {
-        return Box::new(UnboundAttrFactory::<X>(Default::default()));
-    }
+pub fn unbound_attr<Builder, V, X>() -> Box<dyn Factory<BoxedUnboundAttrDecl<V>, Builder>>
+    where
+        V: AttrValueFactory,
+        X: UnboundAttrModel<V> + 'static,
+        Builder: AttrBuilder,
+{
+    return Box::new(UnboundAttrFactory::<X>(Default::default()));
 }
 
 pub trait OutputRegistry {

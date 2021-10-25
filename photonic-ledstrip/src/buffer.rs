@@ -31,7 +31,7 @@ pub fn new<T: Send>(gen: impl Fn() -> T) -> (Writer<T>, Reader<T>) {
     };
 
     let reader = Reader {
-        shared: shared.clone(),
+        shared,
         index: 2,
     };
 

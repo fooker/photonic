@@ -34,7 +34,8 @@ pub struct BoxedNodeDecl<Element> {
 
 impl<Element, Decl> Wrap<Decl> for BoxedNodeDecl<Element>
     where
-        Decl: AsBoxedNodeDecl<Element> + 'static,
+        Decl: self::NodeDecl<Element=Element> + 'static,
+        Decl::Target: 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -80,7 +81,8 @@ pub struct BoxedRender<'a, Element> {
 
 impl<'a, Element, Render> Wrap<Render> for BoxedRender<'a, Element>
     where
-        Render: AsBoxedRender<Element> + 'a,
+        Render: self::Render + 'a,
+        <Render as self::Render>::Element: Into<Element>,
 {
     fn wrap(render: Render) -> Self {
         return Self {
@@ -123,7 +125,8 @@ pub struct BoxedNode<Element> {
 
 impl<Element, Node> Wrap<Node> for BoxedNode<Element>
     where
-        Node: AsBoxedNode<Element> + 'static,
+        Node: self::Node + 'static,
+        Node::Element: Into<Element>,
 {
     fn wrap(node: Node) -> Self {
         return Self {

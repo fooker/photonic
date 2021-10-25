@@ -209,7 +209,7 @@ impl AttrValueFactory for color::RGBColor {
     type Model = String;
 
     fn assemble(model: Self::Model) -> Result<Self> {
-        let color = csscolorparser::parse(&model)?.to_lrgba();
+        let color = csscolorparser::parse(&model)?.to_linear_rgba();
         return Ok(color::RGBColor::new(color.0, color.1, color.2));
     }
 }

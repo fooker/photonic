@@ -112,6 +112,7 @@ impl Controller for SPI
     }
 
     async fn send(&mut self, channels: impl Iterator<Item=u8> + Send + 'async_trait) -> Result<()> {
+        #[allow(clippy::identity_op)]
         let data = channels.flat_map(|channel| [
             Self::PATTERNS[((channel >> 6) & 0b0000_0011) as usize],
             Self::PATTERNS[((channel >> 4) & 0b0000_0011) as usize],

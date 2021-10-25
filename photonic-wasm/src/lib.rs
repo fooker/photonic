@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 use std::path::Path;
 use std::time::Duration;
 

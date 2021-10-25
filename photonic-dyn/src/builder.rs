@@ -67,12 +67,10 @@ impl<Registry: self::Registry> Builder<Registry> {
     }
 
     pub fn output(&mut self, config: config::Output) -> Result<BoxedOutputDecl<BoxedNodeDecl<color::RGBColor>>> {
-        return Ok(
-            Registry::Output::manufacture(&config.kind)
-                .ok_or(format_err!("Unknown output type: {}", config.kind))?
-                .produce(config.config, self)
-                .context(format!("Failed to build output: (type={})", config.kind))?
-        );
+        return Registry::Output::manufacture(&config.kind)
+            .ok_or_else(|| format_err!("Unknown output type: {}", config.kind))?
+            .produce(config.config, self)
+            .context(format!("Failed to build output: (type={})", config.kind));
     }
 }
 
@@ -84,7 +82,7 @@ impl<Registry: self::Registry> NodeBuilder for Builder<Registry> {
     ) -> Result<NodeHandle<BoxedNodeDecl<color::RGBColor>>> {
         let decl =
             Registry::Node::manufacture(&config.kind)
-                .ok_or(format_err!("Unknown node type: {}", config.kind))?
+                .ok_or_else(|| format_err!("Unknown node type: {}", config.kind))?
                 .produce(config.config, self)
                 .context(format!("Failed to build node: {} (type={}) @{}",
                                  config.name, config.kind, name))?;
@@ -103,12 +101,10 @@ impl<Registry: self::Registry> AttrBuilder for Builder<Registry> {
     {
         match config {
             config::Attr::Attr { kind, config } => {
-                return Ok(
-                    Registry::UnboundAttr::manufacture(&kind)
-                        .ok_or(format_err!("Unknown unbound attribute type: {}", kind))?
-                        .produce(config, self)
-                        .context(format!("Failed to build attr: (type={}) @{}", kind, name))?
-                );
+                return Registry::UnboundAttr::manufacture(&kind)
+                    .ok_or_else(|| format_err!("Unknown unbound attribute type: {}", kind))?
+                    .produce(config, self)
+                    .context(format!("Failed to build attr: (type={}) @{}", kind, name));
             }
             config::Attr::Input { input, initial } => V::make_input(self, input, initial),
             config::Attr::Fixed(value) => V::make_fixed(self, value),
@@ -125,12 +121,10 @@ impl<Registry: self::Registry> AttrBuilder for Builder<Registry> {
     {
         match config {
             config::Attr::Attr { kind, config } => {
-                return Ok(
-                    Registry::BoundAttr::manufacture(&kind)
-                        .ok_or(format_err!("Unknown bound attribute type: {}", kind))?
-                        .produce(config, self)
-                        .context(format!("Failed to build attr: (type={}) @{}", kind, name))?
-                );
+                return Registry::BoundAttr::manufacture(&kind)
+                    .ok_or_else(|| format_err!("Unknown bound attribute type: {}", kind))?
+                    .produce(config, self)
+                    .context(format!("Failed to build attr: (type={}) @{}", kind, name));
             }
             config::Attr::Input { input, initial } => V::make_input(self, input, initial),
             config::Attr::Fixed(value) => V::make_fixed(self, value),

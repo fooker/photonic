@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -159,7 +161,8 @@ impl<Node> Output<Node> for CanvasOutput
             self.ctx.arc(space as f64 * (i + 1) as f64,
                          height as f64 / 2.0,
                          size as f64 / 2.0,
-                         0.0, std::f64::consts::PI * 2.0);
+                         0.0, std::f64::consts::PI * 2.0)
+                .unwrap();
             self.ctx.fill();
         }
 
