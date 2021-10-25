@@ -49,9 +49,11 @@ impl Render for &Example {
     type Element = RGBColor;
 
     fn get(&self, index: usize) -> Result<Self::Element> {
-        let x = self.state / 6000;
+        const CYCLE: usize = 600;
 
-        let b = (self.state % 6000) as f64 / 600.0; // 0 .. 1
+        let x = self.state / CYCLE;
+
+        let b = (self.state % CYCLE) as f64 / CYCLE as f64; // 0 .. 1
         let b = b * 2.0 - 1.0; // -1 .. 1
         let b = 1.0 - f64::abs(b); // 0 .. 1 .. 0
 
@@ -86,8 +88,8 @@ async fn main() -> Result<()> {
             dev: "/dev/spidev0.0".into(),
         },
         brightness: 1.0,
-        gamma_factor: None,
-        correction: None
+        gamma_factor: Some(2.2),
+        correction: None,
     };
 
     let mut output = OutputDecl::<Example>::materialize(output, SIZE)?;
@@ -97,6 +99,8 @@ async fn main() -> Result<()> {
     for state in 0.. {
         render.state = state;
         Output::<Example>::render(&mut output, &render)?;
+
+        tokio::time::sleep(Duration::from_millis(10)).await;
     }
 
     return Ok(());
