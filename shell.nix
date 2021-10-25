@@ -4,6 +4,12 @@ let
   pkgs = import <nixpkgs> {
     overlays = [ (import "${ mozilla }/rust-overlay.nix") ];
   };
+
+  pkgs-arm = import <nixpkgs> {
+    crossSystem = {
+      config = "aarch64-unknown-linux-gnu";
+    };
+  };
   
   channel = pkgs.latest.rustChannels.nightly;
   rust = channel.rust.override {
@@ -27,6 +33,10 @@ in pkgs.mkShell {
     pkg-config
     openssl
     protobuf
+
+    pkgs-arm.stdenv.cc
+
+    linuxPackages.perf
   ];
 
   RUST_BACKTRACE = 1;
