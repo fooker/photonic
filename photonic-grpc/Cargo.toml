@@ -8,7 +8,7 @@ edition = "2018"
 photonic-core = { path = "../photonic-core" }
 photonic-grpc-proto = { path = "../photonic-grpc-proto" }
 
-tonic = { version = "0.5.2" }
-prost = "0.8.0"
+tonic = { version = "0.6.0" }
+prost = "0.9.0"
 anyhow = "1"
 async-trait = "0.1.42"

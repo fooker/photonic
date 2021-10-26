@@ -19,7 +19,7 @@ impl NodeDecl for ColorwheelNodeDecl {
         let delta = 360.0 / size as f64 * self.scale;
 
         let buffer = Buffer::from_generator(size, |i| {
-            HSVColor::new(self.offset + i as f64 * delta, 1.0, 1.0)
+            HSVColor::with_wp(self.offset + i as f64 * delta, 1.0, 1.0)
         });
 
         return Ok(buffer);

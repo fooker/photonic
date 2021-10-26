@@ -7,12 +7,13 @@ use std::time::Duration;
 
 use anyhow::{format_err, Context, Result};
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use shared_memory::{ReadRaw, SharedMemCast, SharedMemRaw};
 
 use photonic_core::color::palette::LinSrgb;
 use photonic_core::color::*;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::*;
+use shared_memory::{Shmem, ShmemConf};
+use std::slice;
 
 #[repr(C, packed)]
 struct Element {
@@ -21,17 +22,15 @@ struct Element {
     b: u8,
 }
 
-unsafe impl SharedMemCast for Element {}
-
 pub struct ExecRenderer<'a> {
-    shm: &'a SharedMemRaw,
+    data: &'a [Element],
 }
 
 impl<'a> Render for ExecRenderer<'a> {
     type Element = RGBColor;
 
     fn get(&self, index: usize) -> Result<Self::Element> {
-        let element = &unsafe { self.shm.get_raw_slice::<Element>() }[index];
+        let element = &self.data[index];
         return Ok(LinSrgb::<u8>::from_components((element.r, element.g, element.b)).into_format());
     }
 }
@@ -41,8 +40,9 @@ pub struct ExecNodeDecl {
 }
 
 pub struct ExecNode {
+    size: usize,
     child: Child,
-    shm: SharedMemRaw,
+    shm: Shmem,
 }
 
 static ID: AtomicUsize = AtomicUsize::new(0);
@@ -56,24 +56,24 @@ impl NodeDecl for ExecNodeDecl {
             .ok_or_else(|| format_err!("Invalid command: {}", &self.command))?;
         let (command, args) = command.split_first().ok_or_else(|| format_err!("Empty command"))?;
 
+        let id = format!("photonic-{}-{}", std::process::id(), ID.fetch_add(1, Ordering::SeqCst));
+
         // Create shared memory region for color buffer
-        let shm = SharedMemRaw::create(
-            &format!("photonic-{}-{}", std::process::id(), ID.fetch_add(1, Ordering::SeqCst)),
-            size * 3,
-        )
-        .expect("Failed to create SHM");
+        let shm =
+            ShmemConf::new().size(size * 3).os_id(&id).create().expect("Failed to create SHM");
 
         // Spawn a child process
         let child = Command::new(command)
             .args(args)
             .env("PHOTONIC_SIZE", format!("{}", size))
-            .env("PHOTONIC_PATH", shm.get_path())
+            .env("PHOTONIC_PATH", format!("/dev/shm/{}", &id))
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::inherit())
             .spawn()?;
 
         return Ok(Self::Target {
+            size,
             child,
             shm,
         });
@@ -107,8 +107,9 @@ impl Node for ExecNode {
     }
 
     fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
+        let data = unsafe { slice::from_raw_parts(self.shm.as_ptr() as *const Element, self.size) };
         return Ok(ExecRenderer {
-            shm: &self.shm,
+            data,
         });
     }
 }

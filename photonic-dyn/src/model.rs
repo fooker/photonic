@@ -14,6 +14,7 @@ use photonic_core::output::OutputDecl;
 
 use crate::builder::{AttrBuilder, InputBuilder, NodeBuilder, OutputBuilder};
 use crate::config;
+use photonic_core::color::palette::IntoColor;
 use photonic_core::color::RGBColor;
 
 pub trait OutputModel: DeserializeOwned {
@@ -42,10 +43,10 @@ pub trait NodeModel: DeserializeOwned {
 impl<T> NodeModel for T
 where
     T: NodeDecl + DeserializeOwned + 'static,
-    T::Element: Into<color::RGBColor>,
+    T::Element: IntoColor<color::RGBColor>,
 {
     fn assemble(self, _builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
-        let decl = self.map(Into::into);
+        let decl = self.map(IntoColor::into_color);
         return Ok(BoxedNodeDecl::wrap(decl));
     }
 }
@@ -234,7 +235,7 @@ impl AttrValueFactory for color::HSVColor {
 
     fn assemble(model: Self::Model) -> Result<Self> {
         let color = csscolorparser::parse(&model)?.to_hsva();
-        return Ok(color::HSVColor::new(color.0, color.1, color.2));
+        return Ok(color::HSVColor::with_wp(color.0, color.1, color.2));
     }
 }
 
@@ -243,6 +244,6 @@ impl AttrValueFactory for color::HSLColor {
 
     fn assemble(model: Self::Model) -> Result<Self> {
         let color = csscolorparser::parse(&model)?.to_hsla();
-        return Ok(color::HSLColor::new(color.0, color.1, color.2));
+        return Ok(color::HSLColor::with_wp(color.0, color.1, color.2));
     }
 }

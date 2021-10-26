@@ -24,7 +24,7 @@ impl Render for LarsonRenderer {
             ((self.width / 2.0) - f64::abs((index as f64) - self.position)) / (self.width / 2.0),
         );
 
-        return Ok(HSVColor::new(self.hue, 1.0, value));
+        return Ok(HSVColor::with_wp(self.hue, 1.0, value));
     }
 }
 
@@ -136,14 +136,15 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
+    use anyhow::Result;
+    use serde::Deserialize;
+
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::color::palette::IntoColor;
     use photonic_core::{color, NodeDecl};
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
-
-    use anyhow::Result;
-    use serde::Deserialize;
 
     #[derive(Deserialize)]
     pub struct LarsonConfig {
@@ -163,7 +164,7 @@ pub mod model {
                     speed: builder.unbound_attr("speed", self.speed)?,
                     width: builder.bound_attr("width", self.width)?,
                 }
-                .map(Into::into),
+                .map(IntoColor::into_color),
             ));
         }
     }

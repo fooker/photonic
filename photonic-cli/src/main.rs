@@ -1,35 +1,41 @@
 #![allow(clippy::needless_return)]
 
 use anyhow::Error;
-use clap::Clap;
+use clap::Parser;
 use erased_serde::Serialize;
 
 use crate::client::Client;
 
 pub mod client;
 
-#[derive(Clap)]
+#[derive(Parser)]
 #[clap(name = "photonic", author, about, version)]
 pub struct Opts {
     #[clap(subcommand)]
     pub command: Command,
 }
 
-#[derive(Clap)]
-pub enum Command {
-    Nodes,
-    Node {
-        name: Option<String>,
-    },
-    Send {
-        name: String,
-
-        #[clap(subcommand)]
-        value: SendValue,
-    },
+#[derive(Parser)]
+pub struct NodeCommand {
+    name: Option<String>,
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
+pub struct SendCommand {
+    name: String,
+
+    #[clap(subcommand)]
+    value: SendValue,
+}
+
+#[derive(Parser)]
+pub enum Command {
+    Nodes,
+    Node(NodeCommand),
+    Send(SendCommand),
+}
+
+#[derive(Parser)]
 pub enum SendValue {
     Trigger,
     Boolean {
@@ -54,13 +60,8 @@ pub async fn main() -> Result<(), Error> {
 
     let output: Box<dyn Serialize> = match opts.command {
         Command::Nodes => Box::new(client.nodes().await?),
-        Command::Node {
-            name,
-        } => Box::new(client.node(name).await?),
-        Command::Send {
-            name,
-            value,
-        } => Box::new(client.send(name, value).await?),
+        Command::Node(node) => Box::new(client.node(node.name).await?),
+        Command::Send(send) => Box::new(client.send(send.name, send.value).await?),
     };
 
     println!("{}", serde_yaml::to_string(&output)?);

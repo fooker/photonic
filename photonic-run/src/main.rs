@@ -8,7 +8,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::{format_err, Error, Result};
-use clap::Clap;
+use clap::Parser;
 
 use photonic_core::Introspection;
 use photonic_dyn::builder::{Builder, NodeBuilder};
@@ -67,7 +67,7 @@ impl Interface {
     }
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 #[clap()]
 struct Args {
     #[clap(default_value = "scene.yaml")]

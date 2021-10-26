@@ -147,14 +147,15 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
+    use anyhow::Result;
+    use serde::Deserialize;
+
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::color::palette::IntoColor;
     use photonic_core::{color, NodeDecl};
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
-
-    use anyhow::Result;
-    use serde::Deserialize;
 
     #[derive(Deserialize)]
     pub struct RaindropsConfig {
@@ -174,7 +175,7 @@ pub mod model {
                     color: builder.unbound_attr("color", self.color)?,
                     decay: builder.bound_attr("decay", self.decay)?,
                 }
-                .map(Into::into),
+                .map(IntoColor::into_color),
             ));
         }
     }

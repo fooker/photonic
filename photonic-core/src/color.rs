@@ -1,9 +1,11 @@
 use crate::math;
 
 pub type RGBColor = palette::LinSrgb<f64>;
-pub type HSVColor = palette::Hsv<palette::encoding::Srgb, f64>;
-pub type HSLColor = palette::Hsl<palette::encoding::Srgb, f64>;
+pub type HSVColor = palette::Hsv<Linear<encoding::Srgb>, f64>;
+pub type HSLColor = palette::Hsl<Linear<encoding::Srgb>, f64>;
 
+use crate::color::palette::encoding;
+use crate::color::palette::encoding::Linear;
 pub use palette;
 
 pub trait Black {
@@ -60,12 +62,12 @@ impl Black for RGBColor {
 
 impl Black for HSVColor {
     fn black() -> Self {
-        HSVColor::new(0.0, 0.0, 0.0)
+        HSVColor::with_wp(0.0, 0.0, 0.0)
     }
 }
 
 impl Black for HSLColor {
     fn black() -> Self {
-        HSLColor::new(0.0, 0.0, 0.0)
+        HSLColor::with_wp(0.0, 0.0, 0.0)
     }
 }

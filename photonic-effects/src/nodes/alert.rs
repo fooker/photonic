@@ -20,7 +20,7 @@ impl Render for AlertRenderer {
     fn get(&self, index: usize) -> Result<Self::Element> {
         let x = (index / self.block_size) % 2 == 0;
 
-        return Ok(HSVColor::new(self.hue, 1.0, if x { self.value } else { 1.0 - self.value }));
+        return Ok(HSVColor::with_wp(self.hue, 1.0, if x { self.value } else { 1.0 - self.value }));
     }
 }
 
@@ -101,14 +101,15 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
+    use anyhow::Result;
+    use serde::Deserialize;
+
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
+    use photonic_core::color::palette::IntoColor;
     use photonic_core::{color, NodeDecl};
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
-
-    use anyhow::Result;
-    use serde::Deserialize;
 
     #[derive(Deserialize)]
     pub struct AlertConfig {
@@ -128,7 +129,7 @@ pub mod model {
                     block: builder.bound_attr("block", self.block)?,
                     speed: builder.unbound_attr("speed", self.speed)?,
                 }
-                .map(Into::into),
+                .map(IntoColor::into_color),
             ));
         }
     }
