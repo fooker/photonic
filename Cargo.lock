@@ -1659,6 +1659,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9735f7e1e51a3f740bacd5dc2724b61a7806f23597a8736e679f38ee3435d18"
 dependencies = [
  "approx",
+ "bytemuck",
  "num-traits",
  "palette_derive",
  "phf 0.9.0",
@@ -1953,9 +1954,11 @@ name = "photonic-exec"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bytemuck",
  "byteorder",
+ "palette",
  "photonic-core",
- "shared_memory",
+ "photonic-dyn",
  "shlex",
 ]
 
