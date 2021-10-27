@@ -52,7 +52,7 @@ pub struct RotationNode<Source, Speed> {
 impl<Source, Speed, E> NodeDecl for RotationNodeDecl<Source, Speed>
 where
     Source: NodeDecl<Element = E>,
-    Speed: UnboundAttrDecl<Element = f64>,
+    Speed: UnboundAttrDecl<Value = f64>,
     E: Lerp,
 {
     type Element = E;
@@ -71,7 +71,7 @@ where
 impl<'a, Source, Speed> RenderType<'a, Self> for RotationNode<Source, Speed>
 where
     Source: Node,
-    Speed: Attr<Element = f64>,
+    Speed: Attr<Value = f64>,
     Source::Element: Lerp,
 {
     type Render = RotationRenderer<<Source as RenderType<'a, Source>>::Render>;
@@ -80,7 +80,7 @@ where
 impl<Source, Speed> Node for RotationNode<Source, Speed>
 where
     Source: Node,
-    Speed: Attr<Element = f64>,
+    Speed: Attr<Value = f64>,
     Source::Element: Lerp,
 {
     const KIND: &'static str = "rotation";

@@ -12,7 +12,7 @@ use photonic_core::scene::AttrBuilder;
 pub struct Fader<Input, V>
 where
     V: AttrValue + Lerp,
-    Input: Attr<Element = V>,
+    Input: Attr<Value = V>,
 {
     input: Input,
 
@@ -25,9 +25,9 @@ where
 impl<Input, V> Attr for Fader<Input, V>
 where
     V: AttrValue + Lerp,
-    Input: Attr<Element = V>,
+    Input: Attr<Value = V>,
 {
-    type Element = V;
+    type Value = V;
 
     const KIND: &'static str = "fader";
 
@@ -57,9 +57,9 @@ pub struct FaderDecl<Input> {
 impl<Input, V> BoundAttrDecl for FaderDecl<Input>
 where
     V: AttrValue + Lerp + Bounded,
-    Input: BoundAttrDecl<Element = V>,
+    Input: BoundAttrDecl<Value = V>,
 {
-    type Element = V;
+    type Value = V;
     type Target = Fader<Input::Target, V>;
     fn materialize(
         self,
@@ -82,9 +82,9 @@ where
 impl<Input, V: AttrValue> UnboundAttrDecl for FaderDecl<Input>
 where
     V: Lerp,
-    Input: UnboundAttrDecl<Element = V>,
+    Input: UnboundAttrDecl<Value = V>,
 {
-    type Element = V;
+    type Value = V;
     type Target = Fader<Input::Target, V>;
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let input = builder.unbound_attr("input", self.input)?;

@@ -24,7 +24,7 @@ impl<V> Attr for Sequence<V>
 where
     V: AttrValue,
 {
-    type Element = V;
+    type Value = V;
     const KIND: &'static str = "sequence";
 
     fn get(&self) -> V {
@@ -64,7 +64,7 @@ impl<V> BoundAttrDecl for SequenceDecl<V>
 where
     V: AttrValue + Bounded,
 {
-    type Element = V;
+    type Value = V;
     type Target = Sequence<V>;
     fn materialize(
         self,
@@ -90,7 +90,7 @@ impl<V> UnboundAttrDecl for SequenceDecl<V>
 where
     V: AttrValue,
 {
-    type Element = V;
+    type Value = V;
     type Target = Sequence<V>;
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         let next = self.next.map(|input| builder.input("next", input)).transpose()?;

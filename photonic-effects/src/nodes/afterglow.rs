@@ -38,7 +38,7 @@ where
 pub struct AfterglowNodeDecl<Source, Decay>
 where
     Source: NodeDecl,
-    Decay: BoundAttrDecl<Element = f64>,
+    Decay: BoundAttrDecl<Value = f64>,
 {
     pub source: NodeHandle<Source>,
     pub decay: Decay,
@@ -57,7 +57,7 @@ where
 impl<Source, Decay> NodeDecl for AfterglowNodeDecl<Source, Decay>
 where
     Source: NodeDecl,
-    Decay: BoundAttrDecl<Element = f64>,
+    Decay: BoundAttrDecl<Value = f64>,
     Source::Element: Black + Shade<Scalar = f64> + ComponentWise<Scalar = f64> + Copy + 'static,
 {
     type Element = Source::Element;
@@ -75,7 +75,7 @@ where
 impl<'a, Source, Decay> RenderType<'a, Self> for AfterglowNode<Source, Decay>
 where
     Source: Node,
-    Decay: self::Attr<Element = f64>,
+    Decay: self::Attr<Value = f64>,
     Source::Element: Black + Shade<Scalar = f64> + ComponentWise<Scalar = f64> + Copy + 'static,
 {
     type Render = AfterglowRenderer<'a, <Source as RenderType<'a, Source>>::Render>;
@@ -84,7 +84,7 @@ where
 impl<Source, Decay> Node for AfterglowNode<Source, Decay>
 where
     Source: Node,
-    Decay: self::Attr<Element = f64>,
+    Decay: self::Attr<Value = f64>,
     Source::Element: Black + Shade<Scalar = f64> + ComponentWise<Scalar = f64> + Copy + 'static,
 {
     const KIND: &'static str = "afterglow";

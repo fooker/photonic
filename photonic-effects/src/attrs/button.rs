@@ -53,7 +53,7 @@ impl<V> Attr for Button<V>
 where
     V: AttrValue,
 {
-    type Element = V;
+    type Value = V;
     const KIND: &'static str = "button";
 
     fn get(&self) -> V {
@@ -97,7 +97,7 @@ impl<V> BoundAttrDecl for ButtonDecl<V>
 where
     V: AttrValue + Bounded,
 {
-    type Element = V;
+    type Value = V;
     type Target = Button<V>;
     fn materialize(
         self,
@@ -118,7 +118,7 @@ impl<V> UnboundAttrDecl for ButtonDecl<V>
 where
     V: AttrValue,
 {
-    type Element = V;
+    type Value = V;
     type Target = Button<V>;
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
         return Ok(Button {

@@ -80,9 +80,9 @@ pub struct RaindropsNode<Rate, Color, Decay> {
 
 impl<Rate, Color, Decay> NodeDecl for RaindropsNodeDecl<Rate, Color, Decay>
 where
-    Rate: BoundAttrDecl<Element = f64>,
-    Color: UnboundAttrDecl<Element = Range<HSLColor>>,
-    Decay: BoundAttrDecl<Element = Range<f64>>,
+    Rate: BoundAttrDecl<Value = f64>,
+    Color: UnboundAttrDecl<Value = Range<HSLColor>>,
+    Decay: BoundAttrDecl<Value = Range<f64>>,
 {
     type Element = HSLColor;
     type Target = RaindropsNode<Rate::Target, Color::Target, Decay::Target>;
@@ -103,18 +103,18 @@ where
 
 impl<'a, Rate, Color, Decay> RenderType<'a, Self> for RaindropsNode<Rate, Color, Decay>
 where
-    Rate: Attr<Element = f64>,
-    Color: Attr<Element = Range<HSLColor>>,
-    Decay: Attr<Element = Range<f64>>,
+    Rate: Attr<Value = f64>,
+    Color: Attr<Value = Range<HSLColor>>,
+    Decay: Attr<Value = Range<f64>>,
 {
     type Render = RaindropsRenderer<'a>;
 }
 
 impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
 where
-    Rate: Attr<Element = f64>,
-    Color: Attr<Element = Range<HSLColor>>,
-    Decay: Attr<Element = Range<f64>>,
+    Rate: Attr<Value = f64>,
+    Color: Attr<Value = Range<HSLColor>>,
+    Decay: Attr<Value = Range<f64>>,
 {
     const KIND: &'static str = "raindrops";
 

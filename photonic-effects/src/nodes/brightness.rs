@@ -36,7 +36,7 @@ where
 pub struct BrightnessNodeDecl<Source, Brightness>
 where
     Source: NodeDecl,
-    Brightness: BoundAttrDecl<Element = f64>,
+    Brightness: BoundAttrDecl<Value = f64>,
 {
     pub source: NodeHandle<Source>,
     pub brightness: Brightness,
@@ -52,7 +52,7 @@ pub struct BrightnessNode<Source, Brightness> {
 impl<Source, Brightness, E> NodeDecl for BrightnessNodeDecl<Source, Brightness>
 where
     Source: NodeDecl<Element = E>,
-    Brightness: BoundAttrDecl<Element = f64>,
+    Brightness: BoundAttrDecl<Value = f64>,
     E: Lerp + Black,
 {
     type Element = E;
@@ -70,7 +70,7 @@ where
 impl<'a, Source, Brightness> RenderType<'a, Self> for BrightnessNode<Source, Brightness>
 where
     Source: Node,
-    Brightness: self::Attr<Element = f64>,
+    Brightness: self::Attr<Value = f64>,
     Source::Element: Lerp + Black,
 {
     type Render = BrightnessRenderer<<Source as RenderType<'a, Source>>::Render>;
@@ -79,7 +79,7 @@ where
 impl<Source, Brightness> Node for BrightnessNode<Source, Brightness>
 where
     Source: Node,
-    Brightness: self::Attr<Element = f64>,
+    Brightness: self::Attr<Value = f64>,
     Source::Element: Lerp + Black,
 {
     const KIND: &'static str = "brightness";

@@ -20,7 +20,7 @@ trait AsBoxedBoundAttrDecl<V> {
 
 impl<T, V> AsBoxedUnboundAttrDecl<V> for T
 where
-    T: UnboundAttrDecl<Element = V>,
+    T: UnboundAttrDecl<Value = V>,
     T::Target: 'static,
     V: AttrValue,
 {
@@ -31,7 +31,7 @@ where
 
 impl<T, V> AsBoxedBoundAttrDecl<V> for T
 where
-    T: BoundAttrDecl<Element = V>,
+    T: BoundAttrDecl<Value = V>,
     T::Target: 'static,
     V: AttrValue + Bounded,
 {
@@ -55,7 +55,7 @@ pub struct BoxedBoundAttrDecl<V> {
 impl<V, Decl> Wrap<Decl> for BoxedUnboundAttrDecl<V>
 where
     V: AttrValue,
-    Decl: UnboundAttrDecl<Element = V> + 'static,
+    Decl: UnboundAttrDecl<Value = V> + 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -67,7 +67,7 @@ where
 impl<V, Decl> Wrap<Decl> for BoxedBoundAttrDecl<V>
 where
     V: AttrValue + Bounded,
-    Decl: BoundAttrDecl<Element = V> + 'static,
+    Decl: BoundAttrDecl<Value = V> + 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
@@ -80,7 +80,7 @@ impl<V> UnboundAttrDecl for BoxedUnboundAttrDecl<V>
 where
     V: AttrValue,
 {
-    type Element = V;
+    type Value = V;
     type Target = BoxedAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target, Error> {
@@ -92,7 +92,7 @@ impl<V> BoundAttrDecl for BoxedBoundAttrDecl<V>
 where
     V: AttrValue + Bounded,
 {
-    type Element = V;
+    type Value = V;
     type Target = BoxedAttr<V>;
 
     fn materialize(
@@ -114,7 +114,7 @@ where
 
 impl<T, V> AsBoxedAttr<V> for T
 where
-    T: Attr<Element = V>,
+    T: Attr<Value = V>,
     V: AttrValue,
 {
     fn get(&self) -> V {
@@ -133,7 +133,7 @@ pub struct BoxedAttr<V> {
 impl<V, Attr> Wrap<Attr> for BoxedAttr<V>
 where
     V: AttrValue,
-    Attr: self::Attr<Element = V> + 'static,
+    Attr: self::Attr<Value = V> + 'static,
 {
     fn wrap(attr: Attr) -> Self {
         return Self {
@@ -146,7 +146,7 @@ impl<V> Attr for BoxedAttr<V>
 where
     V: AttrValue,
 {
-    type Element = V;
+    type Value = V;
 
     const KIND: &'static str = "boxed";
 

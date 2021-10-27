@@ -65,7 +65,7 @@ impl<'b> NodeBuilder<'b> {
         &mut self,
         name: &str,
         decl: Attr,
-        bounds: impl Into<Bounds<Attr::Element>>,
+        bounds: impl Into<Bounds<Attr::Value>>,
     ) -> Result<Attr::Target>
     where
         Attr: BoundAttrDecl,
@@ -76,7 +76,7 @@ impl<'b> NodeBuilder<'b> {
             node: self,
             info: AttrInfo {
                 kind: Attr::Target::KIND,
-                value_type: Attr::Element::TYPE,
+                value_type: Attr::Value::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },
@@ -98,7 +98,7 @@ impl<'b> NodeBuilder<'b> {
             node: self,
             info: AttrInfo {
                 kind: Attr::Target::KIND,
-                value_type: Attr::Element::TYPE,
+                value_type: Attr::Value::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },
@@ -125,7 +125,7 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
         &mut self,
         name: &str,
         decl: Attr,
-        bounds: impl Into<Bounds<Attr::Element>>,
+        bounds: impl Into<Bounds<Attr::Value>>,
     ) -> Result<Attr::Target>
     where
         Attr: BoundAttrDecl,
@@ -136,7 +136,7 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
             node: self.node,
             info: AttrInfo {
                 kind: Attr::Target::KIND,
-                value_type: Attr::Element::TYPE,
+                value_type: Attr::Value::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },
@@ -158,7 +158,7 @@ impl<'b, 'p> AttrBuilder<'b, 'p> {
             node: self.node,
             info: AttrInfo {
                 kind: Attr::Target::KIND,
-                value_type: Attr::Element::TYPE,
+                value_type: Attr::Value::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },

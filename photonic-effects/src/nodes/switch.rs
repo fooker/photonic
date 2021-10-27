@@ -68,7 +68,7 @@ pub struct SwitchNode<Source, Fade> {
 impl<Source, Fade, E> NodeDecl for SwitchNodeDecl<Source, Fade>
 where
     Source: NodeDecl<Element = E>,
-    Fade: BoundAttrDecl<Element = i64>,
+    Fade: BoundAttrDecl<Value = i64>,
     E: Lerp,
 {
     type Element = E;
@@ -99,7 +99,7 @@ where
 impl<'a, Source, Fade> RenderType<'a, Self> for SwitchNode<Source, Fade>
 where
     Source: Node,
-    Fade: Attr<Element = i64>,
+    Fade: Attr<Value = i64>,
     Source::Element: Lerp,
 {
     type Render = SwitchRenderer<<Source as RenderType<'a, Source>>::Render>;
@@ -108,7 +108,7 @@ where
 impl<Source, Fade> Node for SwitchNode<Source, Fade>
 where
     Source: Node,
-    Fade: Attr<Element = i64>,
+    Fade: Attr<Value = i64>,
     Source::Element: Lerp,
 {
     const KIND: &'static str = "switch";

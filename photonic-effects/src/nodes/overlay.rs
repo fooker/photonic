@@ -55,7 +55,7 @@ impl<Base, Overlay, Blend> NodeDecl for OverlayNodeDecl<Base, Overlay, Blend>
 where
     Base: NodeDecl,
     Overlay: NodeDecl,
-    Blend: BoundAttrDecl<Element = f64>,
+    Blend: BoundAttrDecl<Value = f64>,
     Base::Element: Lerp,
     Overlay::Element: IntoElement<Base::Element>,
 {
@@ -75,7 +75,7 @@ impl<'a, Base, Overlay, Blend> RenderType<'a, Self> for OverlayNode<Base, Overla
 where
     Base: Node,
     Overlay: Node,
-    Blend: Attr<Element = f64>,
+    Blend: Attr<Value = f64>,
     Base::Element: Lerp,
     Overlay::Element: IntoElement<Base::Element>,
 {
@@ -89,7 +89,7 @@ impl<Base, Overlay, Blend> Node for OverlayNode<Base, Overlay, Blend>
 where
     Base: Node,
     Overlay: Node,
-    Blend: Attr<Element = f64>,
+    Blend: Attr<Value = f64>,
     Base::Element: Lerp,
     Overlay::Element: IntoElement<Base::Element>,
 {

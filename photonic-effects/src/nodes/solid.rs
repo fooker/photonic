@@ -27,7 +27,7 @@ impl<Solid> NodeDecl for SolidNodeDecl<Solid>
 where
     Solid: UnboundAttrDecl,
 {
-    type Element = Solid::Element;
+    type Element = Solid::Value;
     type Target = SolidNode<Solid::Target>;
 
     fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
@@ -45,7 +45,7 @@ impl<'a, Solid> RenderType<'a, Self> for SolidNode<Solid>
 where
     Solid: Attr,
 {
-    type Render = SolidRenderer<Solid::Element>;
+    type Render = SolidRenderer<Solid::Value>;
 }
 
 impl<Solid> Node for SolidNode<Solid>
@@ -54,7 +54,7 @@ where
 {
     const KIND: &'static str = "solid";
 
-    type Element = Solid::Element;
+    type Element = Solid::Value;
 
     fn update(&mut self, duration: Duration) -> Result<()> {
         self.solid.update(duration);

@@ -53,7 +53,7 @@ pub struct DistortionNode<Source, Value, F> {
 impl<Source, Value, F, E> NodeDecl for DistortionNodeDecl<Source, Value, F>
 where
     Source: NodeDecl<Element = E>,
-    Value: BoundAttrDecl<Element = f64>,
+    Value: BoundAttrDecl<Value = f64>,
     E: Lerp,
     F: Fn(&E, f64) -> Result<E> + 'static,
 {
@@ -73,7 +73,7 @@ where
 impl<'a, Source, Value, F> RenderType<'a, Self> for DistortionNode<Source, Value, F>
 where
     Source: Node,
-    Value: self::Attr<Element = f64>,
+    Value: self::Attr<Value = f64>,
     Source::Element: Lerp,
     F: Fn(&Source::Element, f64) -> Result<Source::Element> + 'static,
 {
@@ -83,7 +83,7 @@ where
 impl<Source, Value, F> Node for DistortionNode<Source, Value, F>
 where
     Source: Node,
-    Value: self::Attr<Element = f64>,
+    Value: self::Attr<Value = f64>,
     Source::Element: Lerp,
     F: Fn(&Source::Element, f64) -> Result<Source::Element> + 'static,
 {

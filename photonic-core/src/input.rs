@@ -163,10 +163,10 @@ impl<V> Attr for BoundInputAttr<V>
 where
     V: AttrValue + InputValue + Bounded,
 {
-    type Element = V;
+    type Value = V;
     const KIND: &'static str = "input";
 
-    fn get(&self) -> Self::Element {
+    fn get(&self) -> Self::Value {
         self.current
     }
 
@@ -188,7 +188,7 @@ impl<V> BoundAttrDecl for InputAttrDecl<V>
 where
     V: AttrValue + InputValue + Bounded,
 {
-    type Element = V;
+    type Value = V;
     type Target = BoundInputAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target> {
@@ -216,11 +216,11 @@ impl<V> Attr for UnboundInputAttr<V>
 where
     V: AttrValue + InputValue,
 {
-    type Element = V;
+    type Value = V;
 
     const KIND: &'static str = "manual";
 
-    fn get(&self) -> Self::Element {
+    fn get(&self) -> Self::Value {
         self.current
     }
 
@@ -238,7 +238,7 @@ impl<V> UnboundAttrDecl for InputAttrDecl<V>
 where
     V: AttrValue + InputValue,
 {
-    type Element = V;
+    type Value = V;
     type Target = UnboundInputAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target> {

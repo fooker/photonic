@@ -27,7 +27,7 @@ impl<V> Attr for Random<V>
 where
     V: AttrValue + SampleUniform + Bounded,
 {
-    type Element = V;
+    type Value = V;
     const KIND: &'static str = "random";
 
     fn get(&self) -> V {
@@ -53,7 +53,7 @@ impl<V> BoundAttrDecl for RandomDecl<V>
 where
     V: AttrValue + SampleUniform + Bounded,
 {
-    type Element = V;
+    type Value = V;
     type Target = Random<V>;
     fn materialize(
         self,

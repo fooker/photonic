@@ -34,7 +34,7 @@ where
 pub struct BlackoutNodeDecl<Source, Active>
 where
     Source: NodeDecl,
-    Active: UnboundAttrDecl<Element = bool>,
+    Active: UnboundAttrDecl<Value = bool>,
 {
     pub source: NodeHandle<Source>,
     pub active: Active,
@@ -50,7 +50,7 @@ pub struct BlackoutNode<Source, Active> {
 impl<Source, Active, E> NodeDecl for BlackoutNodeDecl<Source, Active>
 where
     Source: NodeDecl<Element = E>,
-    Active: UnboundAttrDecl<Element = bool>,
+    Active: UnboundAttrDecl<Value = bool>,
     E: Lerp + Black,
 {
     type Element = E;
@@ -68,7 +68,7 @@ where
 impl<'a, Source, Active> RenderType<'a, Self> for BlackoutNode<Source, Active>
 where
     Source: Node,
-    Active: self::Attr<Element = bool>,
+    Active: self::Attr<Value = bool>,
     Source::Element: Lerp + Black,
 {
     type Render = BlackoutRenderer<<Source as RenderType<'a, Source>>::Render>;
@@ -77,7 +77,7 @@ where
 impl<Source, Active> Node for BlackoutNode<Source, Active>
 where
     Source: Node,
-    Active: self::Attr<Element = bool>,
+    Active: self::Attr<Value = bool>,
     Source::Element: Lerp + Black,
 {
     const KIND: &'static str = "blackout";

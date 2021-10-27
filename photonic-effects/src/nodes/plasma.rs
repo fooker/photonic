@@ -64,9 +64,9 @@ where
 
 impl<Range, Scale, Speed, E> NodeDecl for PlasmaNodeDecl<Range, Scale, Speed, E>
 where
-    Range: UnboundAttrDecl<Element = self::Range<E>>,
-    Scale: UnboundAttrDecl<Element = f64>,
-    Speed: UnboundAttrDecl<Element = f64>,
+    Range: UnboundAttrDecl<Value = self::Range<E>>,
+    Scale: UnboundAttrDecl<Value = f64>,
+    Speed: UnboundAttrDecl<Value = f64>,
     E: AttrValue + Lerp,
 {
     type Element = E;
@@ -89,9 +89,9 @@ where
 
 impl<'a, Range, Scale, Speed, E> RenderType<'a, Self> for PlasmaNode<Range, Scale, Speed, E>
 where
-    Range: Attr<Element = self::Range<E>>,
-    Scale: Attr<Element = f64>,
-    Speed: Attr<Element = f64>,
+    Range: Attr<Value = self::Range<E>>,
+    Scale: Attr<Value = f64>,
+    Speed: Attr<Value = f64>,
     E: AttrValue + Lerp,
 {
     type Render = PlasmaRenderer<'a, E>;
@@ -99,9 +99,9 @@ where
 
 impl<Range, Scale, Speed, E> Node for PlasmaNode<Range, Scale, Speed, E>
 where
-    Range: Attr<Element = self::Range<E>>,
-    Scale: Attr<Element = f64>,
-    Speed: Attr<Element = f64>,
+    Range: Attr<Value = self::Range<E>>,
+    Scale: Attr<Value = f64>,
+    Speed: Attr<Value = f64>,
     E: AttrValue + Lerp,
 {
     const KIND: &'static str = "plasma";
