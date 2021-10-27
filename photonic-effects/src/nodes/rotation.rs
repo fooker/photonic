@@ -107,7 +107,7 @@ where
 #[cfg(feature = "dyn")]
 pub mod model {
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
-    use photonic_core::color;
+    use photonic_core::element;
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
@@ -125,7 +125,7 @@ pub mod model {
         fn assemble(
             self,
             builder: &mut impl NodeBuilder,
-        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+        ) -> Result<BoxedNodeDecl<element::RGBColor>> {
             return Ok(BoxedNodeDecl::wrap(super::RotationNodeDecl {
                 source: builder.node("source", self.source)?,
                 speed: builder.unbound_attr("speed", self.speed)?,

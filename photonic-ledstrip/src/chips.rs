@@ -1,4 +1,4 @@
-use photonic_core::color::RGBColor;
+use photonic_core::element::RGBColor;
 
 pub trait Color: Sized {
     fn transform(

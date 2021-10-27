@@ -3,7 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, UnboundAttrDecl};
-use photonic_core::color::HSVColor;
+use photonic_core::element::HSVColor;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::NodeBuilder;
 
@@ -140,8 +140,7 @@ pub mod model {
     use serde::Deserialize;
 
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
-    use photonic_core::color::palette::IntoColor;
-    use photonic_core::{color, NodeDecl};
+    use photonic_core::element::RGBColor;
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
@@ -154,18 +153,12 @@ pub mod model {
     }
 
     impl NodeModel for LarsonConfig {
-        fn assemble(
-            self,
-            builder: &mut impl NodeBuilder,
-        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
-            return Ok(BoxedNodeDecl::wrap(
-                super::LarsonNodeDecl {
-                    hue: builder.bound_attr("hue", self.hue)?,
-                    speed: builder.unbound_attr("speed", self.speed)?,
-                    width: builder.bound_attr("width", self.width)?,
-                }
-                .map(IntoColor::into_color),
-            ));
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(super::LarsonNodeDecl {
+                hue: builder.bound_attr("hue", self.hue)?,
+                speed: builder.unbound_attr("speed", self.speed)?,
+                width: builder.bound_attr("width", self.width)?,
+            }));
         }
     }
 }

@@ -6,7 +6,7 @@ use photonic_console::ConsoleOutputDecl;
 use photonic_core::animation;
 use photonic_core::animation::Easing;
 use photonic_core::attr::{AsFixedAttr, Range};
-use photonic_core::color::HSLColor;
+use photonic_core::element::HSLColor;
 use photonic_core::scene::Scene;
 use photonic_core::timer::Ticker;
 use photonic_effects::attrs::fader::FaderDecl;
@@ -20,10 +20,8 @@ const SIZE: usize = 120;
 const FPS: usize = 60;
 
 #[tokio::main]
-async fn main() -> Result<!, Error> {
+async fn main() -> Result<(), Error> {
     let mut scene = Scene::new(SIZE);
-
-    let grpc = GrpcInterface::bind("127.0.0.1:5764".parse()?);
 
     let next = scene.input("next")?;
     let prev = scene.input("prev")?;
@@ -32,9 +30,9 @@ async fn main() -> Result<!, Error> {
 
     let raindrops_color = SequenceDecl {
         values: vec![
-            Range(HSLColor::new(245.31, 0.5, 0.5), HSLColor::new(333.47, 0.7, 0.5)),
-            Range(HSLColor::new(0.0, 0.45, 0.5), HSLColor::new(17.5, 0.55, 0.5)),
-            Range(HSLColor::new(187.5, 0.25, 0.5), HSLColor::new(223.92, 0.5, 0.5)),
+            Range(HSLColor::with_wp(245.31, 0.5, 0.5), HSLColor::with_wp(333.47, 0.7, 0.5)),
+            Range(HSLColor::with_wp(0.0, 0.45, 0.5), HSLColor::with_wp(17.5, 0.55, 0.5)),
+            Range(HSLColor::with_wp(187.5, 0.25, 0.5), HSLColor::with_wp(223.92, 0.5, 0.5)),
         ],
         next: Some(next),
         prev: Some(prev),
@@ -64,13 +62,12 @@ async fn main() -> Result<!, Error> {
         range: None,
     })?;
 
-    let (main, registry) = scene.run(blackout.transform(Into::into), ConsoleOutputDecl {
+    let (main, introspection) = scene.run(blackout.transform(Into::into), ConsoleOutputDecl {
         waterfall: true,
     })?;
 
-    println!("{:#?}", registry.root);
+    let grpc = GrpcInterface::bind("127.0.0.1:5764".parse()?);
+    introspection.serve(grpc)?;
 
-    registry.serve(grpc)?;
-
-    main.run(FPS).await?;
+    return main.run(FPS).await;
 }

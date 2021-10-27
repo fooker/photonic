@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use anyhow::{Error, Result};
 
-use photonic_core::color::RGBColor;
+use photonic_core::element::RGBColor;
 use photonic_core::math::clamp;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::output::OutputDecl;

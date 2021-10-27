@@ -2,7 +2,7 @@
 
 use photonic_core::attr::Bounded;
 use photonic_core::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, BoxedUnboundAttrDecl};
-use photonic_core::color::RGBColor;
+use photonic_core::element::RGBColor;
 use photonic_dyn::builder::{AttrBuilder, NodeBuilder};
 use photonic_dyn::model::AttrValueFactory;
 use photonic_dyn::registry::{self, BoundAttrRegistry, Factory, NodeRegistry, UnboundAttrRegistry};

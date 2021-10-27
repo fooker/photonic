@@ -298,7 +298,7 @@ impl Scene {
         // Materialize the node tree using a builder tracking the info object creation
         let (root_info, root_node) = builder.node(root)?;
 
-        let registry = Introspection::from(Arc::new(root_info));
+        let introspection = Introspection::with(Arc::new(root_info));
 
         return Ok((
             Loop {
@@ -306,7 +306,7 @@ impl Scene {
                 output: decl.materialize(self.size())?,
                 stats: FrameStats::default(),
             },
-            registry,
+            introspection,
         ));
     }
 }

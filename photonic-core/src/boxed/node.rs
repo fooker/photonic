@@ -3,6 +3,7 @@ use std::time::Duration;
 use anyhow::{Error, Result};
 
 use crate::boxed::Wrap;
+use crate::element::IntoElement;
 use crate::node::{Node, NodeDecl, Render, RenderType};
 use crate::scene::NodeBuilder;
 
@@ -34,12 +35,14 @@ pub struct BoxedNodeDecl<Element> {
 
 impl<Element, Decl> Wrap<Decl> for BoxedNodeDecl<Element>
 where
-    Decl: self::NodeDecl<Element = Element> + 'static,
+    Decl: self::NodeDecl + 'static,
     Decl::Target: 'static,
+    Decl::Element: IntoElement<Element>,
+    Element: 'static,
 {
     fn wrap(decl: Decl) -> Self {
         return Self {
-            decl: Box::new(decl),
+            decl: Box::new(decl.map(IntoElement::into_element)),
         };
     }
 }

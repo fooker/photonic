@@ -1,7 +1,7 @@
 #![cfg(feature = "dyn")]
 
 use photonic_core::boxed::{BoxedNodeDecl, BoxedOutputDecl};
-use photonic_core::color::RGBColor;
+use photonic_core::element::RGBColor;
 use photonic_dyn::builder::OutputBuilder;
 use photonic_dyn::registry::{self, Factory, OutputRegistry};
 

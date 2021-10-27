@@ -1,7 +1,7 @@
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
-use shared_memory::{SharedMemCast, SharedMemRaw, WriteRaw};
 use std::io::Write;
 use std::time::Duration;
+use shared_memory::ShmemConf;
 
 #[repr(C, packed)]
 struct Element {
@@ -10,8 +10,6 @@ struct Element {
     b: u8,
 }
 
-unsafe impl SharedMemCast for Element {}
-
 fn main() {
     let size = std::env::var("PHOTONIC_SIZE").unwrap().parse().unwrap();
     let path = std::env::var("PHOTONIC_PATH").unwrap();
@@ -19,7 +17,7 @@ fn main() {
     let mut reader = std::io::stdin();
     let mut writer = std::io::stdout();
 
-    let mut shm = SharedMemRaw::open(&path).unwrap();
+    let mut shm = ShmemConf::new().open()::open(&path).unwrap();
 
     eprintln!("Here we go - Mario!");
 

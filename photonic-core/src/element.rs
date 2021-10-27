@@ -1,12 +1,26 @@
+pub use palette;
+use palette::{FromColor, IntoColor};
+
+use crate::element::palette::encoding;
+use crate::element::palette::encoding::Linear;
 use crate::math;
 
 pub type RGBColor = palette::LinSrgb<f64>;
 pub type HSVColor = palette::Hsv<Linear<encoding::Srgb>, f64>;
 pub type HSLColor = palette::Hsl<Linear<encoding::Srgb>, f64>;
 
-use crate::color::palette::encoding;
-use crate::color::palette::encoding::Linear;
-pub use palette;
+pub trait IntoElement<E> {
+    fn into_element(self) -> E;
+}
+
+impl<T, E> IntoElement<E> for T
+where
+    E: FromColor<T>,
+{
+    fn into_element(self) -> E {
+        return self.into_color();
+    }
+}
 
 pub trait Black {
     fn black() -> Self;

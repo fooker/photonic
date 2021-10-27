@@ -1,7 +1,7 @@
 use anyhow::Error;
 
 use photonic_core::buffer::*;
-use photonic_core::color::HSVColor;
+use photonic_core::element::HSVColor;
 use photonic_core::node::NodeDecl;
 use photonic_core::scene::NodeBuilder;
 

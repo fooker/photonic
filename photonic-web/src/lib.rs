@@ -9,8 +9,8 @@ use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 use photonic_core::boxed::{BoxedNode, BoxedNodeDecl, BoxedOutputDecl};
-use photonic_core::color::palette::LinSrgb;
-use photonic_core::color::RGBColor;
+use photonic_core::element::palette::LinSrgb;
+use photonic_core::element::RGBColor;
 use photonic_core::input::InputSender;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::{Introspection, Loop, Output, OutputDecl, Result};

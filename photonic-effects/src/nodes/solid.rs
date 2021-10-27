@@ -73,7 +73,7 @@ pub mod model {
     use serde::Deserialize;
 
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
-    use photonic_core::color;
+    use photonic_core::element::RGBColor;
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
@@ -84,12 +84,9 @@ pub mod model {
     }
 
     impl NodeModel for SolidConfig {
-        fn assemble(
-            self,
-            builder: &mut impl NodeBuilder,
-        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<RGBColor>> {
             return Ok(BoxedNodeDecl::wrap(super::SolidNodeDecl {
-                solid: builder.unbound_attr("solid", self.solid)?,
+                solid: builder.unbound_attr::<RGBColor>("solid", self.solid)?,
             }));
         }
     }

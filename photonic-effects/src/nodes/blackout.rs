@@ -3,7 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 
 use photonic_core::attr::{Attr, UnboundAttrDecl};
-use photonic_core::color::Black;
+use photonic_core::element::Black;
 use photonic_core::math::Lerp;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::{NodeBuilder, NodeHandle};
@@ -104,7 +104,7 @@ where
 #[cfg(feature = "dyn")]
 pub mod model {
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
-    use photonic_core::color;
+    use photonic_core::element;
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
@@ -123,7 +123,7 @@ pub mod model {
         fn assemble(
             self,
             builder: &mut impl NodeBuilder,
-        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+        ) -> Result<BoxedNodeDecl<element::RGBColor>> {
             return Ok(BoxedNodeDecl::wrap(super::BlackoutNodeDecl {
                 source: builder.node("source", self.source)?,
                 active: builder.unbound_attr("active", self.active)?,

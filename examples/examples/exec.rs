@@ -8,7 +8,7 @@ const SIZE: usize = 120;
 const FPS: usize = 60;
 
 #[tokio::main]
-async fn main() -> Result<!, Error> {
+async fn main() -> Result<(), Error> {
     let mut scene = Scene::new(SIZE);
 
     let exec = scene.node("exec", ExecNodeDecl {
@@ -19,5 +19,5 @@ async fn main() -> Result<!, Error> {
         waterfall: true,
     })?;
 
-    main.run(FPS).await?;
+    return main.run(FPS).await;
 }

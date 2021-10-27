@@ -7,15 +7,15 @@ use photonic_core::attr::{AsFixedAttr, AttrValue, Bounded, Range};
 use photonic_core::boxed::{
     BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl, Wrap,
 };
-use photonic_core::color;
+use photonic_core::element;
 use photonic_core::input::InputValue;
 use photonic_core::node::NodeDecl;
 use photonic_core::output::OutputDecl;
 
 use crate::builder::{AttrBuilder, InputBuilder, NodeBuilder, OutputBuilder};
 use crate::config;
-use photonic_core::color::palette::IntoColor;
-use photonic_core::color::RGBColor;
+use photonic_core::element::palette::IntoColor;
+use photonic_core::element::RGBColor;
 
 pub trait OutputModel: DeserializeOwned {
     fn assemble(
@@ -37,15 +37,15 @@ where
 }
 
 pub trait NodeModel: DeserializeOwned {
-    fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>>;
+    fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<element::RGBColor>>;
 }
 
 impl<T> NodeModel for T
 where
     T: NodeDecl + DeserializeOwned + 'static,
-    T::Element: IntoColor<color::RGBColor>,
+    T::Element: IntoColor<element::RGBColor>,
 {
-    fn assemble(self, _builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<color::RGBColor>> {
+    fn assemble(self, _builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<element::RGBColor>> {
         let decl = self.map(IntoColor::into_color);
         return Ok(BoxedNodeDecl::wrap(decl));
     }
@@ -221,29 +221,29 @@ where
     }
 }
 
-impl AttrValueFactory for color::RGBColor {
+impl AttrValueFactory for element::RGBColor {
     type Model = String;
 
     fn assemble(model: Self::Model) -> Result<Self> {
         let color = csscolorparser::parse(&model)?.to_linear_rgba();
-        return Ok(color::RGBColor::new(color.0, color.1, color.2));
+        return Ok(element::RGBColor::new(color.0, color.1, color.2));
     }
 }
 
-impl AttrValueFactory for color::HSVColor {
+impl AttrValueFactory for element::HSVColor {
     type Model = String;
 
     fn assemble(model: Self::Model) -> Result<Self> {
         let color = csscolorparser::parse(&model)?.to_hsva();
-        return Ok(color::HSVColor::with_wp(color.0, color.1, color.2));
+        return Ok(element::HSVColor::with_wp(color.0, color.1, color.2));
     }
 }
 
-impl AttrValueFactory for color::HSLColor {
+impl AttrValueFactory for element::HSLColor {
     type Model = String;
 
     fn assemble(model: Self::Model) -> Result<Self> {
         let color = csscolorparser::parse(&model)?.to_hsla();
-        return Ok(color::HSLColor::with_wp(color.0, color.1, color.2));
+        return Ok(element::HSLColor::with_wp(color.0, color.1, color.2));
     }
 }

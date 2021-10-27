@@ -5,7 +5,7 @@ use std::time::Duration;
 use anyhow::{ensure, Result};
 use num::{One, Zero};
 
-use crate::color::{HSLColor, HSVColor, RGBColor};
+use crate::element::{HSLColor, HSVColor, RGBColor};
 use crate::math::Lerp;
 use crate::scene::AttrBuilder;
 
@@ -142,14 +142,14 @@ where
 }
 
 pub trait UnboundAttrDecl {
-    type Element: AttrValue;
+    type Element: AttrValue; // TODO fooker: rename to `Value`
     type Target: Attr<Element = Self::Element> + 'static;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target>;
 }
 
 pub trait BoundAttrDecl {
-    type Element: AttrValue + Bounded;
+    type Element: AttrValue + Bounded; // TODO fooker: rename to `Value`
     type Target: Attr<Element = Self::Element> + 'static;
 
     fn materialize(

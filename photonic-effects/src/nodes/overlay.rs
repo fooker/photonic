@@ -3,6 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, Bounds};
+use photonic_core::element::IntoElement;
 use photonic_core::math::Lerp;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::{NodeBuilder, NodeHandle};
@@ -19,13 +20,13 @@ where
     Base: Render,
     Overlay: Render,
     Base::Element: Lerp,
-    Overlay::Element: Into<Base::Element>,
+    Overlay::Element: IntoElement<Base::Element>,
 {
     type Element = Base::Element;
 
     fn get(&self, index: usize) -> Result<Self::Element> {
         let base = self.base.get(index)?;
-        let overlay = self.overlay.get(index)?.into();
+        let overlay = self.overlay.get(index)?.into_element();
 
         // TODO: Blending modes
         return Ok(Self::Element::lerp(base, overlay, self.blend));
@@ -50,15 +51,15 @@ pub struct OverlayNode<Base, Overlay, Blend> {
     blend: Blend,
 }
 
-impl<Base, Overlay, Blend, EB, EO> NodeDecl for OverlayNodeDecl<Base, Overlay, Blend>
+impl<Base, Overlay, Blend> NodeDecl for OverlayNodeDecl<Base, Overlay, Blend>
 where
-    Base: NodeDecl<Element = EB>,
-    Overlay: NodeDecl<Element = EO>,
+    Base: NodeDecl,
+    Overlay: NodeDecl,
     Blend: BoundAttrDecl<Element = f64>,
-    EB: Lerp,
-    EO: Into<EB>,
+    Base::Element: Lerp,
+    Overlay::Element: IntoElement<Base::Element>,
 {
-    type Element = EB;
+    type Element = Base::Element;
     type Target = OverlayNode<Base::Target, Overlay::Target, Blend::Target>;
 
     fn materialize(self, _size: usize, builder: &mut NodeBuilder) -> Result<Self::Target> {
@@ -76,7 +77,7 @@ where
     Overlay: Node,
     Blend: Attr<Element = f64>,
     Base::Element: Lerp,
-    Overlay::Element: Into<Base::Element>,
+    Overlay::Element: IntoElement<Base::Element>,
 {
     type Render = OverlayRenderer<
         <Base as RenderType<'a, Base>>::Render,
@@ -90,7 +91,7 @@ where
     Overlay: Node,
     Blend: Attr<Element = f64>,
     Base::Element: Lerp,
-    Overlay::Element: Into<Base::Element>,
+    Overlay::Element: IntoElement<Base::Element>,
 {
     const KIND: &'static str = "overlay";
 
@@ -117,7 +118,7 @@ where
 #[cfg(feature = "dyn")]
 pub mod model {
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
-    use photonic_core::color;
+    use photonic_core::element;
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
@@ -136,7 +137,7 @@ pub mod model {
         fn assemble(
             self,
             builder: &mut impl NodeBuilder,
-        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+        ) -> Result<BoxedNodeDecl<element::RGBColor>> {
             return Ok(BoxedNodeDecl::wrap(super::OverlayNodeDecl {
                 base: builder.node("base", self.base)?,
                 overlay: builder.node("overlay", self.overlay)?,

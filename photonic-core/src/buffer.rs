@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use crate::color::Black;
+use crate::element::Black;
 use crate::node::{Node, Render, RenderType};
 use std::ops::{Deref, DerefMut};
 

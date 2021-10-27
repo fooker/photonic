@@ -1,14 +1,13 @@
-use std::thread;
 use std::time::Duration;
 
 use anyhow::Result;
 
-use photonic_core::color::{Black, RGBColor};
+use photonic_core::element::RGBColor;
 use photonic_core::node::{Render, RenderType};
 use photonic_core::scene::NodeBuilder;
 use photonic_core::{Node, NodeDecl, Output, OutputDecl};
-use photonic_ledstrip::controllers::{spi, Controller};
-use photonic_ledstrip::{chips, LedStripOutput, LedStripOutputDecl};
+use photonic_ledstrip::controllers::spi;
+use photonic_ledstrip::{chips, LedStripOutputDecl};
 
 const SIZE: usize = 100;
 
@@ -25,7 +24,7 @@ impl NodeDecl for Example {
 
     type Target = Example;
 
-    fn materialize(self, size: usize, builder: &mut NodeBuilder) -> Result<Self::Target>
+    fn materialize(self, _size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target>
     where
         Self::Target: Sized,
     {
@@ -38,7 +37,7 @@ impl Node for Example {
 
     type Element = RGBColor;
 
-    fn update(&mut self, duration: Duration) -> Result<()> {
+    fn update(&mut self, _duration: Duration) -> Result<()> {
         return Ok(());
     }
 

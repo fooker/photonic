@@ -7,8 +7,8 @@ use photonic_core::attr::Bounded;
 use photonic_core::boxed::{
     BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl,
 };
-use photonic_core::color;
-use photonic_core::color::RGBColor;
+use photonic_core::element;
+use photonic_core::element::RGBColor;
 
 use crate::builder::{AttrBuilder, NodeBuilder, OutputBuilder};
 use crate::model::{AttrValueFactory, BoundAttrModel, NodeModel, OutputModel, UnboundAttrModel};
@@ -25,7 +25,7 @@ where
     return Box::new(OutputFactory::<X>(Default::default()));
 }
 
-pub fn node<Builder, X>() -> Box<dyn Factory<BoxedNodeDecl<color::RGBColor>, Builder>>
+pub fn node<Builder, X>() -> Box<dyn Factory<BoxedNodeDecl<element::RGBColor>, Builder>>
 where
     X: NodeModel + 'static,
     Builder: NodeBuilder,
@@ -78,12 +78,12 @@ where
 pub trait NodeRegistry {
     fn manufacture<Builder: NodeBuilder>(
         kind: &str,
-    ) -> Option<Box<dyn Factory<BoxedNodeDecl<color::RGBColor>, Builder>>>;
+    ) -> Option<Box<dyn Factory<BoxedNodeDecl<element::RGBColor>, Builder>>>;
 }
 
 pub struct NodeFactory<T>(PhantomData<T>);
 
-impl<T, Builder> Factory<BoxedNodeDecl<color::RGBColor>, Builder> for NodeFactory<T>
+impl<T, Builder> Factory<BoxedNodeDecl<element::RGBColor>, Builder> for NodeFactory<T>
 where
     T: NodeModel,
     Builder: NodeBuilder,
@@ -92,7 +92,7 @@ where
         self: Box<Self>,
         config: Value,
         builder: &mut Builder,
-    ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+    ) -> Result<BoxedNodeDecl<element::RGBColor>> {
         let model: T = serde_json::from_value(config)?;
         let decl = T::assemble(model, builder)?;
         return Ok(decl);

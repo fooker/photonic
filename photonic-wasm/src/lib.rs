@@ -7,7 +7,7 @@ use anyhow::{anyhow, Result};
 use wasmtime::{Engine, Instance, Module, Store, TypedFunc};
 
 use photonic_core::buffer::Buffer;
-use photonic_core::color::RGBColor;
+use photonic_core::element::RGBColor;
 use photonic_core::node::RenderType;
 use photonic_core::scene::NodeBuilder;
 use photonic_core::{Node, NodeDecl};

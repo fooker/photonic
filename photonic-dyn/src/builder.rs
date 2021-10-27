@@ -6,7 +6,7 @@ use photonic_core::boxed::{
     BoxedBoundAttrDecl, BoxedNodeDecl, BoxedOutputDecl, BoxedUnboundAttrDecl,
 };
 use photonic_core::input::InputValue;
-use photonic_core::{color, InputHandle, NodeHandle, Scene};
+use photonic_core::{element, InputHandle, NodeHandle, Scene};
 
 use crate::config;
 use crate::model::{BoundAttrFactory, UnboundAttrFactory};
@@ -39,7 +39,7 @@ pub trait NodeBuilder: AttrBuilder {
         &mut self,
         name: &str,
         config: config::Node,
-    ) -> Result<NodeHandle<BoxedNodeDecl<color::RGBColor>>>;
+    ) -> Result<NodeHandle<BoxedNodeDecl<element::RGBColor>>>;
 }
 
 pub trait OutputBuilder {}
@@ -66,7 +66,7 @@ impl<Registry: self::Registry> Builder<Registry> {
     pub fn output(
         &mut self,
         config: config::Output,
-    ) -> Result<BoxedOutputDecl<BoxedNodeDecl<color::RGBColor>>> {
+    ) -> Result<BoxedOutputDecl<BoxedNodeDecl<element::RGBColor>>> {
         return Registry::Output::manufacture(&config.kind)
             .ok_or_else(|| format_err!("Unknown output type: {}", config.kind))?
             .produce(config.config, self)
@@ -79,7 +79,7 @@ impl<Registry: self::Registry> NodeBuilder for Builder<Registry> {
         &mut self,
         name: &str,
         config: config::Node,
-    ) -> Result<NodeHandle<BoxedNodeDecl<color::RGBColor>>> {
+    ) -> Result<NodeHandle<BoxedNodeDecl<element::RGBColor>>> {
         let decl = Registry::Node::manufacture(&config.kind)
             .ok_or_else(|| format_err!("Unknown node type: {}", config.kind))?
             .produce(config.config, self)

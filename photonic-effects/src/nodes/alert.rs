@@ -3,7 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 
 use photonic_core::attr::{Attr, BoundAttrDecl, UnboundAttrDecl};
-use photonic_core::color::HSVColor;
+use photonic_core::element::HSVColor;
 use photonic_core::math;
 use photonic_core::node::{Node, NodeDecl, Render, RenderType};
 use photonic_core::scene::NodeBuilder;
@@ -105,8 +105,7 @@ pub mod model {
     use serde::Deserialize;
 
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
-    use photonic_core::color::palette::IntoColor;
-    use photonic_core::{color, NodeDecl};
+    use photonic_core::element::RGBColor;
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
@@ -119,18 +118,12 @@ pub mod model {
     }
 
     impl NodeModel for AlertConfig {
-        fn assemble(
-            self,
-            builder: &mut impl NodeBuilder,
-        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
-            return Ok(BoxedNodeDecl::wrap(
-                super::AlertNodeDecl {
-                    hue: builder.bound_attr("hue", self.hue)?,
-                    block: builder.bound_attr("block", self.block)?,
-                    speed: builder.unbound_attr("speed", self.speed)?,
-                }
-                .map(IntoColor::into_color),
-            ));
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<RGBColor>> {
+            return Ok(BoxedNodeDecl::wrap(super::AlertNodeDecl {
+                hue: builder.bound_attr("hue", self.hue)?,
+                block: builder.bound_attr("block", self.block)?,
+                speed: builder.unbound_attr("speed", self.speed)?,
+            }));
         }
     }
 }

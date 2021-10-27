@@ -130,14 +130,15 @@ where
 
 #[cfg(feature = "dyn")]
 pub mod model {
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    use photonic_core::attr::Range;
     use photonic_core::boxed::{BoxedNodeDecl, Wrap};
-    use photonic_core::color;
+    use photonic_core::element::RGBColor;
     use photonic_dyn::builder::NodeBuilder;
     use photonic_dyn::config;
     use photonic_dyn::model::NodeModel;
-
-    use anyhow::Result;
-    use serde::Deserialize;
 
     #[derive(Deserialize)]
     pub struct PlasmaConfig {
@@ -147,12 +148,9 @@ pub mod model {
     }
 
     impl NodeModel for PlasmaConfig {
-        fn assemble(
-            self,
-            builder: &mut impl NodeBuilder,
-        ) -> Result<BoxedNodeDecl<color::RGBColor>> {
+        fn assemble(self, builder: &mut impl NodeBuilder) -> Result<BoxedNodeDecl<RGBColor>> {
             return Ok(BoxedNodeDecl::wrap(super::PlasmaNodeDecl {
-                range: builder.unbound_attr("range", self.range)?,
+                range: builder.unbound_attr::<Range<RGBColor>>("range", self.range)?,
                 scale: builder.unbound_attr("scale", self.scale)?,
                 speed: builder.unbound_attr("speed", self.speed)?,
                 phantom: Default::default(),
