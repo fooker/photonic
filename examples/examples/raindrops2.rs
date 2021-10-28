@@ -8,7 +8,6 @@ use photonic_core::animation::Easing;
 use photonic_core::attr::{AsFixedAttr, Range};
 use photonic_core::element::HSLColor;
 use photonic_core::scene::Scene;
-use photonic_core::timer::Ticker;
 use photonic_effects::attrs::fader::FaderDecl;
 use photonic_effects::attrs::sequence::SequenceDecl;
 use photonic_effects::nodes::blackout::BlackoutNodeDecl;
@@ -62,7 +61,7 @@ async fn main() -> Result<(), Error> {
         range: None,
     })?;
 
-    let (main, introspection) = scene.run(blackout.transform(Into::into), ConsoleOutputDecl {
+    let (main, introspection) = scene.run(blackout, ConsoleOutputDecl {
         waterfall: true,
     })?;
 

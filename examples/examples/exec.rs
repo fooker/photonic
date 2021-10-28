@@ -2,7 +2,7 @@ use anyhow::Error;
 
 use photonic_console::ConsoleOutputDecl;
 use photonic_core::scene::Scene;
-use photonic_exec::ExecNodeDecl;
+use photonic_exec::io::IOExecNodeDecl;
 
 const SIZE: usize = 120;
 const FPS: usize = 60;
@@ -11,7 +11,7 @@ const FPS: usize = 60;
 async fn main() -> Result<(), Error> {
     let mut scene = Scene::new(SIZE);
 
-    let exec = scene.node("exec", ExecNodeDecl {
+    let exec = scene.node("exec", IOExecNodeDecl {
         command: "target/debug/examples/exec-sub".to_string(),
     })?;
 

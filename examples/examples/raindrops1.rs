@@ -41,10 +41,12 @@ async fn main() -> Result<(), Error> {
         decay: (0.96, 0.98).fixed(),
     })?;
 
-    let ticker = Ticker::new(Duration::from_secs(5));
+    let ticker = scene.input("ticker")?;
+    Ticker::new(Duration::from_secs(5), &ticker);
+
     let switch_raindrops_timer = LooperDecl {
         step: 1,
-        trigger: ticker.1,
+        trigger: ticker,
     };
 
     let switch_raindrops = scene.node("raindrops", SwitchNodeDecl {

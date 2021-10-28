@@ -25,7 +25,7 @@ async fn main() -> Result<(), Error> {
     let mut scene = Scene::new(SIZE);
 
     let next = scene.input("next")?;
-    let ticker = Ticker::new(Duration::from_secs(5));
+    Ticker::new(Duration::from_secs(5), &next);
 
     let raindrops_color = SequenceDecl {
         values: vec![

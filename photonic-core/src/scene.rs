@@ -5,7 +5,7 @@ use std::time::Duration;
 use anyhow::Result;
 
 use crate::attr::{Attr, AttrValue, BoundAttrDecl, Bounds, UnboundAttrDecl};
-use crate::input::{Input, InputValue};
+use crate::input::{Input, InputValue, Sink};
 use crate::interface::{AttrInfo, InputInfo, Introspection, NodeInfo};
 use crate::node::{MapNodeDecl, Node, NodeDecl};
 use crate::output::{Output, OutputDecl};
@@ -206,14 +206,14 @@ where
     Decl: NodeDecl,
     Decl::Element: 'static,
 {
-    pub fn transform<R, F>(self, transform: F) -> NodeHandle<MapNodeDecl<Decl, F>>
+    pub fn map<R, F>(self, f: F) -> NodeHandle<MapNodeDecl<Decl, F>>
     where
         F: Fn(Decl::Element) -> R + 'static,
         R: 'static,
     {
         return NodeHandle {
             name: self.name,
-            decl: self.decl.map(transform),
+            decl: self.decl.map(f),
         };
     }
 }
@@ -237,6 +237,11 @@ where
             name,
             input: Input::default(),
         };
+    }
+
+    /// Returns a sink into the input represented by this handle.
+    pub fn sink(&self) -> Sink<V> {
+        return self.input.sink();
     }
 }
 

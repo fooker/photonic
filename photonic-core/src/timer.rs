@@ -1,30 +1,29 @@
-use std::thread::JoinHandle;
 use std::time::Duration;
 
-use crate::input::Input;
+use tokio::task::JoinHandle;
 
-pub struct Ticker {
-    _thread: JoinHandle<()>,
-}
+use crate::InputHandle;
+
+pub struct Ticker(JoinHandle<()>);
 
 impl Ticker {
-    pub fn new(duration: Duration) -> (Self, Input<()>) {
-        let input = Input::default();
-
+    pub fn new(period: Duration, input: &InputHandle<()>) -> Self {
         let sink = input.sink();
 
-        let thread = std::thread::spawn(move || {
+        let handle = tokio::spawn(async move {
+            let mut timer = tokio::time::interval(period);
             loop {
-                std::thread::sleep(duration);
+                timer.tick().await;
                 sink.send(());
             }
         });
 
-        return (
-            Ticker {
-                _thread: thread,
-            },
-            input,
-        );
+        return Self(handle);
+    }
+}
+
+impl Drop for Ticker {
+    fn drop(&mut self) {
+        self.0.abort();
     }
 }

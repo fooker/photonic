@@ -9,10 +9,9 @@ pub trait Render {
 
     fn get(&self, index: usize) -> Result<Self::Element>;
 
-    fn map<R, F>(self, f: &F) -> MapRender<Self, F>
+    fn map<R>(self, f: &dyn Fn(Self::Element) -> R) -> MapRender<Self, R>
     where
         Self: Sized,
-        F: Fn(Self::Element) -> R,
     {
         return MapRender {
             source: self,
@@ -62,13 +61,19 @@ pub trait Node: for<'a> RenderType<'a, Self> + Sized {
     }
 }
 
-pub struct MapRender<'a, S, F> {
+pub struct MapRender<'a, S, R>
+where
+    S: Render,
+{
     source: S,
-    f: &'a F,
+    f: &'a dyn Fn(S::Element) -> R,
 }
 
-impl<'a, S, F> MapRender<'a, S, F> {
-    pub fn new(source: S, f: &'a F) -> Self {
+impl<'a, S, R> MapRender<'a, S, R>
+where
+    S: Render,
+{
+    pub fn new(source: S, f: &'a dyn Fn(S::Element) -> R) -> Self {
         return Self {
             source,
             f,
@@ -76,10 +81,9 @@ impl<'a, S, F> MapRender<'a, S, F> {
     }
 }
 
-impl<'a, S, F, R> Render for MapRender<'a, S, F>
+impl<'a, S, R> Render for MapRender<'a, S, R>
 where
     S: Render,
-    F: (Fn(S::Element) -> R) + 'a,
 {
     type Element = R;
 
@@ -105,14 +109,18 @@ impl<S, F> MapNode<S, F> {
 impl<'a, S, F, R> RenderType<'a, Self> for MapNode<S, F>
 where
     S: Node,
+    S::Element: 'static,
+    R: 'static,
     F: (Fn(S::Element) -> R) + 'static,
 {
-    type Render = MapRender<'a, <S as RenderType<'a, S>>::Render, F>;
+    type Render = MapRender<'a, <S as RenderType<'a, S>>::Render, R>;
 }
 
 impl<S, F, R> Node for MapNode<S, F>
 where
     S: Node,
+    S::Element: 'static,
+    R: 'static,
     F: (Fn(S::Element) -> R) + 'static,
 {
     type Element = R;
@@ -146,6 +154,8 @@ impl<S, F> MapNodeDecl<S, F> {
 impl<S, F, R> NodeDecl for MapNodeDecl<S, F>
 where
     S: NodeDecl,
+    S::Element: 'static,
+    R: 'static,
     F: (Fn(S::Element) -> R) + 'static,
 {
     type Element = R;

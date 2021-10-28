@@ -1,16 +1,17 @@
 use std::io::{Read, Write};
+use std::mem;
 use std::process::{Child, Command, Stdio};
 use std::time::Duration;
 
 use anyhow::{format_err, Context, Result};
 use byteorder::{BigEndian, WriteBytesExt};
 
-use photonic_core::node::RenderType;
+use photonic_core::element::RGBColor;
+use photonic_core::node::{MapRender, Render, RenderType};
 use photonic_core::scene::NodeBuilder;
 use photonic_core::{Buffer, Node, NodeDecl};
 
 use super::Element;
-use std::mem;
 
 #[cfg_attr(feature = "dyn", derive(serde::Deserialize))]
 pub struct IOExecNodeDecl {
@@ -23,7 +24,7 @@ pub struct IOExecNode {
 }
 
 impl NodeDecl for IOExecNodeDecl {
-    type Element = Element;
+    type Element = RGBColor;
     type Target = IOExecNode;
 
     fn materialize(self, size: usize, _builder: &mut NodeBuilder) -> Result<Self::Target> {
@@ -50,13 +51,13 @@ impl NodeDecl for IOExecNodeDecl {
 }
 
 impl<'a> RenderType<'a, Self> for IOExecNode {
-    type Render = &'a Buffer<Element>;
+    type Render = MapRender<'a, &'a Buffer<Element>, RGBColor>;
 }
 
 impl Node for IOExecNode {
     const KIND: &'static str = "exec";
 
-    type Element = Element;
+    type Element = RGBColor;
 
     fn update(&mut self, duration: Duration) -> Result<()> {
         let stdin = self.child.stdin.as_mut().context("StdIn missing")?;
@@ -77,7 +78,7 @@ impl Node for IOExecNode {
     }
 
     fn render(&self) -> Result<<Self as RenderType<Self>>::Render> {
-        return Ok(&self.buffer);
+        return Ok(Render::map(&self.buffer, &RGBColor::from_format));
     }
 }
 
