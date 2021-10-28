@@ -15,7 +15,7 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: |
             ~/.cargo/bin/
@@ -23,10 +23,10 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: cargo-${{ runner.os }}-{{ steps.toolchain.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-v1-${{ runner.os }}-${{ steps.toolchain.outputs.rustc_hash }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            cargo-${{ runner.os }}-{{ steps.toolchain.outputs.rustc_hash }}-
-            cargo-${{ runner.os }}-
+            cargo-v1-${{ runner.os }}-${{ steps.toolchain.outputs.rustc_hash }}-
+            cargo-v1-${{ runner.os }}-
       - uses: actions-rs/cargo@v1
         with:
           command: build
@@ -44,11 +44,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
+        id: toolchain
         with:
           toolchain: nightly
           override: true
           components: clippy
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: |
             ~/.cargo/bin/
@@ -56,7 +57,10 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-{{ steps.toolchain.outputs.rustc_hash }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-v1-${{ runner.os }}-${{ steps.toolchain.outputs.rustc_hash }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-v1-${{ runner.os }}-${{ steps.toolchain.outputs.rustc_hash }}-
+            cargo-v1-${{ runner.os }}-
       - uses: actions-rs/cargo@v1
         with:
           command: clippy
@@ -68,11 +72,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
+        id: toolchain
         with:
           toolchain: nightly
           override: true
           components: rustfmt
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: |
             ~/.cargo/bin/
@@ -80,7 +85,10 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-{{ steps.toolchain.outputs.rustc_hash }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-v1-${{ runner.os }}-${{ steps.toolchain.outputs.rustc_hash }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-v1-${{ runner.os }}-${{ steps.toolchain.outputs.rustc_hash }}-
+            cargo-v1-${{ runner.os }}-
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
@@ -95,7 +103,7 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: |
             ~/.cargo/bin/
@@ -103,7 +111,10 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-{{ steps.toolchain.outputs.rustc_hash }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-v1-${{ runner.os }}-${{ steps.toolchain.outputs.rustc_hash }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-v1-${{ runner.os }}-${{ steps.toolchain.outputs.rustc_hash }}-
+            cargo-v1-${{ runner.os }}-
       - uses: actions-rs/cargo@v1
         with:
           command: test
