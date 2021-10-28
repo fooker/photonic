@@ -5,7 +5,7 @@ authors = ["Dustin Frisch <fooker@lab.sh>"]
 edition = "2018"
 
 [features]
-dyn = [ "photonic-dyn" ]
+dyn = ["photonic-dyn", "serde"]
 
 [dependencies]
 photonic-core = { path = "../photonic-core" }
@@ -13,5 +13,6 @@ photonic-dyn = { path = "../photonic-dyn", optional = true }
 anyhow = "1"
 shlex = "1"
 byteorder = "1.3"
-palette = { features = ["bytemuck"] }
+palette = { version = "*", features = ["bytemuck"] }
 bytemuck = "1.7.2"
+serde = { version = "1", features = ["derive"], optional = true }
