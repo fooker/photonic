@@ -1,13 +1,9 @@
 use std::time::Duration;
 
-use anyhow::Result;
-
 pub use bounds::{Bounded, Bounds};
 pub use fixed::{AsFixedAttr, FixedAttr, FixedAttrDecl};
 pub use range::Range;
 pub use values::AttrValue;
-
-use crate::AttrBuilder;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AttrValueType {
@@ -35,45 +31,8 @@ pub trait Attr {
 
     const KIND: &'static str;
 
+    // TODO: Take in scene::Context instead of duration
     fn update(&mut self, duration: Duration) -> Self::Value;
-}
-
-pub trait FreeAttrDecl {
-    type Value: AttrValue;
-    type Target: Attr<Value=Self::Value>;
-
-    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target>;
-}
-
-pub trait BoundAttrDecl {
-    type Value: AttrValue + Bounded;
-    type Target: Attr<Value=Self::Value>;
-
-    fn materialize(self, bounds: Bounds<Self::Value>, builder: &mut AttrBuilder) -> Result<Self::Target>;
-}
-
-impl<V, T> BoundAttrDecl for Box<T>
-    where V: AttrValue + Bounded,
-          T: BoundAttrDecl<Value=V>,
-{
-    type Value = V;
-    type Target = T::Target;
-
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target> {
-        return T::materialize(*self, bounds, builder);
-    }
-}
-
-impl<V, T> FreeAttrDecl for Box<T>
-    where V: AttrValue,
-          T: FreeAttrDecl<Value=V>,
-{
-    type Value = V;
-    type Target = T::Target;
-
-    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target> {
-        return T::materialize(*self, builder);
-    }
 }
 
 pub mod values;

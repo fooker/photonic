@@ -25,6 +25,15 @@ impl<V> Bounds<V>
     }
 }
 
+impl <V> From<(V, V)> for Bounds<V> {
+    fn from((min, max): (V, V)) -> Self {
+        return Self {
+            min,
+            max,
+        };
+    }
+}
+
 impl<V> Clone for Bounds<V>
     where V: Clone,
 {

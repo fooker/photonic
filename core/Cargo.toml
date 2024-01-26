@@ -7,12 +7,11 @@ edition.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-
 tokio = { workspace = true, features = ["time"] }
-
 palette = { workspace = true }
+rand = { workspace = true }
 
-rand = { version = "0.8", features = ["small_rng"] }
+num-traits = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }

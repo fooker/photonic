@@ -2,15 +2,15 @@
 #![feature(coerce_unsized)]
 extern crate anyhow;
 
+pub use attr::{Attr, AttrValue};
 pub use buffer::{Buffer, BufferReader};
 pub use color::rgbw::{Rgbw, WhiteMode, WithWhite};
-pub use decl::{NodeDecl, OutputDecl};
+pub use decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl, OutputDecl};
 pub use interface::{AttrInfo, InputInfo, NodeInfo};
 pub use node::Node;
 pub use output::Output;
-pub use scene::{AttrBuilder, Context, Loop, NodeBuilder, NodeHandle, NodeRef, Scene, SceneBuilder};
 pub use random::Random;
-pub use attr::{Attr, AttrValue};
+pub use scene::{AttrBuilder, Context, Loop, NodeBuilder, NodeHandle, NodeRef, Scene, SceneBuilder};
 
 pub mod node;
 pub mod output;

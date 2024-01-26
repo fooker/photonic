@@ -44,7 +44,7 @@ impl OutputDecl for Terminal
 {
     type Output = TerminalOutput;
 
-    fn materialize(self, _size: usize) -> Result<Self::Output>
+    async fn materialize(self, _size: usize) -> Result<Self::Output>
         where Self::Output: Sized,
     {
         let out: Pin<Box<dyn AsyncWrite>> = if let Some(path) = self.path {

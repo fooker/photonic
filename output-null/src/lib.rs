@@ -16,7 +16,7 @@ impl <E> OutputDecl for Null<E>
 {
     type Output = NullOutput<E>;
 
-    fn materialize(self, _size: usize) -> Result<Self::Output>
+    async fn materialize(self, _size: usize) -> Result<Self::Output>
         where Self::Output: Sized,
     {
         return Ok(Self::Output {

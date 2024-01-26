@@ -27,7 +27,7 @@ pub struct ColorWheelNode {
 impl NodeDecl for ColorWheel {
     type Node = ColorWheelNode;
 
-    fn materialize(self, _builder: &mut NodeBuilder) -> Result<Self::Node> {
+    async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         return Ok(Self::Node {
             scale: self.scale, // TODO: Make this an attr
             speed: self.speed, // TODO: Make this an attr

@@ -7,7 +7,7 @@ pub struct Easing<F: Float> {
     pub speed: Duration,
 }
 
-impl <F: Float> Easing<F> {
+impl<F: Float> Easing<F> {
     pub fn new(func: fn(F) -> F) -> Self {
         return Self {
             func,
@@ -29,8 +29,11 @@ impl<F: Float> From<fn(F) -> F> for Easing<F> {
 
 
 pub enum EasingDirection {
-    In, Out, InOut,
+    In,
+    Out,
+    InOut,
 }
+
 pub enum Easings {
     Linear,
     Quadratic(EasingDirection),
@@ -45,7 +48,13 @@ pub enum Easings {
     Bounce(EasingDirection),
 }
 
-impl <F: Float> From<Easings> for Easing<F> {
+impl Easings {
+    pub fn with_speed<F: Float>(self, speed: Duration) -> Easing<F> {
+        return Easing::from(self).with_speed(speed);
+    }
+}
+
+impl<F: Float> From<Easings> for Easing<F> {
     fn from(value: Easings) -> Self {
         use ezing::*;
         return match value {

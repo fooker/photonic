@@ -1,10 +1,13 @@
 use palette::Hsl;
 use palette::rgb::Rgb;
 
-use photonic::{Attr, Buffer, Context, Node, NodeBuilder, NodeDecl, Random};
-use photonic::attr::{BoundAttrDecl, Bounds, FreeAttrDecl};
+use photonic::{Buffer, Context, Node, NodeBuilder, Random};
+use photonic::attr::{Bounds, Attr};
+use photonic::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl};
 use photonic::attr::range::Range;
 use palette::FromColor;
+
+use anyhow::Result;
 
 #[derive(Default)]
 struct Raindrop {
@@ -37,9 +40,9 @@ impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
           Color: FreeAttrDecl<Value=Range<Rgb>>,
           Decay: BoundAttrDecl<Value=Range<f32>>,
 {
-    type Node = RaindropsNode<Rate::Target, Color::Target, Decay::Target>;
+    type Node = RaindropsNode<Rate::Attr, Color::Attr, Decay::Attr>;
 
-    fn materialize(self, builder: &mut NodeBuilder) -> anyhow::Result<Self::Node> {
+    async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         return Ok(Self::Node {
             rate: builder.bound_attr("rate", self.rate, Bounds::normal())?,
             color: builder.unbound_attr("color", self.color)?,

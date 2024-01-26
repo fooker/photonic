@@ -25,7 +25,7 @@ impl InputValue for i64 {
     }
 }
 
-impl InputValue for f64 {
+impl InputValue for f32 {
     const TYPE: InputValueType = InputValueType::Decimal;
     fn sink(sink: Sink<Self>) -> InputSink {
         return InputSink::Decimal(sink);
@@ -46,7 +46,7 @@ impl InputValue for Range<i64> {
     }
 }
 
-impl InputValue for Range<f64> {
+impl InputValue for Range<f32> {
     const TYPE: InputValueType = InputValueType::Decimal;
     fn sink(sink: Sink<Self>) -> InputSink {
         return InputSink::DecimalRange(sink);

@@ -3,8 +3,9 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use crate::{Attr, AttrBuilder, AttrValue};
-use crate::attr::{BoundAttrDecl, Bounded, Bounds, FreeAttrDecl};
+use crate::attr::{Attr, Bounded, Bounds, AttrValue};
+use crate::AttrBuilder;
+use crate::decl::{BoundAttrDecl, FreeAttrDecl};
 
 pub struct FixedAttr<V>(V)
     where V: AttrValue;
@@ -38,9 +39,9 @@ impl<V> FreeAttrDecl for FixedAttrDecl<V>
     where V: AttrValue,
 {
     type Value = V;
-    type Target = FixedAttr<Self::Value>;
+    type Attr = FixedAttr<Self::Value>;
 
-    fn materialize(self, _builder: &mut AttrBuilder) -> Result<Self::Target> {
+    fn materialize(self, _builder: &mut AttrBuilder) -> Result<Self::Attr> {
         return Ok(FixedAttr(self.0));
     }
 }
@@ -49,9 +50,9 @@ impl<V> BoundAttrDecl for FixedAttrDecl<V>
     where V: AttrValue + Bounded,
 {
     type Value = V;
-    type Target = FixedAttr<Self::Value>;
+    type Attr = FixedAttr<Self::Value>;
 
-    fn materialize(self, bounds: Bounds<Self::Value>, _builder: &mut AttrBuilder) -> Result<Self::Target> {
+    fn materialize(self, bounds: Bounds<Self::Value>, _builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let value = bounds.ensure(self.0)?;
         return Ok(FixedAttr(value));
     }

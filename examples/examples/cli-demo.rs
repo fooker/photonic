@@ -24,14 +24,14 @@ async fn main() -> Result<()> {
     })?;
 
     let brightness = scene.node("brightness", Brightness {
-        brightness: 1.0,
+        value: 1.0,
         source: base,
     })?;
 
     let output = Terminal::with_path("/tmp/photonic")
         .with_waterfall(true);
 
-    let scene = scene.run(brightness, output)?;
+    let scene = scene.run(brightness, output).await?;
 
     let cli = photonic_interface_cli::stdio::CLI;
 

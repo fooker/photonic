@@ -1,5 +1,7 @@
 use byteorder::{BigEndian, WriteBytesExt};
-use palette::LinSrgb;
+
+use anyhow::Result;
+use palette::rgb::Rgb;
 
 use photonic::{BufferReader, Output, OutputDecl, WhiteMode};
 
@@ -39,7 +41,7 @@ impl OutputDecl for WledSender
 {
     type Output = WledSenderOutput;
 
-    fn materialize(self, _size: usize) -> anyhow::Result<Self::Output>
+    async fn materialize(self, size: usize) -> Result<Self::Output>
         where Self::Output: Sized,
     {
         return Ok(Self::Output {
@@ -52,7 +54,7 @@ impl Output for WledSenderOutput
 {
     const KIND: &'static str = "wled";
 
-    type Element = LinSrgb;
+    type Element = Rgb;
 
     async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> anyhow::Result<()> {
         let mut buffer = Vec::<u8>::with_capacity(2 + out.size() * self.mode.element_size()); // TODO: Allocate only once and re-use

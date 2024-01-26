@@ -51,10 +51,9 @@ impl<E> Buffer<E> {
     /// The provided function is called with the index of the element to update and current element
     /// in buffer. The value returned by the function will be the new value stored in the buffer.
     pub fn update(&mut self, f: impl Fn(usize, &E) -> E) {
-        self.data = self.data.into_iter()
+        self.data.iter_mut()
             .enumerate()
-            .map(|(i, e)| f(i, e))
-            .collect();
+            .for_each(|(i, e)| *e = f(i, e));
     }
 
     /// Update the buffer by calling `f` for each element in the buffer.

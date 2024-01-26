@@ -1,10 +1,11 @@
 use std::time::Duration;
+
 use anyhow::Result;
 
-use crate::{Attr, AttrBuilder, AttrValue};
-use crate::attr::{BoundAttrDecl, Bounded, Bounds, FreeAttrDecl};
+use crate::attr::{Attr, AttrValue, Bounded, Bounds};
+use crate::decl::{BoundAttrDecl, FreeAttrDecl};
 use crate::input::{Input, InputValue, Poll};
-use crate::scene::InputHandle;
+use crate::scene::{AttrBuilder, InputHandle};
 
 pub struct InputAttrDecl<V>
     where V: InputValue + AttrValue,
@@ -18,14 +19,14 @@ impl<V> BoundAttrDecl for InputAttrDecl<V>
         V: AttrValue + InputValue + Bounded,
 {
     type Value = V;
-    type Target = BoundInputAttr<V>;
+    type Attr = BoundInputAttr<V>;
 
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target> {
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let input = builder.input("input", self.input)?;
 
         let initial = bounds.ensure(self.initial)?;
 
-        return Ok(Self::Target {
+        return Ok(Self::Attr {
             bounds,
             input,
             current: initial,
@@ -37,12 +38,12 @@ impl<V> FreeAttrDecl for InputAttrDecl<V>
     where V: AttrValue + InputValue,
 {
     type Value = V;
-    type Target = UnboundInputAttr<V>;
+    type Attr = UnboundInputAttr<V>;
 
-    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target> {
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let input = builder.input("value", self.input)?;
 
-        return Ok(Self::Target {
+        return Ok(Self::Attr {
             input,
             current: self.initial,
         });

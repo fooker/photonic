@@ -18,7 +18,7 @@ async fn main() -> Result<()> {
     })?;
 
     let brightness = scene.node("brightness", Brightness {
-        brightness: 0.5,
+        value: 0.5,
         source: base,
     })?;
 

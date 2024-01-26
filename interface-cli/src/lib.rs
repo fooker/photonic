@@ -1,11 +1,8 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use palette::Srgb;
 use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt, BufReader, BufWriter};
-use photonic::attr::Range;
 
-use photonic::input::InputSink;
 use photonic::interface::Introspection;
 
 pub mod stdio;
@@ -70,74 +67,11 @@ pub(self) async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, in
                 if let Some(input) = line.get(1) {
                     if let Some(input) = introspection.inputs.get(input) {
                         if let Some(value) = line.get(2) {
-                            match &input.sink {
-                                InputSink::Trigger(sink) => {
-                                    if "trigger" == value {
-                                        sink.send(());
-                                    } else {
-                                        o.write_all(format!("Invalid trigger value: '{}'", value).as_bytes()).await?;
-                                    }
-                                }
-                                InputSink::Boolean(sink) => {
-                                    if let Ok(value) = value.parse::<bool>() {
-                                        sink.send(value);
-                                    } else {
-                                        o.write_all(format!("Invalid boolean value: '{}'", value).as_bytes()).await?;
-                                    }
-                                }
-                                InputSink::Integer(sink) => {
-                                    if let Ok(value) = value.parse::<i64>() {
-                                        sink.send(value);
-                                    } else {
-                                        o.write_all(format!("Invalid integer value: '{}'", value).as_bytes()).await?;
-                                    }
-                                }
-                                InputSink::Decimal(sink) => {
-                                    if let Ok(value) = value.parse::<f64>() {
-                                        sink.send(value);
-                                    } else {
-                                        o.write_all(format!("Invalid decimal value: '{}'", value).as_bytes()).await?;
-                                    }
-                                }
-                                InputSink::Color(sink) => {
-                                    if let Ok(value) = value.parse::<Srgb<u8>>() {
-                                        sink.send(value.into_format());
-                                    } else {
-                                        o.write_all(format!("Invalid color value: '{}'", value).as_bytes()).await?;
-                                    }
-                                }
-                                InputSink::IntegerRange(sink) => {
-                                    if let Some((v1, v2)) = value.split_once("..") {
-                                        if let (Ok(v1), Ok(v2)) = (v1.parse::<i64>(), v2.parse::<i64>()) {
-                                            sink.send(Range(v1, v2));
-                                        } else {
-                                            o.write_all(format!("Invalid integer range value: '{}'", value).as_bytes()).await?;
-                                        }
-                                    } else {
-                                        o.write_all(format!("Invalid integer range value: '{}'", value).as_bytes()).await?;
-                                    }
-                                }
-                                InputSink::DecimalRange(sink) => {
-                                    if let Some((v1, v2)) = value.split_once("..") {
-                                        if let (Ok(v1), Ok(v2)) = (v1.parse::<f64>(), v2.parse::<f64>()) {
-                                            sink.send(Range(v1, v2));
-                                        } else {
-                                            o.write_all(format!("Invalid decimal range value: '{}'", value).as_bytes()).await?;
-                                        }
-                                    } else {
-                                        o.write_all(format!("Invalid integer range value: '{}'", value).as_bytes()).await?;
-                                    }
-                                }
-                                InputSink::ColorRange(sink) => {
-                                    if let Some((v1, v2)) = value.split_once("..") {
-                                        if let (Ok(v1), Ok(v2)) = (v1.parse::<Srgb<u8>>(), v2.parse::<Srgb<u8>>()) {
-                                            sink.send(Range(v1.into_format(), v2.into_format()));
-                                        } else {
-                                            o.write_all(format!("Invalid color range value: '{}'", value).as_bytes()).await?;
-                                        }
-                                    } else {
-                                        o.write_all(format!("Invalid color range value: '{}'", value).as_bytes()).await?;
-                                    }
+                            match input.sink.send_str(&value) {
+                                Ok(()) => {}
+                                Err(err) => {
+                                    o.write_all(format!("Invalid value: '{}' for {}: {}", value, input.sink, err).as_bytes()).await?;
+                                    continue
                                 }
                             }
                         } else {

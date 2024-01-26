@@ -14,6 +14,7 @@ palette = { workspace = true }
 
 photonic-effects = { path = "../effects" }
 photonic-interface-cli = { path = "../interface-cli" }
+photonic-interface-mqtt = { path = "../interface-mqtt" }
 photonic-output-net = { path = "../output-net" }
 photonic-output-null = { path = "../output-null" }
 photonic-output-terminal = { path = "../output-terminal" }

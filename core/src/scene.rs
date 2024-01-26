@@ -12,9 +12,9 @@ use palette::FromColor;
 use crate::{AttrInfo, Buffer, BufferReader, InputInfo, NodeInfo};
 use crate::{Node, Output};
 use crate::arena::{Arena, Ref, Slice};
-use crate::attr::{BoundAttrDecl, Bounds, FreeAttrDecl};
 use crate::attr::{Attr, AttrValue};
-use crate::decl::{NodeDecl, OutputDecl};
+use crate::attr::Bounds;
+use crate::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl, OutputDecl};
 use crate::input::{Input, InputSink, InputValue};
 use crate::interface::{Interface, Introspection};
 use crate::utils::{FrameStats, FrameTimer};
@@ -156,7 +156,7 @@ impl Scene {
     /// In addition, an [`Introspection`] is returned for the declared scene.
     // TODO: Find better naming
     #[allow(clippy::type_complexity)]
-    pub fn run<Node, Output>(
+    pub async fn run<Node, Output>(
         self,
         root: NodeHandle<Node>,
         decl: Output,
@@ -168,7 +168,7 @@ impl Scene {
             <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
         // Materialize the node tree using a builder tracking the info object creation
-        let (scene, root) = SceneBuilder::build(self.size, root)?;
+        let (scene, root) = SceneBuilder::build(self.size, root).await?;
 
         let introspection = Introspection::with(scene.root);
         introspection.log();
@@ -176,7 +176,7 @@ impl Scene {
         return Ok(Loop {
             nodes: scene.nodes,
             root,
-            output: decl.materialize(self.size())?,
+            output: decl.materialize(self.size()).await?,
             stats: FrameStats::default(),
             introspection,
         });
@@ -300,7 +300,7 @@ pub struct AttrBuilder<'b> {
 
 impl SceneBuilder {
     /// Create a node from its handle.
-    pub fn build<Node>(size: usize, root: NodeHandle<Node>) -> Result<(Self, NodeRef<Node::Node>)>
+    pub async fn build<Node>(size: usize, root: NodeHandle<Node>) -> Result<(Self, NodeRef<Node::Node>)>
         where Node: NodeDecl,
               <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
@@ -320,7 +320,7 @@ impl SceneBuilder {
         };
 
         // TODO: Dedup with code from node-builder
-        let node = Node::materialize(root.decl, &mut builder)?;
+        let node = Node::materialize(root.decl, &mut builder).await?;
         let info = builder.info;
 
         let buffer = Buffer::with_default(size);
@@ -345,7 +345,7 @@ impl SceneBuilder {
 }
 
 impl NodeBuilder<'_> {
-    pub fn node<Node>(&mut self, key: &'static str, decl: NodeHandle<Node>) -> Result<NodeRef<Node::Node>>
+    pub async fn node<Node>(&mut self, key: &'static str, decl: NodeHandle<Node>) -> Result<NodeRef<Node::Node>>
         where Node: NodeDecl,
               <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
@@ -362,7 +362,7 @@ impl NodeBuilder<'_> {
             },
         };
 
-        let node = Node::materialize(decl.decl, &mut builder)?;
+        let node = Node::materialize(decl.decl, &mut builder).await?;
         let info = builder.info;
 
         let buffer = Buffer::with_default(self.size);
@@ -384,7 +384,7 @@ impl NodeBuilder<'_> {
     /// Create a bound attribute.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn bound_attr<Attr>(&mut self, name: &'static str, decl: Attr, bounds: impl Into<Bounds<Attr::Value>>) -> Result<Attr::Target>
+    pub fn bound_attr<Attr>(&mut self, name: &'static str, decl: Attr, bounds: impl Into<Bounds<Attr::Value>>) -> Result<Attr::Attr>
         where Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
@@ -393,7 +393,7 @@ impl NodeBuilder<'_> {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
-                kind: Attr::Target::KIND,
+                kind: Attr::Attr::KIND,
                 value_type: Attr::Value::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
@@ -411,14 +411,14 @@ impl NodeBuilder<'_> {
     /// Create a unbound attribute.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn unbound_attr<Attr>(&mut self, name: &'static str, decl: Attr) -> Result<Attr::Target>
+    pub fn unbound_attr<Attr>(&mut self, name: &'static str, decl: Attr) -> Result<Attr::Attr>
         where Attr: FreeAttrDecl,
     {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
-                kind: Attr::Target::KIND,
+                kind: Attr::Attr::KIND,
                 value_type: Attr::Value::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
@@ -438,7 +438,7 @@ impl<'b> AttrBuilder<'b> {
     /// Create a bound child-attribute from its handle.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn bound_attr<Attr>(&mut self, name: &'static str, decl: Attr, bounds: impl Into<Bounds<Attr::Value>>) -> Result<Attr::Target>
+    pub fn bound_attr<Attr>(&mut self, name: &'static str, decl: Attr, bounds: impl Into<Bounds<Attr::Value>>) -> Result<Attr::Attr>
         where Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
@@ -447,7 +447,7 @@ impl<'b> AttrBuilder<'b> {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
-                kind: Attr::Target::KIND,
+                kind: Attr::Attr::KIND,
                 value_type: Attr::Value::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
@@ -465,14 +465,14 @@ impl<'b> AttrBuilder<'b> {
     /// Create a unbound child-attribute from its handle.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn unbound_attr<Attr>(&mut self, name: &'static str, decl: Attr) -> Result<Attr::Target>
+    pub fn unbound_attr<Attr>(&mut self, name: &'static str, decl: Attr) -> Result<Attr::Attr>
         where Attr: FreeAttrDecl,
     {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
-                kind: Attr::Target::KIND,
+                kind: Attr::Attr::KIND,
                 value_type: Attr::Value::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
