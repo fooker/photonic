@@ -70,7 +70,8 @@ impl<V> Attr for ButtonAttr<V>
 pub struct Button<V>
     where V: AttrValue,
 {
-    pub value: (V, V),
+    pub value_release: V,
+    pub value_pressed: V,
     pub hold_time: Duration,
     pub trigger: InputHandle<()>,
 }
@@ -84,8 +85,8 @@ impl<V> BoundAttrDecl for Button<V>
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr, Error> {
         return Ok(ButtonAttr {
-            value_released: bounds.ensure(self.value.0)?,
-            value_pressed: bounds.ensure(self.value.1)?,
+            value_released: bounds.ensure(self.value_release)?,
+            value_pressed: bounds.ensure(self.value_pressed)?,
             hold_time: self.hold_time,
             state: State::Released,
             trigger: builder.input("trigger", self.trigger)?,
@@ -101,8 +102,8 @@ impl<V> FreeAttrDecl for Button<V>
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr, Error> {
         return Ok(ButtonAttr {
-            value_released: self.value.0,
-            value_pressed: self.value.1,
+            value_released: self.value_release,
+            value_pressed: self.value_pressed,
             hold_time: self.hold_time,
             state: State::Released,
             trigger: builder.input("trigger", self.trigger)?,

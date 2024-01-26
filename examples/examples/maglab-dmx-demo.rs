@@ -5,11 +5,10 @@ use palette::{Hsl, IntoColor};
 
 use photonic::{Scene, WhiteMode};
 use photonic::attr::{AsFixedAttr, Range};
-use photonic_effects::attrs::{Fader, Sequence};
+use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
-use photonic_effects::nodes::{Alert, Brightness, Raindrops};
+use photonic_effects::nodes::{Alert, Brightness, Overlay, Raindrops};
 use photonic_output_net::netdmx::{Channels, Fixture, NetDmxSender};
-use photonic_output_terminal::Terminal;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -39,16 +38,35 @@ async fn main() -> Result<()> {
         },
     })?;
 
+    // TODO: Add switcher for more animations
+    let base = raindrops;
+
+    let input_brightness = scene.input("brightness")?.attr(1.0);
+    let brightness = scene.node("brightness", Brightness {
+        value: input_brightness,
+        source: base,
+    })?;
+
     let alert = scene.node("alert", Alert {
         hue: 0.0.fixed(),
         block: 1.fixed(),
         speed: 1.0.fixed(),
     })?;
 
-    let input_brightness = scene.input("brightness")?.attr(1.0);
-    let brightness = scene.node("brightness", Brightness {
-        value: input_brightness,
-        source: raindrops,
+    let input_alert = scene.input("alert")?;
+    let alert = scene.node("alert_overlay", Overlay {
+        base: brightness,
+        pave: alert,
+        blend: Fader {
+            input: Button {
+                value_release: 0.0,
+                value_pressed: 1.0,
+                hold_time: Duration::from_secs(5),
+                trigger: input_alert,
+            },
+            easing: Easings::Quartic(EasingDirection::InOut)
+                .with_speed(Duration::from_secs(1)),
+        },
     })?;
 
     let output = NetDmxSender::with_address("127.0.0.1:34254".parse()?)
@@ -71,7 +89,7 @@ async fn main() -> Result<()> {
     // let output = Terminal::with_path("/tmp/photonic")
     //     .with_waterfall(true);
 
-    let scene = scene.run(brightness, output).await?;
+    let scene = scene.run(alert, output).await?;
 
     let cli = photonic_interface_cli::stdio::CLI;
     let mqtt = photonic_interface_mqtt::MQTT::new("mqtt://localhost:1884?client_id=photonic")?;
