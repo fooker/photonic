@@ -1,0 +1,15 @@
+[package]
+name = "photonic-effects"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+photonic = { workspace = true }
+palette = { workspace = true }
+
+anyhow = { workspace = true }
+
+ezing = "0.2"
+num-traits = "0.2"

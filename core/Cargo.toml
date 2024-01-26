@@ -1,0 +1,20 @@
+[package]
+name = "photonic"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+
+tokio = { workspace = true, features = ["time"] }
+
+palette = { workspace = true }
+
+rand = { version = "0.8", features = ["small_rng"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+photonic-output-null = { path = "../output-null" }
+photonic-effects = { path = "../effects" }

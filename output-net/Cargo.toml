@@ -1,0 +1,15 @@
+[package]
+name = "photonic-output-net"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+photonic = { workspace = true }
+
+anyhow = { workspace = true }
+tokio = { workspace = true }
+palette = { workspace = true }
+
+byteorder = { version = "1.5" }

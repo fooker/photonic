@@ -1,0 +1,12 @@
+[package]
+name = "photonic-interface-grpc"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+photonic = { workspace = true }
+
+palette = { workspace = true }
+anyhow = { workspace = true }

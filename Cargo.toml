@@ -1,0 +1,29 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "core",
+    "effects",
+    "output-null",
+    "output-terminal",
+    "output-net",
+    "interface-cli",
+    "interface-grpc",
+    "examples",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = [
+    "Dustin Frisch <fooker@lab.sh>",
+]
+
+[workspace.dependencies]
+photonic = { path = "core" }
+
+tokio = { version = "1.35" }
+
+anyhow = "1"
+
+palette = { version = "0.7", features = ["random"] }
