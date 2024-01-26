@@ -2,12 +2,13 @@ use std::time::Duration;
 
 use anyhow::{bail, Result};
 use palette::{Hsl, IntoColor};
+use palette::rgb::Rgb;
 
-use photonic::{Scene, WhiteMode};
+use photonic::{Scene, WhiteMode, WithWhite};
 use photonic::attr::{AsFixedAttr, Range};
 use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
-use photonic_effects::nodes::{Alert, Brightness, Overlay, Raindrops};
+use photonic_effects::nodes::{Alert, Blackout, Brightness, Overlay, Raindrops};
 use photonic_output_net::netdmx::{Channels, Fixture, NetDmxSender};
 
 #[tokio::main]
@@ -69,6 +70,14 @@ async fn main() -> Result<()> {
         },
     })?;
 
+    let input_kitchen = scene.input("kitchen")?;
+    let kitchen = scene.node("kitchen", Blackout {
+        source: alert,
+        active: input_kitchen.attr(false),
+        value: Rgb::new(1.0, 1.0, 1.0),
+        range: Some((0, 1)),
+    })?;
+
     let output = NetDmxSender::with_address("127.0.0.1:34254".parse()?)
         .add_fixture(Fixture {
             pixel: 0,
@@ -89,7 +98,7 @@ async fn main() -> Result<()> {
     // let output = Terminal::with_path("/tmp/photonic")
     //     .with_waterfall(true);
 
-    let scene = scene.run(alert, output).await?;
+    let scene = scene.run(kitchen, output).await?;
 
     let cli = photonic_interface_cli::stdio::CLI;
     let mqtt = photonic_interface_mqtt::MQTT::new("mqtt://localhost:1884?client_id=photonic")?;
