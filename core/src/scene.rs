@@ -411,6 +411,7 @@ impl NodeBuilder<'_> {
     /// Create a unbound attribute.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
+    // TODO: Rename to `free_attr`
     pub fn unbound_attr<Attr>(&mut self, name: &'static str, decl: Attr) -> Result<Attr::Attr>
         where Attr: FreeAttrDecl,
     {

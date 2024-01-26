@@ -1,5 +1,5 @@
 use num_traits::Float;
-use palette::{Hsl, Mix};
+use palette::{Hsl, Hsv, Lch, Mix};
 use palette::rgb::Rgb;
 
 pub trait Lerp {
@@ -41,6 +41,18 @@ impl Lerp for f32 {
 impl Lerp for Hsl {
     fn lerp(a: Self, b: Self, i: f32) -> Self {
         return Hsl::mix(a, b, i);
+    }
+}
+
+impl Lerp for Hsv {
+    fn lerp(a: Self, b: Self, i: f32) -> Self {
+        return Hsv::mix(a, b, i);
+    }
+}
+
+impl Lerp for Lch {
+    fn lerp(a: Self, b: Self, i: f32) -> Self {
+        return Lch::mix(a, b, i);
     }
 }
 

@@ -1,14 +1,13 @@
 use std::time::Duration;
 
 use anyhow::{bail, Result};
-use palette::{Hsl, IntoColor};
-use palette::rgb::Rgb;
+use palette::{Hsl, IntoColor, Srgb};
 
-use photonic::{Scene, WhiteMode, WithWhite};
+use photonic::{Scene, WhiteMode};
 use photonic::attr::{AsFixedAttr, Range};
 use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
-use photonic_effects::nodes::{Alert, Blackout, Brightness, Overlay, Raindrops};
+use photonic_effects::nodes::{Alert, Blackout, Brightness, Noise, Overlay, Raindrops};
 use photonic_output_net::netdmx::{Channels, Fixture, NetDmxSender};
 
 #[tokio::main]
@@ -42,6 +41,11 @@ async fn main() -> Result<()> {
     // TODO: Add switcher for more animations
     let base = raindrops;
 
+    let base = scene.node("noise", Noise {
+        speed: 0.005.fixed(),
+        stretch: 5.0.fixed(),
+    })?;
+
     let input_brightness = scene.input("brightness")?.attr(1.0);
     let brightness = scene.node("brightness", Brightness {
         value: input_brightness,
@@ -74,7 +78,7 @@ async fn main() -> Result<()> {
     let kitchen = scene.node("kitchen", Blackout {
         source: alert,
         active: input_kitchen.attr(false),
-        value: Rgb::new(1.0, 1.0, 1.0),
+        value: Srgb::new(1.0, 1.0, 1.0),
         range: Some((0, 1)),
     })?;
 
@@ -106,7 +110,7 @@ async fn main() -> Result<()> {
     tokio::select! {
         Err(err) = scene.serve(cli) => bail!(err),
         Err(err) = scene.serve(mqtt) => bail!(err),
-        Err(err) = scene.run(60) => bail!(err),
+        Err(err) = scene.run(20) => bail!(err),
         else => return Ok(())
     }
 }

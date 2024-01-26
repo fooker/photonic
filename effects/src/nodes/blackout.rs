@@ -2,7 +2,6 @@ use anyhow::Result;
 use palette::IntoColor;
 
 use photonic::{Attr, Buffer, Context, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
-use photonic::math::Lerp;
 
 pub struct Blackout<Source, Active, Element>
     where Source: NodeDecl,

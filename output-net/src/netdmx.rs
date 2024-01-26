@@ -47,6 +47,7 @@ impl NetDmxSender {
 
 pub struct NetDmxSenderOutput {
     socket: tokio::net::UdpSocket,
+    address: SocketAddr,
 
     fixtures: Vec<Fixture>,
 
@@ -61,13 +62,13 @@ impl OutputDecl for NetDmxSender
         where Self::Output: Sized,
     {
         let socket = tokio::net::UdpSocket::bind("127.0.0.0:0").await?;
-        socket.connect(self.address).await?;
 
         // TODO: Check fixtures pixel is in bounds
         // TODO: Check fixtures dmx address is in bounds
 
         return Ok(Self::Output {
             socket,
+            address: self.address,
             fixtures: self.fixtures,
             buffer: [0u8; 512],
         });
@@ -103,7 +104,7 @@ impl Output for NetDmxSenderOutput
             }
         }
 
-        self.socket.send(&self.buffer).await?;
+        self.socket.send_to(&self.buffer, &self.address).await?;
 
         return Ok(());
     }
