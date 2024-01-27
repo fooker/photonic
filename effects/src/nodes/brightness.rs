@@ -1,8 +1,8 @@
 use anyhow::Result;
-use palette::Darken;
 
 use photonic::{Attr, BoundAttrDecl, Buffer, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic::attr::Bounds;
+use photonic::math::Lerp;
 
 pub struct Brightness<Source, Value>
     where Source: NodeDecl,
@@ -23,7 +23,7 @@ pub struct BrightnessNode<Source, Value>
 impl<Source, Value> NodeDecl for Brightness<Source, Value>
     where Source: NodeDecl + 'static,
           Value: BoundAttrDecl<Value=f32>,
-          <Source::Node as Node>::Element: Darken<Scalar=f32> + Default, // TODO: Remove default constrain
+          <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     type Node = BrightnessNode<Source::Node, Value::Attr>;
 
@@ -38,7 +38,7 @@ impl<Source, Value> NodeDecl for Brightness<Source, Value>
 impl<Source, Value> Node for BrightnessNode<Source, Value>
     where Source: Node,
           Value: Attr<Value=f32>,
-          Source::Element: Darken<Scalar=f32>,
+          Source::Element: Lerp,
 {
     const KIND: &'static str = "brightness";
     type Element = Source::Element;
@@ -48,7 +48,7 @@ impl<Source, Value> Node for BrightnessNode<Source, Value>
         let source = &ctx[&self.source];
 
         out.update_from(source.iter()
-            .map(|c| c.darken(1.0 - value)));
+            .map(|c| Lerp::lerp(Self::Element::default(), *c, value)));
 
         return Ok(());
     }
