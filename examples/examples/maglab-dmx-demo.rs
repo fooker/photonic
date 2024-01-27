@@ -46,9 +46,13 @@ async fn main() -> Result<()> {
         stretch: 5.0.fixed(),
     })?;
 
-    let input_brightness = scene.input("brightness")?.attr(1.0);
+    let input_brightness = scene.input("brightness")?;
     let brightness = scene.node("brightness", Brightness {
-        value: input_brightness,
+        value: Fader {
+            input: input_brightness.attr(0.0),
+            easing: Easings::Cubic(EasingDirection::InOut)
+                .with_speed(Duration::from_secs(1)),
+        },
         source: base,
     })?;
 

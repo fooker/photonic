@@ -1,6 +1,6 @@
 use anyhow::Result;
 use noise::NoiseFn;
-use palette::{Hsv, Lch};
+use palette::Lch;
 
 use photonic::{Buffer, Context, Node, NodeBuilder};
 use photonic::attr::Attr;
