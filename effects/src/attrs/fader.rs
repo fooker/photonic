@@ -40,8 +40,9 @@ impl<V, Input> Attr for FaderAttr<V, Input>
             self.fade = 0.0;
         }
 
-        if self.fade <= 1.0 {
+        if self.fade < 1.0 {
             self.fade += duration.as_secs_f32() / self.easing.speed.as_secs_f32();
+            self.fade = self.fade.min(1.0);
         }
 
         return Lerp::lerp(self.last, self.next, (self.easing.func)(self.fade));
