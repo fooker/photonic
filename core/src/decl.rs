@@ -31,27 +31,3 @@ pub trait BoundAttrDecl {
 
     fn materialize(self, bounds: Bounds<Self::Value>, builder: &mut AttrBuilder) -> Result<Self::Attr>;
 }
-
-// impl<V, T> BoundAttrDecl for Box<T>
-//     where V: AttrValue + Bounded,
-//           T: BoundAttrDecl<Value=V>,
-// {
-//     type Value = V;
-//     type Target = T::Target;
-//
-//     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Target> {
-//         return T::materialize(*self, bounds, builder);
-//     }
-// }
-//
-// impl<V, T> FreeAttrDecl for Box<T>
-//     where V: AttrValue,
-//           T: FreeAttrDecl<Value=V>,
-// {
-//     type Value = V;
-//     type Target = T::Target;
-//
-//     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Target> {
-//         return T::materialize(*self, builder);
-//     }
-// }
