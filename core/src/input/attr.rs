@@ -1,27 +1,30 @@
 use std::time::Duration;
 
 use anyhow::Result;
+use num_traits::zero;
 
 use crate::attr::{Attr, AttrValue, Bounded, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl};
 use crate::input::{Input, InputValue, Poll};
 use crate::scene::{AttrBuilder, InputHandle};
 
-pub struct InputAttrDecl<V>
-    where V: InputValue + AttrValue,
+pub struct InputAttrDecl<I, A>
+    where I: InputValue,
+          A: AttrValue + From<I>,
 {
-    input: InputHandle<V>,
-    initial: V,
+    input: InputHandle<I>,
+    initial: A,
 }
 
-impl<V> BoundAttrDecl for InputAttrDecl<V>
+impl<I, A> BoundAttrDecl for InputAttrDecl<I, A>
     where
-        V: AttrValue + InputValue + Bounded,
+        I: InputValue,
+        A: AttrValue + Bounded + From<I>,
 {
-    type Value = V;
-    type Attr = BoundInputAttr<V>;
+    type Value = A;
+    type Attr = BoundInputAttr<I, A>;
 
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
+    fn materialize(self, bounds: Bounds<A>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let input = builder.input("input", self.input)?;
 
         let initial = bounds.ensure(self.initial)?;
@@ -34,11 +37,12 @@ impl<V> BoundAttrDecl for InputAttrDecl<V>
     }
 }
 
-impl<V> FreeAttrDecl for InputAttrDecl<V>
-    where V: AttrValue + InputValue,
+impl<I, A> FreeAttrDecl for InputAttrDecl<I, A>
+    where I: InputValue,
+          A: AttrValue + From<I>,
 {
-    type Value = V;
-    type Attr = UnboundInputAttr<V>;
+    type Value = A;
+    type Attr = FreeInputAttr<I, A>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let input = builder.input("value", self.input)?;
@@ -50,23 +54,26 @@ impl<V> FreeAttrDecl for InputAttrDecl<V>
     }
 }
 
-pub struct BoundInputAttr<V>
-    where V: AttrValue + InputValue + Bounded,
+pub struct BoundInputAttr<I, A>
+    where I: InputValue,
+          A: AttrValue + Bounded,
 {
-    bounds: Bounds<V>,
+    input: Input<I>,
+    current: A,
 
-    input: Input<V>,
-    current: V,
+    bounds: Bounds<A>,
 }
 
-impl<V> Attr for BoundInputAttr<V>
-    where V: AttrValue + InputValue + Bounded,
+impl<I, A> Attr for BoundInputAttr<I, A>
+    where I: InputValue,
+          A: AttrValue + From<I> + Bounded,
 {
-    type Value = V;
+    type Value = A;
     const KIND: &'static str = "input";
 
     fn update(&mut self, _duration: Duration) -> Self::Value {
         if let Poll::Update(update) = self.input.poll() {
+            let update = update.into();
             if let Ok(update) = self.bounds.ensure(update) {
                 self.current = update;
             }
@@ -76,23 +83,25 @@ impl<V> Attr for BoundInputAttr<V>
     }
 }
 
-pub struct UnboundInputAttr<V>
-    where V: AttrValue + InputValue,
+pub struct FreeInputAttr<I, A>
+    where I: InputValue,
+          A: AttrValue,
 {
-    input: Input<V>,
-    current: V,
+    input: Input<I>,
+    current: A,
 }
 
-impl<V> Attr for UnboundInputAttr<V>
-    where V: AttrValue + InputValue,
+impl<I, A> Attr for FreeInputAttr<I, A>
+    where I: InputValue,
+          A: AttrValue + From<I>,
 {
-    type Value = V;
+    type Value = A;
 
     const KIND: &'static str = "input";
 
     fn update(&mut self, _duration: Duration) -> Self::Value {
         if let Poll::Update(update) = self.input.poll() {
-            self.current = update;
+            self.current = update.into();
         }
 
         return self.current;
@@ -100,9 +109,11 @@ impl<V> Attr for UnboundInputAttr<V>
 }
 
 impl<V> InputHandle<V>
-    where V: InputValue + AttrValue,
+    where V: InputValue,
 {
-    pub fn attr(self, initial: V) -> InputAttrDecl<V> {
+    pub fn attr<A>(self, initial: A) -> InputAttrDecl<V, A>
+        where A: AttrValue + From<V>,
+    {
         return InputAttrDecl {
             input: self,
             initial,
