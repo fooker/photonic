@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use num_traits::zero;
 
 use crate::attr::{Attr, AttrValue, Bounded, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl};

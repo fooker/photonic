@@ -35,15 +35,15 @@ impl<E> Buffer<E> {
     }
 
     pub fn set(&mut self, index: usize, value: E) {
-        self.data[index % self.data.len()] = value
+        self.data[index % self.data.len()] = value;
     }
 
     pub fn iter(&self) -> impl Iterator<Item=&E> {
-        self.data.iter()
+        return self.data.iter();
     }
 
     pub fn iter_mut(&mut self) -> impl Iterator<Item=&mut E> {
-        self.data.iter_mut()
+        return self.data.iter_mut();
     }
 
     /// Update the buffer by calling `f` for each element in the buffer.
@@ -117,9 +117,6 @@ pub trait BufferReader {
     
     fn size(&self) -> usize;
 
-    fn iter(&self) -> impl Iterator<Item=Self::Element>;
-
-
     fn map<R, F>(&self, f: F) -> map::Map<Self, F>
         where Self: Sized,
               F: Fn(Self::Element) -> R,
@@ -139,9 +136,5 @@ impl<E> BufferReader for Buffer<E>
 
     fn size(&self) -> usize {
         return self.size()
-    }
-
-    fn iter(&self) -> impl Iterator<Item=Self::Element> {
-        return Self::iter(self).copied();
     }
 }
