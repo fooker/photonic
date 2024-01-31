@@ -46,7 +46,7 @@ async fn main() -> Result<()> {
         stretch: 5.0.fixed(),
     })?;
 
-    let input_brightness = scene.input("brightness")?;
+    let input_brightness = scene.input::<f32>("brightness")?;
     let brightness = scene.node("brightness", Brightness {
         value: Fader {
             input: input_brightness.attr(0.0),
