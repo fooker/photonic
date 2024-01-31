@@ -2,6 +2,7 @@ extern crate anyhow;
 
 use std::collections::HashMap;
 use std::future::Future;
+use std::marker::PhantomData;
 use std::ops;
 use std::sync::Arc;
 use std::time::Duration;
@@ -27,13 +28,39 @@ pub struct Context<'ctx>
     nodes: Slice<'ctx, dyn NodeHolder>,
 }
 
-impl<Node> ops::Index<&NodeRef<Node>> for Context<'_>
+struct NodeBufferReader<'b, E, O> {
+    buffer: &'b Buffer<E>,
+    phantom: PhantomData<O>,
+}
+
+impl<'b, E, O> BufferReader for NodeBufferReader<'b, E, O>
+    where E: Copy,
+          O: Copy + From<E>,
+{
+    type Element = O;
+
+    fn get(&self, index: usize) -> Self::Element {
+        return O::from(*self.buffer.get(index));
+    }
+
+    fn size(&self) -> usize {
+        return self.buffer.size();
+    }
+
+    fn iter(&self) -> impl Iterator<Item=Self::Element>
+        where Self: Sized,
+    {
+        return self.buffer.iter().copied().map(Into::into);
+    }
+}
+
+impl<'ctx, Node> ops::Index<NodeRef<Node>> for Context<'ctx>
     where Node: self::Node,
 {
-    type Output = Buffer<Node::Element>;
+    type Output = NodeContainer<Node>;
 
-    fn index(&self, index: &NodeRef<Node>) -> &Self::Output {
-        return &self.nodes[&index.node].buffer;
+    fn index(&self, index: NodeRef<Node>) -> &Self::Output {
+        return &self.nodes[index.node];
     }
 }
 
@@ -47,11 +74,44 @@ pub struct NodeHandle<Decl>
     pub decl: Decl,
 }
 
-struct NodeContainer<Node>
+pub struct NodeContainer<Node>
     where Node: self::Node,
 {
     node: Node,
     buffer: Buffer<Node::Element>,
+}
+
+impl<Node> NodeContainer<Node>
+    where Node: self::Node,
+{
+    pub fn build(builder: &NodeBuilder, node: Node) -> Result<Self> {
+        let buffer = Buffer::with_default(builder.size);
+
+        return Ok(Self {
+            node,
+            buffer,
+        });
+    }
+}
+
+impl<Node> BufferReader for NodeContainer<Node>
+    where Node: self::Node,
+{
+    type Element = Node::Element;
+
+    fn get(&self, index: usize) -> Self::Element {
+        return Self::Element::from(*self.buffer.get(index));
+    }
+
+    fn size(&self) -> usize {
+        return self.buffer.size();
+    }
+
+    fn iter(&self) -> impl Iterator<Item=Self::Element>
+        where Self: Sized,
+    {
+        return self.buffer.iter().copied().map(Self::Element::from);
+    }
 }
 
 trait NodeHolder {
@@ -71,6 +131,20 @@ pub struct NodeRef<Node>
 {
     node: Ref<NodeContainer<Node>, dyn NodeHolder>,
 }
+
+impl<Node> Clone for NodeRef<Node>
+    where Node: self::Node,
+{
+    fn clone(&self) -> Self {
+        return Self {
+            node: self.node,
+        };
+    }
+}
+
+impl<Node> Copy for NodeRef<Node>
+    where Node: self::Node,
+{}
 
 /// Handle to a [`Input`].
 ///
@@ -221,7 +295,7 @@ impl<'a, Node, Output> Loop<Node, Output>
             return curr.update(&ctx);
         })?;
 
-        let root = &self.nodes.as_slice()[&self.root.node];
+        let root = &self.nodes.as_slice()[self.root.node];
 
         // Render node tree to output
         self.output.render(root.buffer.map(Output::Element::from_color)).await?;

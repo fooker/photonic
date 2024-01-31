@@ -114,8 +114,11 @@ pub trait BufferReader {
     type Element: Copy;
 
     fn get(&self, index: usize) -> Self::Element;
-    
+
     fn size(&self) -> usize;
+
+    fn iter(&self) -> impl Iterator<Item=Self::Element>
+        where Self: Sized;
 
     fn map<R, F>(&self, f: F) -> map::Map<Self, F>
         where Self: Sized,
@@ -135,6 +138,10 @@ impl<E> BufferReader for Buffer<E>
     }
 
     fn size(&self) -> usize {
-        return self.size()
+        return self.size();
+    }
+
+    fn iter(&self) -> impl Iterator<Item=Self::Element> where Self: Sized {
+        return Buffer::iter(self).copied();
     }
 }

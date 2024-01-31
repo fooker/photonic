@@ -1,7 +1,7 @@
 use anyhow::Result;
 use palette::IntoColor;
 
-use photonic::{Attr, BoundAttrDecl, Buffer, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
+use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
 
@@ -56,14 +56,14 @@ impl<Base, Pave, Blend> Node for OverlayNode<Base, Pave, Blend>
     type Element = Base::Element;
 
     fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
-        let base = &ctx[&self.base];
-        let pave = &ctx[&self.pave];
+        let base = &ctx[self.base];
+        let pave = &ctx[self.pave];
 
         let blend = self.blend.update(ctx.duration);
 
         out.update(|i, _| {
-            let base = *base.get(i);
-            let pave = *pave.get(i);
+            let base = base.get(i);
+            let pave = pave.get(i);
 
             // TODO: Blending modes
             return Self::Element::lerp(base, pave.into_color(), blend);

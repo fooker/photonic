@@ -1,7 +1,7 @@
 use anyhow::Result;
 use palette::IntoColor;
 
-use photonic::{Attr, Buffer, Context, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
+use photonic::{Attr, Buffer, BufferReader, Context, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 
 pub struct Blackout<Source, Active, Element>
     where Source: NodeDecl,
@@ -54,14 +54,14 @@ impl<Source, Active, Element> Node for BlackoutNode<Source, Active, Element>
     type Element = Source::Element;
 
     fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
-        let source = &ctx[&self.source];
+        let source = &ctx[self.source];
 
         let active = self.active.update(ctx.duration);
 
         out.update(|i, _| if self.range.0 <= i && i <= self.range.1 && active {
             self.value.clone().into_color()
         } else {
-            *source.get(i)
+            source.get(i)
         });
 
         return Ok(());

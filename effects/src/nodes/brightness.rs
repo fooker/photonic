@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use photonic::{Attr, BoundAttrDecl, Buffer, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
+use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
 
@@ -45,10 +45,10 @@ impl<Source, Value> Node for BrightnessNode<Source, Value>
 
     fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
         let value = self.value.update(ctx.duration);
-        let source = &ctx[&self.source];
+        let source = &ctx[self.source];
 
         out.update_from(source.iter()
-            .map(|c| Lerp::lerp(Self::Element::default(), *c, value)));
+            .map(|c| Lerp::lerp(Self::Element::default(), c, value)));
 
         return Ok(());
     }

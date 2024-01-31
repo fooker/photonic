@@ -85,13 +85,13 @@ impl<'arena, T> Slice<'arena, T>
     }
 }
 
-impl<E, T> ops::Index<&Ref<E, T>> for Slice<'_, T>
+impl<E, T> ops::Index<Ref<E, T>> for Slice<'_, T>
     where E: Unsize<T>,
           T: ?Sized,
 {
     type Output = E;
 
-    fn index(&self, index: &Ref<E, T>) -> &Self::Output {
+    fn index(&self, index: Ref<E, T>) -> &Self::Output {
         let entry = self.elements[index.index - self.offset].as_ref() as *const T;
         let entry = unsafe { &*(entry as *const E) };
         return entry;
@@ -105,6 +105,23 @@ pub struct Ref<E, T>
     index: usize,
     phantom: PhantomData<(E, T)>,
 }
+
+impl<E, T> Clone for Ref<E, T>
+    where E: Unsize<T>,
+          T: ?Sized,
+{
+    fn clone(&self) -> Self {
+        return Self {
+            index: self.index,
+            phantom: PhantomData::default(),
+        };
+    }
+}
+
+impl<E, T> Copy for Ref<E, T>
+    where E: Unsize<T>,
+          T: ?Sized,
+{}
 
 impl<E, T> Debug for Ref<E, T>
     where E: Unsize<T>,
