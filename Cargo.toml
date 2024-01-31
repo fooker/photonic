@@ -10,6 +10,7 @@ members = [
     "interface-cli",
     "interface-grpc",
     "interface-mqtt",
+    "app",
     "examples",
 ]
 
@@ -24,6 +25,8 @@ authors = [
 photonic = { path = "core" }
 
 tokio = { version = "1.35" }
+
+futures = { version = "0.3" }
 
 anyhow = "1"
 
