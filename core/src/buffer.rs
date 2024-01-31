@@ -69,10 +69,12 @@ impl<E> Buffer<E> {
         return Ok(());
     }
 
-    pub fn update_from(&mut self, source: impl Iterator<Item=E>) {
-        self.data.iter_mut()
-            .zip(source)
-            .for_each(|(dst, src)| *dst = src);
+    pub fn blit_from(&mut self, source: impl BufferReader<Element=E>) {
+        assert_eq!(self.size(), source.size());
+
+        for i in 0..self.size() {
+            self.data[i] = source.get(i);
+        }
     }
 }
 
@@ -118,7 +120,10 @@ pub trait BufferReader {
     fn size(&self) -> usize;
 
     fn iter(&self) -> impl Iterator<Item=Self::Element>
-        where Self: Sized;
+        where Self: Sized,
+    {
+        return (0..self.size()).map(|i| self.get(i));
+    }
 
     fn map<R, F>(&self, f: F) -> map::Map<Self, F>
         where Self: Sized,
@@ -139,9 +144,5 @@ impl<E> BufferReader for Buffer<E>
 
     fn size(&self) -> usize {
         return self.size();
-    }
-
-    fn iter(&self) -> impl Iterator<Item=Self::Element> where Self: Sized {
-        return Buffer::iter(self).copied();
     }
 }

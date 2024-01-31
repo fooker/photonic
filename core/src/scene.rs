@@ -46,12 +46,6 @@ impl<'b, E, O> BufferReader for NodeBufferReader<'b, E, O>
     fn size(&self) -> usize {
         return self.buffer.size();
     }
-
-    fn iter(&self) -> impl Iterator<Item=Self::Element>
-        where Self: Sized,
-    {
-        return self.buffer.iter().copied().map(Into::into);
-    }
 }
 
 impl<'ctx, Node> ops::Index<NodeRef<Node>> for Context<'ctx>
@@ -107,11 +101,11 @@ impl<Node> BufferReader for NodeContainer<Node>
         return self.buffer.size();
     }
 
-    fn iter(&self) -> impl Iterator<Item=Self::Element>
-        where Self: Sized,
-    {
-        return self.buffer.iter().copied().map(Self::Element::from);
-    }
+    // fn iter(&self) -> impl Iterator<Item=Self::Element>
+    //     where Self: Sized,
+    // {
+    //     return self.buffer.iter().copied().map(Self::Element::from);
+    // }
 }
 
 trait NodeHolder {

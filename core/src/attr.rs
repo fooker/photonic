@@ -27,9 +27,9 @@ impl std::fmt::Display for AttrValueType {
 }
 
 pub trait Attr {
-    type Value: AttrValue;
-
     const KIND: &'static str;
+
+    type Value: AttrValue;
 
     // TODO: Take in scene::Context instead of duration
     fn update(&mut self, duration: Duration) -> Self::Value;

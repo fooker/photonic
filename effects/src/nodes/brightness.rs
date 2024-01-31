@@ -47,8 +47,8 @@ impl<Source, Value> Node for BrightnessNode<Source, Value>
         let value = self.value.update(ctx.duration);
         let source = &ctx[self.source];
 
-        out.update_from(source.iter()
-            .map(|c| Lerp::lerp(Self::Element::default(), c, value)));
+        // TODO: Use better brightness algo here
+        out.blit_from(source.map(|c| Lerp::lerp(Self::Element::default(), c, value)));
 
         return Ok(());
     }

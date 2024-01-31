@@ -31,7 +31,7 @@ impl<B, R, F> BufferReader for Map<'_, B, F>
         return self.buffer.size();
     }
 
-    fn iter(&self) -> impl Iterator<Item=Self::Element> where Self: Sized {
-        return self.buffer.iter().map(&self.mapper);
-    }
+    // fn iter(&self) -> impl Iterator<Item=Self::Element> where Self: Sized {
+    //     return self.buffer.iter().map(&self.mapper);
+    // }
 }
