@@ -41,7 +41,7 @@ impl OutputDecl for WledSender
 {
     type Output = WledSenderOutput;
 
-    async fn materialize(self, size: usize) -> Result<Self::Output>
+    async fn materialize(self, _size: usize) -> Result<Self::Output>
         where Self::Output: Sized,
     {
         return Ok(Self::Output {

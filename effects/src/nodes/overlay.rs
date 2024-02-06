@@ -4,21 +4,27 @@ use palette::IntoColor;
 use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
+use photonic_dyn::DynamicNode;
 
+#[derive(DynamicNode)]
 pub struct Overlay<Base, Pave, Blend>
     where Base: NodeDecl,
           Pave: NodeDecl,
 {
+    #[photonic(node)]
     pub base: NodeHandle<Base>,
+
+    #[photonic(node)]
     pub pave: NodeHandle<Pave>,
 
+    #[photonic(attr)]
     pub blend: Blend,
 }
 
 pub struct OverlayNode<Base, Pave, Blend>
     where Base: Node + 'static,
           Pave: Node + 'static,
-          Blend: Attr<Value=f32>, {
+{
     base: NodeRef<Base>,
     pave: NodeRef<Pave>,
 

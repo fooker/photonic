@@ -8,6 +8,7 @@ use photonic::attr::range::Range;
 use palette::FromColor;
 
 use anyhow::Result;
+use photonic_dyn::DynamicNode;
 
 #[derive(Default)]
 struct Raindrop {
@@ -15,9 +16,15 @@ struct Raindrop {
     decay: f32,
 }
 
+#[derive(DynamicNode)]
 pub struct Raindrops<Rate, Color, Decay> {
+    #[photonic(attr)]
     pub rate: Rate,
+
+    #[photonic(attr)]
     pub color: Color,
+
+    #[photonic(attr)]
     pub decay: Decay,
 }
 

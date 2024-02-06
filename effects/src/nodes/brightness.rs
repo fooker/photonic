@@ -3,18 +3,23 @@ use anyhow::Result;
 use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
+use photonic_dyn::DynamicNode;
 
+#[derive(DynamicNode)]
 pub struct Brightness<Source, Value>
     where Source: NodeDecl,
-          Value: BoundAttrDecl<Value=f32>,
 {
-    pub value: Value,
+    #[photonic(node)]
     pub source: NodeHandle<Source>,
+
+    #[photonic(attr)]
+    pub value: Value,
 }
 
 pub struct BrightnessNode<Source, Value>
     where Source: Node + 'static,
           Value: Attr<Value=f32>,
+          Source::Element: Lerp,
 {
     value: Value,
     source: NodeRef<Source>,

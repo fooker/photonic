@@ -1,12 +1,20 @@
 use std::ops::Neg;
+
 use anyhow::Result;
 use palette::Hsv;
 
 use photonic::{Attr, BoundAttrDecl, Buffer, Context, FreeAttrDecl, math, Node, NodeBuilder, NodeDecl};
+use photonic_dyn::DynamicNode;
 
+#[derive(DynamicNode)]
 pub struct Alert<Hue, Block, Speed> {
+    #[photonic(attr)]
     pub hue: Hue,
+
+    #[photonic(attr)]
     pub block: Block,
+
+    #[photonic(attr)]
     pub speed: Speed,
 }
 
@@ -54,8 +62,8 @@ impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
 
         let value =  // math::remap(
             math::clamp(f32::sin(self.time * std::f32::consts::PI), (-1.0, 1.0));
-            //(-1.0, 1.0),
-            //(0.0, 1.0),
+        //(-1.0, 1.0),
+        //(0.0, 1.0),
         //);
 
         out.update(|i, _| {

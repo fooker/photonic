@@ -1,11 +1,12 @@
 use std::time::Duration;
 
 use anyhow::Error;
+
 use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
-
+use photonic_dyn::DynamicAttr;
 
 pub struct SequenceAttr<V>
     where V: AttrValue,

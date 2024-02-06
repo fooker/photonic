@@ -82,7 +82,7 @@ async fn main() -> Result<()> {
     let kitchen = scene.node("kitchen", Blackout {
         source: alert,
         active: input_kitchen.attr(false),
-        value: Srgb::new(1.0, 1.0, 1.0),
+        value: Srgb::new(1.0, 1.0, 1.0).into_color(),
         range: Some((0, 1)),
     })?;
 

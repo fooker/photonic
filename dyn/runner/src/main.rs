@@ -9,21 +9,13 @@ use structopt::StructOpt;
 
 use photonic::attr::Bounded;
 use photonic::AttrValue;
-use photonic_effects::attrs::Button;
-use photonic_effects::nodes::Alert;
 use photonic_output_terminal::Terminal;
 
-use crate::boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
-use crate::builder::{AttrBuilder, Builder, NodeBuilder, OutputBuilder};
-use crate::config::Anything;
-use crate::registry::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory, Registry};
+use photonic_dyn::boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
+use photonic_dyn::builder::{AttrBuilder, Builder, NodeBuilder, OutputBuilder};
+use photonic_dyn::config;
+use photonic_dyn::registry::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory, Registry};
 
-mod config;
-mod builder;
-
-mod registry;
-
-mod boxed;
 
 #[derive(StructOpt)]
 struct Opt {
@@ -79,7 +71,7 @@ impl Registry for MyRegistry {
         where Builder: NodeBuilder,
     {
         return Some(match kind {
-            "alert" => Box::new(|config: Anything, builder: &mut Builder| -> Result<BoxedNodeDecl> {
+            "alert" => Box::new(|config: config::Anything, builder: &mut Builder| -> Result<BoxedNodeDecl> {
                 #[derive(Deserialize, Clone, Debug)]
                 struct Config {
                     pub hue: config::Attr,
@@ -89,11 +81,12 @@ impl Registry for MyRegistry {
 
                 let config: Config = Config::deserialize(config)?;
 
-                return Ok(Box::new(Alert {
-                    hue: builder.bound_attr("hue", config.hue)?,
-                    block: builder.bound_attr("block", config.block)?,
-                    speed: builder.free_attr("speed", config.speed)?,
-                }));
+                return todo!();
+                // return Ok(Box::new(Alert {
+                //     hue: builder.bound_attr("hue", config.hue)?,
+                //     block: builder.bound_attr("block", config.block)?,
+                //     speed: builder.free_attr("speed", config.speed)?,
+                // }));
             }),
             // "blackout" => Box::new(|config, builder| {
             //     return Ok(todo!());
@@ -113,7 +106,7 @@ impl Registry for MyRegistry {
               V: AttrValue + DeserializeOwned,
     {
         return Some(match kind {
-            "button" => Box::new(|config: Anything, builder: &mut Builder| -> Result<BoxedFreeAttrDecl<V>> {
+            "button" => Box::new(|config: config::Anything, builder: &mut Builder| -> Result<BoxedFreeAttrDecl<V>> {
                 #[derive(Deserialize, Clone, Debug)]
                 struct Config<V> {
                     pub value_pressed: V,
@@ -124,12 +117,14 @@ impl Registry for MyRegistry {
 
                 let config: Config<V> = Config::deserialize(config)?;
 
-                return Ok(Box::new(Button {
-                    value_release: config.value_release,
-                    value_pressed: config.value_pressed,
-                    hold_time: config.hold_time,
-                    trigger: builder.input(config.trigger)?,
-                }));
+                return todo!();
+
+                // return Ok(Box::new(Button {
+                //     value_release: config.value_release,
+                //     value_pressed: config.value_pressed,
+                //     hold_time: config.hold_time,
+                //     trigger: builder.input(config.trigger)?,
+                // }));
             }),
             _ => return None
         });
@@ -140,7 +135,7 @@ impl Registry for MyRegistry {
               V: AttrValue + DeserializeOwned + Bounded,
     {
         return Some(match kind {
-            "button" => Box::new(|config: Anything, builder: &mut Builder| -> Result<BoxedBoundAttrDecl<V>> {
+            "button" => Box::new(|config: config::Anything, builder: &mut Builder| -> Result<BoxedBoundAttrDecl<V>> {
                 #[derive(Deserialize, Clone, Debug)]
                 struct Config<V> {
                     pub value_pressed: V,
@@ -151,12 +146,14 @@ impl Registry for MyRegistry {
 
                 let config: Config<V> = Config::deserialize(config)?;
 
-                return Ok(Box::new(Button {
-                    value_release: config.value_release,
-                    value_pressed: config.value_pressed,
-                    hold_time: config.hold_time,
-                    trigger: builder.input(config.trigger)?,
-                }));
+                return todo!();
+
+                // return Ok(Box::new(Button {
+                //     value_release: config.value_release,
+                //     value_pressed: config.value_pressed,
+                //     hold_time: config.hold_time,
+                //     trigger: builder.input(config.trigger)?,
+                // }));
             }),
             _ => return None
         });
@@ -166,7 +163,7 @@ impl Registry for MyRegistry {
         where Builder: OutputBuilder,
     {
         return Some(match kind {
-            "terminal" => Box::new(|config: Anything, _builder: &mut Builder| -> Result<BoxedOutputDecl> {
+            "terminal" => Box::new(|config: config::Anything, _builder: &mut Builder| -> Result<BoxedOutputDecl> {
                 #[derive(Deserialize, Clone, Debug)]
                 struct Config {
                     pub waterfall: bool,

@@ -1,9 +1,10 @@
 use anyhow::Result;
-use palette::encoding::{Linear, Srgb};
 use palette::Hsv;
 
 use photonic::{Buffer, Context, Node, NodeBuilder, NodeDecl};
+use photonic_dyn::DynamicNode;
 
+#[derive(DynamicNode)]
 pub struct ColorWheel {
     pub scale: f32,
     pub speed: f32,
@@ -27,7 +28,7 @@ pub struct ColorWheelNode {
 impl NodeDecl for ColorWheel {
     type Node = ColorWheelNode;
 
-    async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
+    async fn materialize(self, _builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         return Ok(Self::Node {
             scale: self.scale, // TODO: Make this an attr
             speed: self.speed, // TODO: Make this an attr
@@ -42,7 +43,7 @@ impl NodeDecl for ColorWheel {
 impl Node for ColorWheelNode {
     const KIND: &'static str = "color_wheel";
 
-    type Element = Hsv<Linear<Srgb>>;
+    type Element = Hsv;
 
     fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
         self.position += ctx.duration.as_secs_f32() * self.speed;

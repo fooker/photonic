@@ -58,7 +58,7 @@ impl OutputDecl for NetDmxSender
 {
     type Output = NetDmxSenderOutput;
 
-    async fn materialize(self, size: usize) -> Result<Self::Output>
+    async fn materialize(self, _size: usize) -> Result<Self::Output>
         where Self::Output: Sized,
     {
         let socket = tokio::net::UdpSocket::bind("127.0.0.0:0").await?;

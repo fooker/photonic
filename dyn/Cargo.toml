@@ -1,5 +1,5 @@
 [package]
-name = "photonic-app"
+name = "photonic-dyn"
 
 version.workspace = true
 authors.workspace = true
@@ -7,8 +7,9 @@ edition.workspace = true
 
 [dependencies]
 photonic = { workspace = true }
-photonic-effects = { path = "../effects" }
 photonic-output-terminal = { path = "../output-terminal" }
+
+photonic-dyn-derive = { path = "./derive" }
 
 palette = { workspace = true }
 anyhow = { workspace = true }
@@ -16,12 +17,8 @@ tokio = { workspace = true, features = ["full"] }
 futures = { workspace = true }
 
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-serde_yaml = "0.9"
-serde_dhall = "0.12"
-toml = "0.8"
-ron = "0.8"
+serde_json = { version = "1" }
+
+inventory = { version = "0.3" }
 
 async-trait = "0.1"
-
-structopt = { version = "0.3", features = ["color"] }

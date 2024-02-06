@@ -5,9 +5,14 @@ use palette::Lch;
 use photonic::{Buffer, Context, Node, NodeBuilder};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
+use photonic_dyn::DynamicNode;
 
+#[derive(DynamicNode)]
 pub struct Noise<Speed, Stretch> {
+    #[photonic(attr)]
     pub speed: Speed,
+
+    #[photonic(attr)]
     pub stretch: Stretch,
 }
 

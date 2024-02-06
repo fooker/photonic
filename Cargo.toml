@@ -10,7 +10,9 @@ members = [
     "interface-cli",
     "interface-grpc",
     "interface-mqtt",
-    "app",
+    "dyn",
+    "dyn/derive",
+    "dyn/runner",
     "examples",
 ]
 
