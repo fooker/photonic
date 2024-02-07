@@ -1,10 +1,27 @@
 use std::time::Duration;
 
 use num_traits::Float;
+use photonic_dyn::serde::{Deserialize, Deserializer};
 
 pub struct Easing<F: Float> {
     pub func: fn(F) -> F,
     pub speed: Duration,
+}
+
+impl<'de, F: Float> Deserialize<'de> for Easing<F> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where D: Deserializer<'de>,
+    {
+        #[derive(Debug, Deserialize)]
+        struct S {
+            func: Easings,
+            speed: Duration,
+        }
+
+        let s = S::deserialize(deserializer)?;
+
+        return Ok(s.func.with_speed(s.speed));
+    }
 }
 
 impl<F: Float> Easing<F> {
@@ -27,13 +44,14 @@ impl<F: Float> From<fn(F) -> F> for Easing<F> {
     }
 }
 
-
+#[derive(Debug, Deserialize)]
 pub enum EasingDirection {
     In,
     Out,
     InOut,
 }
 
+#[derive(Debug, Deserialize)]
 pub enum Easings {
     Linear,
     Quadratic(EasingDirection),

@@ -6,7 +6,6 @@ use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
-use photonic_dyn::DynamicAttr;
 
 pub struct SequenceAttr<V>
     where V: AttrValue,
@@ -52,6 +51,7 @@ pub struct Sequence<V>
     pub values: Vec<V>,
 
     pub next: Option<InputHandle<()>>,
+
     pub prev: Option<InputHandle<()>>,
 }
 

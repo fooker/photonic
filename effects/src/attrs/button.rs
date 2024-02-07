@@ -72,7 +72,9 @@ pub struct Button<V>
 {
     pub value_release: V,
     pub value_pressed: V,
+
     pub hold_time: Duration,
+
     pub trigger: InputHandle<()>,
 }
 

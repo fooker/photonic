@@ -7,8 +7,8 @@ use rand::distributions::uniform::SampleUniform;
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
-use photonic::attr::{Bounded, Bounds};
 use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl};
+use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
 
@@ -40,6 +40,7 @@ impl<V> Attr for RandomAttr<V>
 
 pub struct Random<V> {
     pub trigger: InputHandle<()>,
+
     phantom: PhantomData<V>,
 }
 

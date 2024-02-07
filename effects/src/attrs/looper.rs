@@ -39,6 +39,7 @@ pub struct Looper<V>
     where V: AttrValue,
 {
     pub step: V,
+
     pub trigger: InputHandle<()>,
 }
 

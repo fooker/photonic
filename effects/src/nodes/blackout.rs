@@ -39,7 +39,7 @@ impl<Source, Active> NodeDecl for Blackout<Source, Active>
             source: builder.node("source", self.source).await?,
             active: builder.unbound_attr("active", self.active)?,
             value: self.value,
-            range: self.range.unwrap_or((0, builder.size - 1)),
+            range: self.range.unwrap_or((0, builder.size - 1)), // TODO: Use substring semantics where (5,5) is an empty selection
         });
     }
 }

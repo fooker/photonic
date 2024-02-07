@@ -51,6 +51,7 @@ impl<V, Input> Attr for FaderAttr<V, Input>
 
 pub struct Fader<Input> {
     pub input: Input,
+
     pub easing: Easing<f32>,
 }
 
