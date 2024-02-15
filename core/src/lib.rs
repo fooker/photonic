@@ -21,11 +21,8 @@ pub mod decl;
 pub mod utils;
 pub mod attr;
 pub mod input;
-mod arena;
-
 pub mod math;
-
 pub mod random;
-
 pub mod color;
+mod arena;
 
