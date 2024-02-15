@@ -29,7 +29,7 @@ pub struct Raindrops<Rate, Color, Decay> {
 }
 
 pub struct RaindropsNode<Rate, Color, Decay>
-    where Rate: Attr<Value=f64>,
+    where Rate: Attr<Value=f32>,
           Color: Attr<Value=Range<Rgb>>,
           Decay: Attr<Value=Range<f32>>,
 {
@@ -43,7 +43,7 @@ pub struct RaindropsNode<Rate, Color, Decay>
 }
 
 impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
-    where Rate: BoundAttrDecl<Value=f64>,
+    where Rate: BoundAttrDecl<Value=f32>,
           Color: FreeAttrDecl<Value=Range<Rgb>>,
           Decay: BoundAttrDecl<Value=Range<f32>>,
 {
@@ -61,7 +61,7 @@ impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
 }
 
 impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
-    where Rate: Attr<Value=f64>,
+    where Rate: Attr<Value=f32>,
           Color: Attr<Value=Range<Rgb>>,
           Decay: Attr<Value=Range<f32>>,
 {
@@ -75,7 +75,7 @@ impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
         let decay = self.decay.update(ctx.duration);
 
         for (out, drop) in Iterator::zip(out.iter_mut(), self.drops.iter_mut()) {
-            if self.random.rate(rate, ctx.duration) {
+            if self.random.rate(rate.into(), ctx.duration) {
                 drop.color = self.random.mix(Hsl::from_color(color.0), Hsl::from_color(color.1));
                 drop.decay = self.random.range(decay.0, decay.1);
             } else {

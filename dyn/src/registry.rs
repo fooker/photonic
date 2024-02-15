@@ -35,6 +35,11 @@ pub type FreeAttrFactory<V, Builder> = Box<dyn Factory<BoxedFreeAttrDecl<V>, Bui
 pub type BoundAttrFactory<V, Builder> = Box<dyn Factory<BoxedBoundAttrDecl<V>, Builder>>;
 pub type OutputFactory<Builder> = Box<dyn Factory<BoxedOutputDecl, Builder>>;
 
+pub struct AttrFactory<V, Builder> {
+    pub free: Option<FreeAttrFactory<V, Builder>>,
+    pub bound: Option<BoundAttrFactory<V, Builder>>,
+}
+
 pub trait Registry {
     fn node<Builder>(kind: &str) -> Option<NodeFactory<Builder>>
         where Builder: NodeBuilder;

@@ -7,14 +7,15 @@ use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use structopt::StructOpt;
 
-use photonic::attr::Bounded;
-use photonic::AttrValue;
+use photonic::attr::{Bounded, Range};
+use photonic::{AttrValue, FreeAttrDecl};
 use photonic_output_terminal::Terminal;
 
 use photonic_dyn::boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
 use photonic_dyn::builder::{AttrBuilder, Builder, NodeBuilder, OutputBuilder};
 use photonic_dyn::config;
 use photonic_dyn::registry::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory, Registry};
+use photonic_dyn::DynamicNode;
 
 
 #[derive(StructOpt)]
@@ -71,32 +72,13 @@ impl Registry for MyRegistry {
         where Builder: NodeBuilder,
     {
         return Some(match kind {
-            "alert" => Box::new(|config: config::Anything, builder: &mut Builder| -> Result<BoxedNodeDecl> {
-                #[derive(Deserialize, Clone, Debug)]
-                struct Config {
-                    pub hue: config::Attr,
-                    pub block: config::Attr,
-                    pub speed: config::Attr,
-                }
-
-                let config: Config = Config::deserialize(config)?;
-
-                return todo!();
-                // return Ok(Box::new(Alert {
-                //     hue: builder.bound_attr("hue", config.hue)?,
-                //     block: builder.bound_attr("block", config.block)?,
-                //     speed: builder.free_attr("speed", config.speed)?,
-                // }));
-            }),
-            // "blackout" => Box::new(|config, builder| {
-            //     return Ok(todo!());
-            // }),
-            // "noise" => Box::new(|config, builder| {
-            //     return Ok(todo!());
-            // }),
-            // "raindrops" => Box::new(|config, builder| {
-            //     return Ok(todo!());
-            // }),
+            "alert" => photonic_effects::nodes::Alert::<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<i64>, BoxedFreeAttrDecl<f32>>::factory(),
+            "blackout" => photonic_effects::nodes::Blackout::<BoxedNodeDecl, BoxedFreeAttrDecl<bool>>::factory(),
+            "brightness" => photonic_effects::nodes::Brightness::<BoxedNodeDecl, BoxedBoundAttrDecl<f32>>::factory(),
+            "color_wheel" => photonic_effects::nodes::ColorWheel::<>::factory(),
+            "noise" => photonic_effects::nodes::Noise::<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>>::factory(),
+            "overlay" => photonic_effects::nodes::Overlay::<BoxedNodeDecl, BoxedNodeDecl, BoxedBoundAttrDecl<f32>>::factory(),
+            //"raindrops" => photonic_effects::nodes::Raindrops::<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<photonic::color::palette::rgb::Rgb>>, BoxedBoundAttrDecl<Range<f32>>>::factory(),
             _ => return None
         });
     }

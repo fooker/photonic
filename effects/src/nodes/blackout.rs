@@ -6,6 +6,7 @@ use photonic_dyn::DynamicNode;
 #[derive(DynamicNode)]
 pub struct Blackout<Source, Active>
     where Source: NodeDecl + 'static,
+          Active: FreeAttrDecl<Value=bool>,
 {
     #[photonic(node)]
     pub source: NodeHandle<Source>,

@@ -1043,6 +1043,7 @@ dependencies = [
  "palette_derive",
  "phf",
  "rand 0.8.5",
+ "serde",
 ]
 
 [[package]]
