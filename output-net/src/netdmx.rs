@@ -5,16 +5,21 @@ use palette::rgb::Rgb;
 
 use photonic::{BufferReader, Output, OutputDecl, WhiteMode};
 
-pub enum Channels {
-    RGB,
-    RGBW(WhiteMode),
+pub enum Channel {
+    Red,
+    Green,
+    Blue,
+    White,
+    Fixed(u8),
 }
 
 pub struct Fixture {
     pub pixel: usize,
 
     pub dmx_address: usize,
-    pub dmx_channels: Channels,
+    pub dmx_channels: Vec<Channel>,
+
+    pub white_mode: WhiteMode,
 }
 
 pub struct NetDmxSender {
@@ -84,23 +89,17 @@ impl Output for NetDmxSenderOutput
     async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> Result<()> {
         for fixture in self.fixtures.iter() {
             let pixel = out.get(fixture.pixel);
+            let pixel = fixture.white_mode.apply(pixel);
+            let pixel = pixel.into_format::<u8>();
 
-            match fixture.dmx_channels {
-                Channels::RGB => {
-                    let pixel = pixel.into_format::<u8>();
-                    self.buffer[fixture.dmx_address - 1 + 0] = pixel.red;
-                    self.buffer[fixture.dmx_address - 1 + 1] = pixel.green;
-                    self.buffer[fixture.dmx_address - 1 + 2] = pixel.blue;
-                }
-
-                Channels::RGBW(white_mode) => {
-                    let pixel = white_mode.apply(pixel);
-                    let pixel = pixel.into_format::<u8>();
-                    self.buffer[fixture.dmx_address - 1 + 0] = pixel.red;
-                    self.buffer[fixture.dmx_address - 1 + 1] = pixel.green;
-                    self.buffer[fixture.dmx_address - 1 + 2] = pixel.blue;
-                    self.buffer[fixture.dmx_address - 1 + 3] = pixel.white;
-                }
+            for (i, config) in fixture.dmx_channels.iter().enumerate() {
+                self.buffer[fixture.dmx_address + i] = match config {
+                    Channel::Red => pixel.red,
+                    Channel::Green => pixel.green,
+                    Channel::Blue => pixel.blue,
+                    Channel::White => pixel.white,
+                    Channel::Fixed(value) => *value,
+                };
             }
         }
 

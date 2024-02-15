@@ -171,6 +171,12 @@ pub enum WhiteMode {
     Accurate,
 }
 
+impl Default for WhiteMode {
+    fn default() -> Self {
+        return Self::None;
+    }
+}
+
 impl WhiteMode {
     /// Transforms the color into a color having an extra white
     /// channel using the given white mode. If `color` already has a
