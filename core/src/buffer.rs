@@ -1,10 +1,12 @@
 use std::ops::{Deref, DerefMut, Range};
 
 use anyhow::Result;
+use crate::math::Lerp;
 
 mod map;
 mod imap;
 mod map_range;
+mod lerp;
 
 /// A buffer for data
 pub struct Buffer<E> {
@@ -147,6 +149,14 @@ pub trait BufferReader {
     {
         return map_range::MapRange::new(self, range, f);
     }
+
+    fn lerp<R>(&self, other: &R, i: f32) -> impl BufferReader<Element=Self::Element>
+        where Self: Sized,
+              Self::Element: Lerp,
+              R: BufferReader<Element=Self::Element>,
+    {
+        return lerp::Lerp::new(self, other, i);
+    }
 }
 
 impl<E> BufferReader for Buffer<E>
@@ -156,6 +166,20 @@ impl<E> BufferReader for Buffer<E>
 
     fn get(&self, index: usize) -> Self::Element {
         return *self.get(index);
+    }
+
+    fn size(&self) -> usize {
+        return self.size();
+    }
+}
+
+impl<E> BufferReader for &Buffer<E>
+    where E: Copy,
+{
+    type Element = E;
+
+    fn get(&self, index: usize) -> Self::Element {
+        return self.get(index);
     }
 
     fn size(&self) -> usize {

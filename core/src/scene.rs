@@ -100,12 +100,20 @@ impl<Node> BufferReader for NodeContainer<Node>
     fn size(&self) -> usize {
         return self.buffer.size();
     }
+}
 
-    // fn iter(&self) -> impl Iterator<Item=Self::Element>
-    //     where Self: Sized,
-    // {
-    //     return self.buffer.iter().copied().map(Self::Element::from);
-    // }
+impl<Node> BufferReader for &NodeContainer<Node>
+    where Node: self::Node,
+{
+    type Element = Node::Element;
+
+    fn get(&self, index: usize) -> Self::Element {
+        return Self::Element::from(*self.buffer.get(index));
+    }
+
+    fn size(&self) -> usize {
+        return self.buffer.size();
+    }
 }
 
 trait NodeHolder {
@@ -413,7 +421,7 @@ impl SceneBuilder {
 }
 
 impl NodeBuilder<'_> {
-    pub async fn node<Node>(&mut self, key: &'static str, decl: NodeHandle<Node>) -> Result<NodeRef<Node::Node>>
+    pub async fn node<Node>(&mut self, key: impl Into<String>, decl: NodeHandle<Node>) -> Result<NodeRef<Node::Node>>
         where Node: NodeDecl,
               <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
@@ -442,7 +450,7 @@ impl NodeBuilder<'_> {
 
         eprintln!("✨ Materialized node {} ({:?})", info.name, node);
 
-        self.info.nodes.insert(key, Arc::new(info));
+        self.info.nodes.insert(key.into(), Arc::new(info));
 
         return Ok(NodeRef {
             node
@@ -452,7 +460,7 @@ impl NodeBuilder<'_> {
     /// Create a bound attribute.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn bound_attr<Attr>(&mut self, name: &'static str, decl: Attr, bounds: impl Into<Bounds<Attr::Value>>) -> Result<Attr::Attr>
+    pub fn bound_attr<Attr>(&mut self, name: impl Into<String>, decl: Attr, bounds: impl Into<Bounds<Attr::Value>>) -> Result<Attr::Attr>
         where Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
@@ -471,7 +479,7 @@ impl NodeBuilder<'_> {
         let attr = decl.materialize(bounds, &mut builder)?;
 
         let info = Arc::new(builder.info);
-        self.info.attrs.insert(name, info);
+        self.info.attrs.insert(name.into(), info);
 
         return Ok(attr);
     }
@@ -480,7 +488,7 @@ impl NodeBuilder<'_> {
     ///
     /// The created attribute is registered as an attribute to the currently built node.
     // TODO: Rename to `free_attr`
-    pub fn unbound_attr<Attr>(&mut self, name: &'static str, decl: Attr) -> Result<Attr::Attr>
+    pub fn unbound_attr<Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
         where Attr: FreeAttrDecl,
     {
         let mut builder = AttrBuilder {
@@ -497,7 +505,7 @@ impl NodeBuilder<'_> {
         let attr = decl.materialize(&mut builder)?;
 
         let info = Arc::new(builder.info);
-        self.info.attrs.insert(name, info);
+        self.info.attrs.insert(name.into(), info);
 
         return Ok(attr);
     }
@@ -507,7 +515,7 @@ impl<'b> AttrBuilder<'b> {
     /// Create a bound child-attribute from its handle.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn bound_attr<Attr>(&mut self, name: &'static str, decl: Attr, bounds: impl Into<Bounds<Attr::Value>>) -> Result<Attr::Attr>
+    pub fn bound_attr<Attr>(&mut self, name: impl Into<String>, decl: Attr, bounds: impl Into<Bounds<Attr::Value>>) -> Result<Attr::Attr>
         where Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
@@ -526,7 +534,7 @@ impl<'b> AttrBuilder<'b> {
         let attr = decl.materialize(bounds, &mut builder)?;
 
         let info = Arc::new(builder.info);
-        self.info.attrs.insert(name, info);
+        self.info.attrs.insert(name.into(), info);
 
         return Ok(attr);
     }
@@ -534,7 +542,7 @@ impl<'b> AttrBuilder<'b> {
     /// Create a unbound child-attribute from its handle.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn unbound_attr<Attr>(&mut self, name: &'static str, decl: Attr) -> Result<Attr::Attr>
+    pub fn unbound_attr<Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
         where Attr: FreeAttrDecl,
     {
         let mut builder = AttrBuilder {
@@ -551,7 +559,7 @@ impl<'b> AttrBuilder<'b> {
         let attr = decl.materialize(&mut builder)?;
 
         let info = Arc::new(builder.info);
-        self.info.attrs.insert(name, info);
+        self.info.attrs.insert(name.into(), info);
 
         return Ok(attr);
     }
@@ -559,7 +567,7 @@ impl<'b> AttrBuilder<'b> {
     /// Create a input from its handle.
     ///
     /// The created input is registered as an input to the currently built node.
-    pub fn input<V>(&mut self, name: &'static str, input: InputHandle<V>) -> Result<Input<V>>
+    pub fn input<V>(&mut self, name: impl Into<String>, input: InputHandle<V>) -> Result<Input<V>>
         where V: InputValue,
     {
         let sink = input.sink();
@@ -571,7 +579,7 @@ impl<'b> AttrBuilder<'b> {
         };
 
         let info = Arc::new(info);
-        self.info.inputs.insert(name, info);
+        self.info.inputs.insert(name.into(), info);
 
         return Ok(input.input);
     }

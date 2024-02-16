@@ -9,6 +9,8 @@ edition.workspace = true
 photonic = { workspace = true }
 photonic-dyn = { path = "../dyn" }
 
+futures = { workspace = true }
+
 anyhow = { workspace = true }
 palette = { workspace = true, features = ["serializing"] }
 rand = { workspace = true }

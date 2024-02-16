@@ -6,6 +6,8 @@ use photonic::attr::Bounds;
 use photonic::math::Lerp;
 use photonic_dyn::DynamicNode;
 
+// TODO: Support blend modes
+
 #[derive(DynamicNode)]
 pub struct Overlay<Base, Pave, Blend>
     where Base: NodeDecl,

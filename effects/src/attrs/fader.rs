@@ -8,6 +8,8 @@ use photonic::math::Lerp;
 
 use crate::easing::Easing;
 
+// TODO: make input an attribute
+
 pub struct FaderAttr<V, Input>
     where V: AttrValue + PartialEq + Lerp,
           Input: Attr<Value=V>,

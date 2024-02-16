@@ -24,10 +24,10 @@ pub struct BrightnessNode<Source, Value>
           Value: Attr<Value=f32>,
           Source::Element: Lerp,
 {
-    value: Value,
     source: NodeRef<Source>,
 
-    pub range: Range<usize>,
+    value: Value,
+    range: Range<usize>,
 }
 
 impl<Source, Value> NodeDecl for Brightness<Source, Value>
@@ -52,6 +52,7 @@ impl<Source, Value> Node for BrightnessNode<Source, Value>
           Source::Element: Lerp,
 {
     const KIND: &'static str = "brightness";
+
     type Element = Source::Element;
 
     fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {

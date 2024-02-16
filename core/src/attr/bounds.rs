@@ -1,6 +1,9 @@
 use std::fmt::Display;
+use std::ops;
 use anyhow::ensure;
 use palette::num::{One, Zero};
+
+// TODO: Replace with ops::Range?
 
 /// Inclusive on both sides
 pub struct Bounds<V> {

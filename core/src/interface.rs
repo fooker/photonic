@@ -13,8 +13,8 @@ pub struct NodeInfo {
 
     pub name: String,
 
-    pub nodes: HashMap<&'static str, Arc<NodeInfo>>,
-    pub attrs: HashMap<&'static str, Arc<AttrInfo>>,
+    pub nodes: HashMap<String, Arc<NodeInfo>>,
+    pub attrs: HashMap<String, Arc<AttrInfo>>,
 }
 
 #[derive(Debug)]
@@ -23,8 +23,8 @@ pub struct AttrInfo {
 
     pub value_type: AttrValueType,
 
-    pub attrs: HashMap<&'static str, Arc<AttrInfo>>,
-    pub inputs: HashMap<&'static str, Arc<InputInfo>>,
+    pub attrs: HashMap<String, Arc<AttrInfo>>,
+    pub inputs: HashMap<String, Arc<InputInfo>>,
 }
 
 #[derive(Debug)]
@@ -65,7 +65,7 @@ impl Introspection {
     pub fn log(&self) {
         eprintln!("🔎 Full scene:");
 
-        fn log_input(depth: usize, key: &'static str, input: &InputInfo) {
+        fn log_input(depth: usize, key: &str, input: &InputInfo) {
             let indent = String::from("  ").repeat(depth);
             eprintln!("🔎  {}🎛 {} = {}",
                 indent,
@@ -73,7 +73,7 @@ impl Introspection {
                 input.name);
         }
 
-        fn log_attr(depth: usize, key: &'static str, attr: &AttrInfo) {
+        fn log_attr(depth: usize, key: &str, attr: &AttrInfo) {
             let indent = String::from("  ").repeat(depth);
             eprintln!("🔎  {}🪛 {} = {}:{} {{",
                       indent,
@@ -92,7 +92,7 @@ impl Introspection {
             eprintln!("🔎  {}}}", indent);
         }
 
-        fn log_node(depth: usize, key: &'static str, node: &NodeInfo) {
+        fn log_node(depth: usize, key: &str, node: &NodeInfo) {
             let indent = String::from("  ").repeat(depth);
             eprintln!("🔎  {}⭐ {} = {}@{} {{",
                       indent,

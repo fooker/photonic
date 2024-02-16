@@ -1,6 +1,6 @@
 #![feature(unsize)]
 #![feature(coerce_unsized)]
-extern crate anyhow;
+#![feature(impl_trait_in_assoc_type)]
 
 pub use attr::{Attr, AttrValue};
 pub use buffer::{Buffer, BufferReader};
