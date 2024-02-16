@@ -24,13 +24,18 @@ pub struct MQTT<'s> {
     pub realm: &'s str,
 }
 
-impl MQTT<'_> {
+impl <'s> MQTT<'s> {
     pub fn new(url: impl Into<String>) -> Result<Self> {
         let mqtt_options = MqttOptions::parse_url(url)?;
         return Ok(Self {
             mqtt_options,
-            realm: "photonic",
+            realm: "photonic", // TODO: Extract realm from URL
         });
+    }
+
+    pub fn with_realm(mut self, realm: &'s str) -> Self {
+        self.realm = realm;
+        return self;
     }
 }
 
