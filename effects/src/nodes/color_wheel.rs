@@ -30,11 +30,11 @@ impl NodeDecl for ColorWheel {
 
     async fn materialize(self, _builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         return Ok(Self::Node {
-            scale: self.scale, // TODO: Make this an attr
-            speed: self.speed, // TODO: Make this an attr
-            offset: self.offset, // TODO: Make this an attr
+            scale: self.scale,           // TODO: Make this an attr
+            speed: self.speed,           // TODO: Make this an attr
+            offset: self.offset,         // TODO: Make this an attr
             saturation: self.saturation, // TODO: Make this an attr
-            intensity: self.intensity, // TODO: Make this an attr
+            intensity: self.intensity,   // TODO: Make this an attr
             position: 0.0,
         });
     }
@@ -50,10 +50,7 @@ impl Node for ColorWheelNode {
 
         for i in 0..out.len() {
             let hue = (i as f32 / out.len() as f32 * self.scale + self.offset + self.position) * 360.0;
-            out[i] = Hsv::new(hue,
-                              self.saturation,
-                              self.intensity,
-            );
+            out[i] = Hsv::new(hue, self.saturation, self.intensity);
         }
 
         return Ok(());

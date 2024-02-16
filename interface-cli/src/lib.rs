@@ -8,10 +8,13 @@ use photonic::interface::Introspection;
 pub mod stdio;
 pub mod telnet;
 
-pub(self) async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspection: Arc<Introspection>) -> Result<()> {
+pub(self) async fn run(
+    i: impl AsyncRead + Unpin,
+    o: impl AsyncWrite + Unpin,
+    introspection: Arc<Introspection>,
+) -> Result<()> {
     let i = BufReader::new(i);
     let mut o = BufWriter::new(o);
-
 
     let mut lines = i.lines();
     loop {
@@ -49,7 +52,8 @@ pub(self) async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, in
                         }
                         o.write_all(format!("  Attributes: {}\n", node.kind).as_bytes()).await?;
                         for (name, info) in node.attrs.iter() {
-                            o.write_all(format!("    {} : {} = [{}]\n", name, info.value_type, info.kind).as_bytes()).await?;
+                            o.write_all(format!("    {} : {} = [{}]\n", name, info.value_type, info.kind).as_bytes())
+                                .await?;
                             // TODO: Recurse into attrs
                             // TODO: Show attached inputs
                         }
@@ -70,8 +74,11 @@ pub(self) async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, in
                             match input.sink.send_str(&value) {
                                 Ok(()) => {}
                                 Err(err) => {
-                                    o.write_all(format!("Invalid value: '{}' for {}: {}", value, input.sink, err).as_bytes()).await?;
-                                    continue
+                                    o.write_all(
+                                        format!("Invalid value: '{}' for {}: {}", value, input.sink, err).as_bytes(),
+                                    )
+                                    .await?;
+                                    continue;
                                 }
                             }
                         } else {
@@ -100,6 +107,3 @@ pub(self) async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, in
 
     return Ok(());
 }
-
-
-

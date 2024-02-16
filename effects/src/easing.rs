@@ -10,8 +10,7 @@ pub struct Easing<F: Float> {
 
 impl<'de, F: Float> Deserialize<'de> for Easing<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: Deserializer<'de>,
-    {
+    where D: Deserializer<'de> {
         #[derive(Debug, Deserialize)]
         struct S {
             func: Easings,
@@ -107,6 +106,7 @@ impl<F: Float> From<Easings> for Easing<F> {
             Easings::Bounce(EasingDirection::In) => bounce_in,
             Easings::Bounce(EasingDirection::Out) => bounce_out,
             Easings::Bounce(EasingDirection::InOut) => bounce_inout,
-        }.into();
+        }
+        .into();
     }
 }

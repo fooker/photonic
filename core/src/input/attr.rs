@@ -8,17 +8,18 @@ use crate::input::{Input, InputValue, Poll};
 use crate::scene::{AttrBuilder, InputHandle};
 
 pub struct InputAttrDecl<I, A>
-    where I: InputValue,
-          A: AttrValue + TryFrom<I>,
+where
+    I: InputValue,
+    A: AttrValue + TryFrom<I>,
 {
     input: InputHandle<I>,
     initial: A,
 }
 
 impl<I, A> BoundAttrDecl for InputAttrDecl<I, A>
-    where
-        I: InputValue,
-        A: AttrValue + Bounded + TryFrom<I>,
+where
+    I: InputValue,
+    A: AttrValue + Bounded + TryFrom<I>,
 {
     type Value = A;
     type Attr = BoundInputAttr<I, A>;
@@ -37,8 +38,9 @@ impl<I, A> BoundAttrDecl for InputAttrDecl<I, A>
 }
 
 impl<I, A> FreeAttrDecl for InputAttrDecl<I, A>
-    where I: InputValue,
-          A: AttrValue + TryFrom<I>,
+where
+    I: InputValue,
+    A: AttrValue + TryFrom<I>,
 {
     type Value = A;
     type Attr = FreeInputAttr<I, A>;
@@ -54,8 +56,9 @@ impl<I, A> FreeAttrDecl for InputAttrDecl<I, A>
 }
 
 pub struct BoundInputAttr<I, A>
-    where I: InputValue,
-          A: AttrValue + Bounded,
+where
+    I: InputValue,
+    A: AttrValue + Bounded,
 {
     input: Input<I>,
     current: A,
@@ -64,8 +67,9 @@ pub struct BoundInputAttr<I, A>
 }
 
 impl<I, A> Attr for BoundInputAttr<I, A>
-    where I: InputValue,
-          A: AttrValue + TryFrom<I> + Bounded,
+where
+    I: InputValue,
+    A: AttrValue + TryFrom<I> + Bounded,
 {
     type Value = A;
     const KIND: &'static str = "input";
@@ -87,16 +91,18 @@ impl<I, A> Attr for BoundInputAttr<I, A>
 }
 
 pub struct FreeInputAttr<I, A>
-    where I: InputValue,
-          A: AttrValue,
+where
+    I: InputValue,
+    A: AttrValue,
 {
     input: Input<I>,
     current: A,
 }
 
 impl<I, A> Attr for FreeInputAttr<I, A>
-    where I: InputValue,
-          A: AttrValue + TryFrom<I>,
+where
+    I: InputValue,
+    A: AttrValue + TryFrom<I>,
 {
     type Value = A;
 
@@ -114,11 +120,10 @@ impl<I, A> Attr for FreeInputAttr<I, A>
 }
 
 impl<V> InputHandle<V>
-    where V: InputValue,
+where V: InputValue
 {
     pub fn attr<A>(self, initial: A) -> InputAttrDecl<V, A>
-        where A: AttrValue + TryFrom<V>,
-    {
+    where A: AttrValue + TryFrom<V> {
         return InputAttrDecl {
             input: self,
             initial,

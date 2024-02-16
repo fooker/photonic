@@ -1,10 +1,10 @@
 use anyhow::{bail, Result};
-use palette::{Hsl, IntoColor};
 use palette::rgb::Rgb;
+use palette::{Hsl, IntoColor};
 
 use photonic::attr::{AsFixedAttr, Range};
-use photonic::Scene;
 use photonic::scene::InputHandle;
+use photonic::Scene;
 use photonic_effects::nodes::{Brightness, Raindrops};
 use photonic_output_terminal::Terminal;
 
@@ -28,8 +28,7 @@ async fn main() -> Result<()> {
         source: base,
     })?;
 
-    let output = Terminal::with_path("/tmp/photonic")
-        .with_waterfall(true);
+    let output = Terminal::with_path("/tmp/photonic").with_waterfall(true);
 
     let scene = scene.run(brightness, output).await?;
 

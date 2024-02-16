@@ -1,6 +1,6 @@
-use std::fmt::Display;
 use anyhow::ensure;
 use palette::num::{One, Zero};
+use std::fmt::Display;
 
 // TODO: Replace with ops::Range?
 
@@ -11,15 +11,14 @@ pub struct Bounds<V> {
 }
 
 impl<V> Bounds<V>
-    where V: Bounded,
+where V: Bounded
 {
     pub fn ensure(&self, value: V) -> anyhow::Result<V> {
         return value.checked(&self.min, &self.max);
     }
 
     pub fn normal() -> Self
-        where V: Zero + One,
-    {
+    where V: Zero + One {
         return Self {
             min: V::zero(),
             max: V::one(),
@@ -27,7 +26,7 @@ impl<V> Bounds<V>
     }
 }
 
-impl <V> From<(V, V)> for Bounds<V> {
+impl<V> From<(V, V)> for Bounds<V> {
     fn from((min, max): (V, V)) -> Self {
         return Self {
             min,
@@ -37,7 +36,7 @@ impl <V> From<(V, V)> for Bounds<V> {
 }
 
 impl<V> Clone for Bounds<V>
-    where V: Clone,
+where V: Clone
 {
     fn clone(&self) -> Self {
         return Self {
@@ -50,7 +49,7 @@ impl<V> Clone for Bounds<V>
 impl<V> Copy for Bounds<V> where V: Copy {}
 
 impl<V> Display for Bounds<V>
-    where V: Display,
+where V: Display
 {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         return write!(f, "[{}, {}]", self.min, self.max);
@@ -58,13 +57,13 @@ impl<V> Display for Bounds<V>
 }
 
 pub trait Bounded
-    where Self: Sized,
+where Self: Sized
 {
     fn checked(self, min: &Self, max: &Self) -> anyhow::Result<Self>;
 }
 
 impl<V> Bounded for V
-    where V: PartialOrd + Display,
+where V: PartialOrd + Display
 {
     fn checked(self, min: &Self, max: &Self) -> anyhow::Result<Self> {
         ensure!(self >= *min, "Attribute '{}' below {}", self, min);

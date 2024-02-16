@@ -12,17 +12,16 @@ pub use output::Output;
 pub use random::Random;
 pub use scene::{AttrBuilder, Context, Loop, NodeBuilder, NodeHandle, NodeRef, Scene, SceneBuilder};
 
+mod arena;
+pub mod attr;
+pub mod buffer;
+pub mod color;
+pub mod decl;
+pub mod input;
+pub mod interface;
+pub mod math;
 pub mod node;
 pub mod output;
-pub mod scene;
-pub mod buffer;
-pub mod interface;
-pub mod decl;
-pub mod utils;
-pub mod attr;
-pub mod input;
-pub mod math;
 pub mod random;
-pub mod color;
-mod arena;
-
+pub mod scene;
+pub mod utils;

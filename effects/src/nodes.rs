@@ -1,25 +1,25 @@
-mod color_wheel;
 mod brightness;
+mod color_wheel;
 
-mod raindrops;
 mod alert;
+mod raindrops;
 
 mod overlay;
 
 mod blackout;
 
+mod larson;
 mod noise;
 mod solid;
 mod switch;
-mod larson;
 
-pub use color_wheel::ColorWheel;
-pub use brightness::Brightness;
-pub use raindrops::Raindrops;
 pub use alert::Alert;
-pub use overlay::Overlay;
 pub use blackout::Blackout;
+pub use brightness::Brightness;
+pub use color_wheel::ColorWheel;
+pub use larson::Larson;
 pub use noise::Noise;
+pub use overlay::Overlay;
+pub use raindrops::Raindrops;
 pub use solid::Solid;
 pub use switch::Switch;
-pub use larson::Larson;

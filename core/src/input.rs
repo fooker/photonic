@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex};
 
 pub use sink::{InputSink, Sink};
 
@@ -49,13 +49,13 @@ struct Shared<V> {
 }
 
 pub struct Input<V>
-    where V: InputValue,
+where V: InputValue
 {
     shared: Arc<Shared<V>>,
 }
 
 impl<V> Input<V>
-    where V: InputValue,
+where V: InputValue
 {
     pub fn new() -> Self {
         return Self {

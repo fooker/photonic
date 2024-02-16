@@ -3,8 +3,8 @@ use std::time::Duration;
 use anyhow::{bail, Result};
 use palette::{Hsl, IntoColor, Srgb};
 
-use photonic::{Scene, WhiteMode};
 use photonic::attr::{AsFixedAttr, Range};
+use photonic::{Scene, WhiteMode};
 use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
 use photonic_effects::nodes::{Alert, Blackout, Brightness, Noise, Overlay, Raindrops, Switch};
@@ -26,16 +26,12 @@ async fn main() -> Result<()> {
                 next: Some(input_next),
                 prev: Some(input_prev),
                 values: vec![
-                    Range(Hsl::new(245.31, 0.5, 0.5).into_color(),
-                          Hsl::new(333.47, 0.7, 0.5).into_color()),
-                    Range(Hsl::new(0.0, 0.45, 0.5).into_color(),
-                          Hsl::new(17.5, 0.55, 0.5).into_color()),
-                    Range(Hsl::new(187.5, 0.25, 0.5).into_color(),
-                          Hsl::new(223.92, 0.5, 0.5).into_color()),
+                    Range(Hsl::new(245.31, 0.5, 0.5).into_color(), Hsl::new(333.47, 0.7, 0.5).into_color()),
+                    Range(Hsl::new(0.0, 0.45, 0.5).into_color(), Hsl::new(17.5, 0.55, 0.5).into_color()),
+                    Range(Hsl::new(187.5, 0.25, 0.5).into_color(), Hsl::new(223.92, 0.5, 0.5).into_color()),
                 ],
             },
-            easing: Easings::Quadratic(EasingDirection::InOut)
-                .with_speed(Duration::from_secs(2)),
+            easing: Easings::Quadratic(EasingDirection::InOut).with_speed(Duration::from_secs(2)),
         },
     })?;
 
@@ -47,20 +43,16 @@ async fn main() -> Result<()> {
     // TODO: Add switcher for more animations
     let input_animation = scene.input::<i64>("animation")?;
     let animation = scene.node("animation", Switch {
-        sources: vec![
-            noise
-        ],
+        sources: vec![noise],
         value: input_animation.attr(0),
-        easing: Easings::Quartic(EasingDirection::InOut)
-            .with_speed(Duration::from_secs(3)),
+        easing: Easings::Quartic(EasingDirection::InOut).with_speed(Duration::from_secs(3)),
     })?;
 
     let input_brightness = scene.input::<f32>("brightness")?;
     let brightness = scene.node("brightness", Brightness {
         value: Fader {
             input: input_brightness.attr(0.0),
-            easing: Easings::Cubic(EasingDirection::InOut)
-                .with_speed(Duration::from_secs(1)),
+            easing: Easings::Cubic(EasingDirection::InOut).with_speed(Duration::from_secs(1)),
         },
         source: animation,
         range: None,
@@ -83,8 +75,7 @@ async fn main() -> Result<()> {
                 hold_time: Duration::from_secs(5),
                 trigger: input_alert,
             },
-            easing: Easings::Quartic(EasingDirection::InOut)
-                .with_speed(Duration::from_secs(1)),
+            easing: Easings::Quartic(EasingDirection::InOut).with_speed(Duration::from_secs(1)),
         },
     })?;
 
@@ -100,38 +91,23 @@ async fn main() -> Result<()> {
         .add_fixture(Fixture {
             pixel: 0,
             dmx_address: 500,
-            dmx_channels: vec![
-                Channel::Red,
-                Channel::Green,
-                Channel::Blue,
-                Channel::White,
-            ],
+            dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue, Channel::White],
             white_mode: WhiteMode::Accurate,
         })
         .add_fixture(Fixture {
             pixel: 1,
             dmx_address: 508,
-            dmx_channels: vec![
-                Channel::Red,
-                Channel::Green,
-                Channel::Blue,
-                Channel::White,
-            ],
+            dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue, Channel::White],
             white_mode: WhiteMode::Accurate,
         })
         .add_fixtures(20, |n| Fixture {
             pixel: n + 2,
             dmx_address: 1 + n * 3,
-            dmx_channels: vec![
-                Channel::Red,
-                Channel::Green,
-                Channel::Blue,
-            ],
+            dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue],
             white_mode: WhiteMode::None,
         });
 
-    let output = Terminal::with_path("/tmp/photonic")
-        .with_waterfall(true);
+    let output = Terminal::with_path("/tmp/photonic").with_waterfall(true);
 
     let scene = scene.run(kitchen, output).await?;
 

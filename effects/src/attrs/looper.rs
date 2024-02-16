@@ -2,14 +2,13 @@ use std::time::Duration;
 
 use anyhow::Error;
 use num_traits::Num;
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
-
+use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 
 pub struct LooperAttr<V>
-    where V: AttrValue + Num,
+where V: AttrValue + Num
 {
     min: V,
     max: V,
@@ -21,7 +20,7 @@ pub struct LooperAttr<V>
 }
 
 impl<V> Attr for LooperAttr<V>
-    where V: AttrValue + Num,
+where V: AttrValue + Num
 {
     type Value = V;
     const KIND: &'static str = "looper";
@@ -36,7 +35,7 @@ impl<V> Attr for LooperAttr<V>
 }
 
 pub struct Looper<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     pub step: V,
 
@@ -44,12 +43,11 @@ pub struct Looper<V>
 }
 
 impl<V> BoundAttrDecl for Looper<V>
-    where V: AttrValue + Bounded + Num + PartialOrd,
+where V: AttrValue + Bounded + Num + PartialOrd
 {
     type Value = V;
     type Attr = LooperAttr<V>;
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr, Error> {
-
         let step = if self.step >= V::zero() {
             self.step
         } else {

@@ -1,9 +1,9 @@
 use anyhow::Result;
 use palette::Hsv;
 
-use photonic::{BoundAttrDecl, Buffer, Context, Node, NodeBuilder};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
+use photonic::{BoundAttrDecl, Buffer, Context, Node, NodeBuilder};
 use photonic_dyn::DynamicNode;
 
 enum Direction {
@@ -23,8 +23,7 @@ pub struct Larson<Hue, Width, Speed> {
     pub speed: Speed,
 }
 
-pub struct LarsonNode<Hue, Width, Speed>
-{
+pub struct LarsonNode<Hue, Width, Speed> {
     hue: Hue,
     width: Width,
     speed: Speed,
@@ -34,9 +33,10 @@ pub struct LarsonNode<Hue, Width, Speed>
 }
 
 impl<Hue, Width, Speed> NodeDecl for Larson<Hue, Width, Speed>
-    where Hue: BoundAttrDecl<Value=f32>,
-          Width: BoundAttrDecl<Value=f32>,
-          Speed: FreeAttrDecl<Value=f32>,
+where
+    Hue: BoundAttrDecl<Value = f32>,
+    Width: BoundAttrDecl<Value = f32>,
+    Speed: FreeAttrDecl<Value = f32>,
 {
     type Node = LarsonNode<Hue::Attr, Width::Attr, Speed::Attr>;
 
@@ -52,9 +52,10 @@ impl<Hue, Width, Speed> NodeDecl for Larson<Hue, Width, Speed>
 }
 
 impl<Hue, Width, Speed> Node for LarsonNode<Hue, Width, Speed>
-    where Hue: Attr<Value=f32>,
-          Width: Attr<Value=f32>,
-          Speed: Attr<Value=f32>,
+where
+    Hue: Attr<Value = f32>,
+    Width: Attr<Value = f32>,
+    Speed: Attr<Value = f32>,
 {
     const KIND: &'static str = "solid";
 
@@ -89,9 +90,7 @@ impl<Hue, Width, Speed> Node for LarsonNode<Hue, Width, Speed>
         out.update(|i, _| {
             // Calculate value as the linear distance between the pixel and the current position
             // scaled from 0.0 at ±width/2 to 1.0 at center
-            let value = (
-                ((width / 2.0) - f32::abs((i as f32) - self.position)) / (width / 2.0)
-            ).max(0.0);
+            let value = (((width / 2.0) - f32::abs((i as f32) - self.position)) / (width / 2.0)).max(0.0);
 
             return Hsv::new(hue, 1.0, value);
         });

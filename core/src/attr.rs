@@ -35,8 +35,7 @@ pub trait Attr {
     fn update(&mut self, duration: Duration) -> Self::Value;
 }
 
-pub mod values;
 pub mod bounds;
 pub mod fixed;
 pub mod range;
-
+pub mod values;

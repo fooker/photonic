@@ -1,6 +1,6 @@
 use std::str::FromStr;
-use std::sync::Arc;
 use std::sync::atomic::Ordering;
+use std::sync::Arc;
 
 use anyhow::Result;
 use palette::rgb::Rgb;
@@ -11,13 +11,13 @@ use crate::attr::Range;
 use super::{InputValue, Poll, Shared};
 
 #[derive(Clone)]
-pub struct Sink<V>
-{
+pub struct Sink<V> {
     pub(super) shared: Arc<Shared<V>>,
 }
 
 impl<V> Sink<V>
-    where V: InputValue {
+where V: InputValue
+{
     pub fn send(&self, next: V) {
         let mut value = self.shared.value.lock().expect("Failed to lock input value");
         *value = Poll::Update(next);
@@ -67,7 +67,7 @@ impl std::fmt::Display for InputSink {
 }
 
 impl<V> From<Sink<V>> for InputSink
-    where V: InputValue
+where V: InputValue
 {
     fn from(sink: Sink<V>) -> Self {
         return V::sink(sink);
@@ -77,14 +77,11 @@ impl<V> From<Sink<V>> for InputSink
 impl InputSink {
     pub fn send_str(&self, s: &str) -> Result<()> {
         fn parse_range<V>(s: &str) -> Result<Range<V>>
-            where V: FromStr,
-                  <V as FromStr>::Err: std::error::Error + Send + Sync + 'static,
+        where
+            V: FromStr,
+            <V as FromStr>::Err: std::error::Error + Send + Sync + 'static,
         {
-            let (s1, s2) = if let Some((s1, s2)) = s.split_once("..") {
-                (s1, s2)
-            } else {
-                (s, s)
-            };
+            let (s1, s2) = if let Some((s1, s2)) = s.split_once("..") { (s1, s2) } else { (s, s) };
 
             let v1 = s1.parse()?;
             let v2 = s2.parse()?;

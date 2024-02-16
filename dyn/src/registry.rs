@@ -9,13 +9,13 @@ use crate::builder::{AttrBuilder, NodeBuilder, OutputBuilder};
 use crate::config::Anything;
 
 pub trait Factory<T, Builder>
-    where T: Sized,
+where T: Sized
 {
     fn produce(self: Box<Self>, config: Anything, builder: &mut Builder) -> Result<T>;
 }
 
 impl<F, T, Builder> Factory<T, Builder> for F
-    where F: FnOnce(Anything, &mut Builder) -> Result<T>,
+where F: FnOnce(Anything, &mut Builder) -> Result<T>
 {
     fn produce(self: Box<Self>, config: Anything, builder: &mut Builder) -> Result<T> {
         return self(config, builder);
@@ -23,7 +23,7 @@ impl<F, T, Builder> Factory<T, Builder> for F
 }
 
 impl<F, T, Builder> From<F> for Box<dyn Factory<T, Builder>>
-    where F: FnOnce(Anything, &mut Builder) -> Result<T> + 'static,
+where F: FnOnce(Anything, &mut Builder) -> Result<T> + 'static
 {
     fn from(f: F) -> Self {
         return Box::new(f);
@@ -42,16 +42,18 @@ pub struct AttrFactory<V, Builder> {
 
 pub trait Registry {
     fn node<Builder>(kind: &str) -> Option<NodeFactory<Builder>>
-        where Builder: NodeBuilder;
+    where Builder: NodeBuilder;
 
     fn free_attr<V, Builder>(kind: &str) -> Option<FreeAttrFactory<V, Builder>>
-        where Builder: AttrBuilder,
-              V: AttrValue + DeserializeOwned;
+    where
+        Builder: AttrBuilder,
+        V: AttrValue + DeserializeOwned;
 
     fn bound_attr<V, Builder>(kind: &str) -> Option<BoundAttrFactory<V, Builder>>
-        where Builder: AttrBuilder,
-              V: AttrValue + DeserializeOwned + Bounded;
+    where
+        Builder: AttrBuilder,
+        V: AttrValue + DeserializeOwned + Bounded;
 
     fn output<Builder>(kind: &str) -> Option<OutputFactory<Builder>>
-        where Builder: OutputBuilder;
+    where Builder: OutputBuilder;
 }

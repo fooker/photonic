@@ -1,13 +1,14 @@
-use std::ops::Range;
 use anyhow::Result;
+use std::ops::Range;
 
 use photonic::{Attr, Buffer, BufferReader, Context, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic_dyn::DynamicNode;
 
 #[derive(DynamicNode)]
 pub struct Blackout<Source, Active>
-    where Source: NodeDecl + 'static,
-          Active: FreeAttrDecl<Value=bool>,
+where
+    Source: NodeDecl + 'static,
+    Active: FreeAttrDecl<Value = bool>,
 {
     #[photonic(node)]
     pub source: NodeHandle<Source>,
@@ -20,8 +21,9 @@ pub struct Blackout<Source, Active>
 }
 
 pub struct BlackoutNode<Source, Active>
-    where Source: Node + 'static,
-          Active: Attr<Value=bool>,
+where
+    Source: Node + 'static,
+    Active: Attr<Value = bool>,
 {
     source: NodeRef<Source>,
     active: Active,
@@ -31,8 +33,9 @@ pub struct BlackoutNode<Source, Active>
 }
 
 impl<Source, Active> NodeDecl for Blackout<Source, Active>
-    where Source: NodeDecl + 'static,
-          Active: FreeAttrDecl<Value=bool>,
+where
+    Source: NodeDecl + 'static,
+    Active: FreeAttrDecl<Value = bool>,
 {
     type Node = BlackoutNode<Source::Node, Active::Attr>;
 
@@ -47,8 +50,9 @@ impl<Source, Active> NodeDecl for Blackout<Source, Active>
 }
 
 impl<Source, Active> Node for BlackoutNode<Source, Active>
-    where Source: Node,
-          Active: Attr<Value=bool>,
+where
+    Source: Node,
+    Active: Attr<Value = bool>,
 {
     const KIND: &'static str = "blackout";
 

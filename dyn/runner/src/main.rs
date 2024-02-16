@@ -13,10 +13,8 @@ use photonic_output_terminal::Terminal;
 
 use photonic_dyn::boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
 use photonic_dyn::builder::{AttrBuilder, Builder, NodeBuilder, OutputBuilder};
-use photonic_dyn::config;
 use photonic_dyn::registry::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory, Registry};
-use photonic_dyn::DynamicNode;
-
+use photonic_dyn::{config, DynamicNode};
 
 #[derive(StructOpt)]
 struct Opt {
@@ -25,7 +23,6 @@ struct Opt {
 
     #[structopt(short, long, default_value = "30")]
     fps: usize,
-
     // #[structopt(short, long)]
     // interface: Vec<Interface>,
 }
@@ -34,7 +31,8 @@ struct Opt {
 async fn main() -> Result<()> {
     let opt = Opt::from_args();
 
-    let scene = tokio::fs::read_to_string(&opt.scene).await
+    let scene = tokio::fs::read_to_string(&opt.scene)
+        .await
         .with_context(|| format!("Failed to read config file: '{}'", opt.scene.display()))?;
 
     let scene: config::Scene = match opt.scene.extension().and_then(OsStr::to_str) {
@@ -69,23 +67,29 @@ struct MyRegistry {}
 
 impl Registry for MyRegistry {
     fn node<Builder>(kind: &str) -> Option<NodeFactory<Builder>>
-        where Builder: NodeBuilder,
-    {
+    where Builder: NodeBuilder {
         return Some(match kind {
-            "alert" => photonic_effects::nodes::Alert::<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<i64>, BoxedFreeAttrDecl<f32>>::factory(),
+            "alert" => photonic_effects::nodes::Alert::<
+                BoxedBoundAttrDecl<f32>,
+                BoxedBoundAttrDecl<i64>,
+                BoxedFreeAttrDecl<f32>,
+            >::factory(),
             "blackout" => photonic_effects::nodes::Blackout::<BoxedNodeDecl, BoxedFreeAttrDecl<bool>>::factory(),
             "brightness" => photonic_effects::nodes::Brightness::<BoxedNodeDecl, BoxedBoundAttrDecl<f32>>::factory(),
-            "color_wheel" => photonic_effects::nodes::ColorWheel::<>::factory(),
+            "color_wheel" => photonic_effects::nodes::ColorWheel::factory(),
             "noise" => photonic_effects::nodes::Noise::<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>>::factory(),
-            "overlay" => photonic_effects::nodes::Overlay::<BoxedNodeDecl, BoxedNodeDecl, BoxedBoundAttrDecl<f32>>::factory(),
+            "overlay" => {
+                photonic_effects::nodes::Overlay::<BoxedNodeDecl, BoxedNodeDecl, BoxedBoundAttrDecl<f32>>::factory()
+            }
             //"raindrops" => photonic_effects::nodes::Raindrops::<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<photonic::color::palette::rgb::Rgb>>, BoxedBoundAttrDecl<Range<f32>>>::factory(),
-            _ => return None
+            _ => return None,
         });
     }
 
     fn free_attr<V, Builder>(kind: &str) -> Option<FreeAttrFactory<V, Builder>>
-        where Builder: AttrBuilder,
-              V: AttrValue + DeserializeOwned,
+    where
+        Builder: AttrBuilder,
+        V: AttrValue + DeserializeOwned,
     {
         return Some(match kind {
             "button" => Box::new(|config: config::Anything, builder: &mut Builder| -> Result<BoxedFreeAttrDecl<V>> {
@@ -108,13 +112,14 @@ impl Registry for MyRegistry {
                 //     trigger: builder.input(config.trigger)?,
                 // }));
             }),
-            _ => return None
+            _ => return None,
         });
     }
 
     fn bound_attr<V, Builder>(kind: &str) -> Option<BoundAttrFactory<V, Builder>>
-        where Builder: AttrBuilder,
-              V: AttrValue + DeserializeOwned + Bounded,
+    where
+        Builder: AttrBuilder,
+        V: AttrValue + DeserializeOwned + Bounded,
     {
         return Some(match kind {
             "button" => Box::new(|config: config::Anything, builder: &mut Builder| -> Result<BoxedBoundAttrDecl<V>> {
@@ -137,13 +142,12 @@ impl Registry for MyRegistry {
                 //     trigger: builder.input(config.trigger)?,
                 // }));
             }),
-            _ => return None
+            _ => return None,
         });
     }
 
     fn output<Builder>(kind: &str) -> Option<OutputFactory<Builder>>
-        where Builder: OutputBuilder,
-    {
+    where Builder: OutputBuilder {
         return Some(match kind {
             "terminal" => Box::new(|config: config::Anything, _builder: &mut Builder| -> Result<BoxedOutputDecl> {
                 #[derive(Deserialize, Clone, Debug)]
@@ -159,7 +163,7 @@ impl Registry for MyRegistry {
                     path: config.path,
                 }));
             }),
-            _ => return None
-        })
+            _ => return None,
+        });
     }
 }

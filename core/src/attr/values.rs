@@ -1,5 +1,5 @@
-use palette::{Hsl, Hsv, Srgb};
 use super::{AttrValueType, Range};
+use palette::{Hsl, Hsv, Srgb};
 
 pub trait AttrValue: Send + Copy + 'static {
     const TYPE: AttrValueType;
@@ -30,7 +30,7 @@ impl AttrValue for f64 {
 }
 
 impl<V> AttrValue for Range<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     const TYPE: AttrValueType = AttrValueType::Range(&V::TYPE);
 }

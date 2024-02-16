@@ -1,8 +1,8 @@
 use anyhow::Result;
 use serde::de::DeserializeOwned;
 
-use photonic::AttrValue;
 use photonic::input::InputValue;
+use photonic::AttrValue;
 
 use crate::config::Anything;
 
@@ -12,7 +12,7 @@ pub trait DynAttrValue: AttrValue + InputValue {
 }
 
 impl<T> DynAttrValue for T
-    where T: AttrValue + DeserializeOwned + InputValue,
+where T: AttrValue + DeserializeOwned + InputValue
 {
     fn parse(value: Anything) -> Result<Self> {
         return Ok(T::deserialize(value)?);

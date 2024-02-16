@@ -1,11 +1,10 @@
-use std::time::Duration;
 use palette::Mix;
+use std::time::Duration;
 
-use rand::{Rng, SeedableRng};
-use rand::distributions::Distribution;
 use rand::distributions::uniform::SampleUniform;
+use rand::distributions::{Distribution, Standard};
 use rand::rngs::SmallRng;
-use rand::distributions::Standard;
+use rand::{Rng, SeedableRng};
 
 use crate::math;
 use crate::math::Lerp;
@@ -23,16 +22,16 @@ impl Random {
     }
 
     pub fn lerp<V>(&mut self, v1: V, v2: V) -> V
-        where V: Lerp,
-    {
+    where V: Lerp {
         let v = self.0.gen();
         return Lerp::lerp(v1, v2, v);
     }
 
     // TODO: unify mix with lerp
     pub fn mix<V>(&mut self, v1: V, v2: V) -> V
-        where V: Mix,
-              Standard: Distribution<<V as Mix>::Scalar>,
+    where
+        V: Mix,
+        Standard: Distribution<<V as Mix>::Scalar>,
     {
         let v = self.0.gen();
         return Mix::mix(v1, v2, v);

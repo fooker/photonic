@@ -2,17 +2,18 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic::math::Lerp;
+use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic_dyn::DynamicNode;
 
 use crate::easing::Easing;
 
 #[derive(DynamicNode)]
 pub struct Switch<Source, Value>
-    where Source: NodeDecl,
-          Value: BoundAttrDecl<Value=usize>,
-          <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
+where
+    Source: NodeDecl,
+    Value: BoundAttrDecl<Value = usize>,
+    <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     #[photonic(node)]
     pub sources: Vec<NodeHandle<Source>>,
@@ -24,9 +25,10 @@ pub struct Switch<Source, Value>
 }
 
 pub struct SwitchNode<Source, Value>
-    where Source: Node + 'static,
-          Value: Attr<Value=usize>,
-          Source::Element: Lerp,
+where
+    Source: Node + 'static,
+    Value: Attr<Value = usize>,
+    Source::Element: Lerp,
 {
     sources: Vec<NodeRef<Source>>,
     value: Value,
@@ -40,9 +42,10 @@ pub struct SwitchNode<Source, Value>
 }
 
 impl<Source, Value> NodeDecl for Switch<Source, Value>
-    where Source: NodeDecl + 'static,
-          Value: BoundAttrDecl<Value=usize>,
-          <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
+where
+    Source: NodeDecl + 'static,
+    Value: BoundAttrDecl<Value = usize>,
+    <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     type Node = SwitchNode<Source::Node, Value::Attr>;
 
@@ -68,9 +71,10 @@ impl<Source, Value> NodeDecl for Switch<Source, Value>
 }
 
 impl<Source, Value> Node for SwitchNode<Source, Value>
-    where Source: Node,
-          Value: Attr<Value=usize>,
-          Source::Element: Lerp,
+where
+    Source: Node,
+    Value: Attr<Value = usize>,
+    Source::Element: Lerp,
 {
     const KIND: &'static str = "switch";
 

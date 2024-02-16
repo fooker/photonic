@@ -2,8 +2,7 @@ use crate::{Buffer, Context};
 
 use anyhow::Result;
 
-pub trait Node: Sized
-{
+pub trait Node: Sized {
     const KIND: &'static str;
 
     type Element: Copy + Default;

@@ -10,9 +10,7 @@ struct Realm<'a>(&'a str);
 
 impl<'a> Realm<'a> {
     pub fn from(value: &'a str) -> Self {
-        return Self(if value.ends_with('/') {
-            &value[0..value.len() - 1]
-        } else { value });
+        return Self(if value.ends_with('/') { &value[0..value.len() - 1] } else { value });
     }
 
     pub fn topic(&self, suffix: &str) -> String {
@@ -66,7 +64,7 @@ impl Interface for MQTT<'_> {
                 };
 
                 match input.sink.send_str(&payload) {
-                    Ok(()) => {},
+                    Ok(()) => {}
                     Err(err) => {
                         eprintln!("⇄ Invalid value on '{}' = {:?}: {}", publish.topic, payload, err);
                         continue;

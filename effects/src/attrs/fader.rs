@@ -2,17 +2,18 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::math::Lerp;
+use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 use crate::easing::Easing;
 
 // TODO: make input an attribute
 
 pub struct FaderAttr<V, Input>
-    where V: AttrValue + PartialEq + Lerp,
-          Input: Attr<Value=V>,
+where
+    V: AttrValue + PartialEq + Lerp,
+    Input: Attr<Value = V>,
 {
     input: Input,
 
@@ -25,8 +26,9 @@ pub struct FaderAttr<V, Input>
 }
 
 impl<V, Input> Attr for FaderAttr<V, Input>
-    where V: AttrValue + PartialEq + Lerp,
-          Input: Attr<Value=V>,
+where
+    V: AttrValue + PartialEq + Lerp,
+    Input: Attr<Value = V>,
 {
     type Value = V;
 
@@ -58,8 +60,9 @@ pub struct Fader<Input> {
 }
 
 impl<Input, V> BoundAttrDecl for Fader<Input>
-    where V: AttrValue + PartialEq + Lerp + Bounded,
-          Input: BoundAttrDecl<Value=V>,
+where
+    V: AttrValue + PartialEq + Lerp + Bounded,
+    Input: BoundAttrDecl<Value = V>,
 {
     type Value = V;
     type Attr = FaderAttr<V, Input::Attr>;
@@ -80,9 +83,9 @@ impl<Input, V> BoundAttrDecl for Fader<Input>
 }
 
 impl<Input, V> FreeAttrDecl for Fader<Input>
-    where
-        V: AttrValue + PartialEq + Lerp,
-        Input: FreeAttrDecl<Value=V>,
+where
+    V: AttrValue + PartialEq + Lerp,
+    Input: FreeAttrDecl<Value = V>,
 {
     type Value = V;
     type Attr = FaderAttr<V, Input::Attr>;

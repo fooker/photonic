@@ -2,9 +2,9 @@ use anyhow::Result;
 use noise::NoiseFn;
 use palette::Lch;
 
-use photonic::{Buffer, Context, Node, NodeBuilder};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
+use photonic::{Buffer, Context, Node, NodeBuilder};
 use photonic_dyn::DynamicNode;
 
 // TODO: Hue range
@@ -19,8 +19,9 @@ pub struct Noise<Speed, Stretch> {
 }
 
 pub struct NoiseNode<Speed, Stretch>
-    where Speed: Attr<Value=f32>,
-          Stretch: Attr<Value=f32>,
+where
+    Speed: Attr<Value = f32>,
+    Stretch: Attr<Value = f32>,
 {
     speed: Speed,
     stretch: Stretch,
@@ -31,8 +32,9 @@ pub struct NoiseNode<Speed, Stretch>
 }
 
 impl<Speed, Stretch> NodeDecl for Noise<Speed, Stretch>
-    where Speed: FreeAttrDecl<Value=f32>,
-          Stretch: FreeAttrDecl<Value=f32>,
+where
+    Speed: FreeAttrDecl<Value = f32>,
+    Stretch: FreeAttrDecl<Value = f32>,
 {
     type Node = NoiseNode<Speed::Attr, Stretch::Attr>;
 
@@ -47,8 +49,9 @@ impl<Speed, Stretch> NodeDecl for Noise<Speed, Stretch>
 }
 
 impl<Speed, Stretch> Node for NoiseNode<Speed, Stretch>
-    where Speed: Attr<Value=f32>,
-          Stretch: Attr<Value=f32>,
+where
+    Speed: Attr<Value = f32>,
+    Stretch: Attr<Value = f32>,
 {
     const KIND: &'static str = "noise";
 

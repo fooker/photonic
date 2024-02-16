@@ -2,13 +2,13 @@ use std::time::Duration;
 
 use anyhow::Error;
 
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
+use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 pub struct SequenceAttr<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     values: Vec<V>,
 
@@ -19,8 +19,7 @@ pub struct SequenceAttr<V>
 }
 
 impl<V> Attr for SequenceAttr<V>
-    where
-        V: AttrValue,
+where V: AttrValue
 {
     type Value = V;
     const KIND: &'static str = "sequence";
@@ -30,9 +29,7 @@ impl<V> Attr for SequenceAttr<V>
         let prev = self.prev.as_mut().map_or(Poll::Pending, Input::poll);
 
         return match (next, prev) {
-            (Poll::Update(()), Poll::Update(())) | (Poll::Pending, Poll::Pending) => {
-                self.values[self.position]
-            }
+            (Poll::Update(()), Poll::Update(())) | (Poll::Pending, Poll::Pending) => self.values[self.position],
             (Poll::Update(()), Poll::Pending) => {
                 self.position = (self.position + self.values.len() + 1) % self.values.len();
                 self.values[self.position]
@@ -46,7 +43,7 @@ impl<V> Attr for SequenceAttr<V>
 }
 
 pub struct Sequence<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     pub values: Vec<V>,
 
@@ -56,14 +53,13 @@ pub struct Sequence<V>
 }
 
 impl<V> BoundAttrDecl for Sequence<V>
-    where V: AttrValue + Bounded,
+where V: AttrValue + Bounded
 {
     type Value = V;
     type Attr = SequenceAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr, Error> {
-        let values =
-            self.values.into_iter().map(|v| bounds.ensure(v)).collect::<Result<Vec<_>, Error>>()?;
+        let values = self.values.into_iter().map(|v| bounds.ensure(v)).collect::<Result<Vec<_>, Error>>()?;
 
         let next = self.next.map(|input| builder.input("next", input)).transpose()?;
         let prev = self.prev.map(|input| builder.input("prev", input)).transpose()?;
@@ -78,7 +74,7 @@ impl<V> BoundAttrDecl for Sequence<V>
 }
 
 impl<V> FreeAttrDecl for Sequence<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     type Value = V;
     type Attr = SequenceAttr<V>;

@@ -1,7 +1,7 @@
+use photonic::interface::{Interface, Introspection};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
-use photonic::interface::{Interface, Introspection};
 
 pub struct CLI {
     pub address: SocketAddr,

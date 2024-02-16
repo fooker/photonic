@@ -1,9 +1,9 @@
 use anyhow::Result;
 use palette::rgb::Rgb;
 
-use photonic::{Buffer, Context, Node, NodeBuilder};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
+use photonic::{Buffer, Context, Node, NodeBuilder};
 use photonic_dyn::DynamicNode;
 
 #[derive(DynamicNode)]
@@ -13,13 +13,13 @@ pub struct Solid<Color> {
 }
 
 pub struct SolidNode<Color>
-    where Color: Attr<Value=Rgb>,
+where Color: Attr<Value = Rgb>
 {
     color: Color,
 }
 
 impl<Color> NodeDecl for Solid<Color>
-    where Color: FreeAttrDecl<Value=Rgb>,
+where Color: FreeAttrDecl<Value = Rgb>
 {
     type Node = SolidNode<Color::Attr>;
 
@@ -31,7 +31,7 @@ impl<Color> NodeDecl for Solid<Color>
 }
 
 impl<Color> Node for SolidNode<Color>
-    where Color: Attr<Value=Rgb>,
+where Color: Attr<Value = Rgb>
 {
     const KIND: &'static str = "solid";
 

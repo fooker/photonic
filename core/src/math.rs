@@ -1,6 +1,6 @@
 use num_traits::Float;
-use palette::{Hsl, Hsv, Lch, Mix};
 use palette::rgb::Rgb;
+use palette::{Hsl, Hsv, Lch, Mix};
 
 pub trait Lerp {
     fn lerp(a: Self, b: Self, i: f32) -> Self;
@@ -63,14 +63,12 @@ impl Lerp for Rgb {
 }
 
 pub fn minmax<F>(a: F, b: F) -> (F, F)
-    where F: PartialOrd,
-{
+where F: PartialOrd {
     return if a < b { (a, b) } else { (b, a) };
 }
 
 pub fn clamp<F>(f: F, r: (F, F)) -> F
-    where F: PartialOrd,
-{
+where F: PartialOrd {
     if f <= r.0 {
         return r.0;
     }
@@ -83,8 +81,7 @@ pub fn clamp<F>(f: F, r: (F, F)) -> F
 }
 
 pub fn clamp_opt<F>(f: F, r: (Option<F>, Option<F>)) -> F
-    where F: PartialOrd,
-{
+where F: PartialOrd {
     if let Some(r) = r.0 {
         if f <= r {
             return r;
@@ -101,14 +98,12 @@ pub fn clamp_opt<F>(f: F, r: (Option<F>, Option<F>)) -> F
 }
 
 pub fn wrap<F>(f: F, s: usize) -> F
-    where F: Float,
-{
+where F: Float {
     let s = F::from(s).expect("Can not convert");
     return (s + (f % s)) % s;
 }
 
 pub fn remap<F>(v: F, s: (F, F), t: (F, F)) -> F
-    where F: Float,
-{
+where F: Float {
     return (v - s.0) / (s.1 - s.0) * (t.1 - t.0) + t.0;
 }

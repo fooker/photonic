@@ -3,15 +3,15 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use crate::attr::{Attr, Bounded, Bounds, AttrValue};
-use crate::AttrBuilder;
+use crate::attr::{Attr, AttrValue, Bounded, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl};
+use crate::AttrBuilder;
 
 pub struct FixedAttr<V>(V)
-    where V: AttrValue;
+where V: AttrValue;
 
 impl<V> Attr for FixedAttr<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     type Value = V;
 
@@ -23,7 +23,7 @@ impl<V> Attr for FixedAttr<V>
 }
 
 impl<V> Deref for FixedAttr<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     type Target = V;
 
@@ -33,10 +33,10 @@ impl<V> Deref for FixedAttr<V>
 }
 
 pub struct FixedAttrDecl<V>(V)
-    where V: AttrValue;
+where V: AttrValue;
 
 impl<V> FreeAttrDecl for FixedAttrDecl<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     type Value = V;
     type Attr = FixedAttr<Self::Value>;
@@ -47,7 +47,7 @@ impl<V> FreeAttrDecl for FixedAttrDecl<V>
 }
 
 impl<V> BoundAttrDecl for FixedAttrDecl<V>
-    where V: AttrValue + Bounded,
+where V: AttrValue + Bounded
 {
     type Value = V;
     type Attr = FixedAttr<Self::Value>;
@@ -59,13 +59,13 @@ impl<V> BoundAttrDecl for FixedAttrDecl<V>
 }
 
 pub trait AsFixedAttr<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     fn fixed(self) -> FixedAttrDecl<V>;
 }
 
 impl<V, T> AsFixedAttr<V> for T
-    where V: AttrValue + From<Self>,
+where V: AttrValue + From<Self>
 {
     fn fixed(self) -> FixedAttrDecl<V> {
         return FixedAttrDecl(self.into());

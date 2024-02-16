@@ -1,11 +1,11 @@
 use std::ops::{BitAnd, Deref, DerefMut};
 
-use palette::{Clamp, ClampAssign, Darken, FromColor, IsWithinBounds, num, SrgbLuma};
 use palette::bool_mask::HasBoolMask;
 use palette::encoding::Srgb;
 use palette::num::{PartialCmp, Zero};
 use palette::rgb::Rgb;
 use palette::stimulus::{FromStimulus, Stimulus};
+use palette::{num, Clamp, ClampAssign, Darken, FromColor, IsWithinBounds, SrgbLuma};
 
 /// An white component wrapper for colors.
 #[derive(Clone, Copy, Debug)]
@@ -20,9 +20,7 @@ pub struct Rgbw<S = Srgb, T = f32> {
 
 impl<S, T> Rgbw<S, T> {
     pub fn into_format<U>(self) -> Rgbw<S, U>
-        where
-            U: FromStimulus<T>,
-    {
+    where U: FromStimulus<T> {
         return Rgbw {
             color: self.color.into_format(),
             white: U::from_stimulus(self.white),
@@ -31,9 +29,7 @@ impl<S, T> Rgbw<S, T> {
 
     /// Convert from another component type.
     pub fn from_format<U>(color: Rgbw<S, U>) -> Self
-        where
-            T: FromStimulus<U>,
-    {
+    where T: FromStimulus<U> {
         return color.into_format();
     }
 
@@ -65,9 +61,9 @@ impl<S, T: Stimulus> Rgbw<S, T> {
 }
 
 impl<S, T> PartialEq for Rgbw<S, T>
-    where
-        T: PartialEq,
-        S: PartialEq,
+where
+    T: PartialEq,
+    S: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         self.color == other.color && self.white == other.white
@@ -75,10 +71,11 @@ impl<S, T> PartialEq for Rgbw<S, T>
 }
 
 impl<S, T> Eq for Rgbw<S, T>
-    where
-        T: Eq,
-        S: Eq,
-{}
+where
+    T: Eq,
+    S: Eq,
+{
+}
 
 impl<S, T> Deref for Rgbw<S, T> {
     type Target = Rgb<S, T>;
@@ -95,23 +92,21 @@ impl<S, T> DerefMut for Rgbw<S, T> {
 }
 
 impl<S, T> IsWithinBounds for Rgbw<S, T>
-    where
-        Rgb<S, T>: IsWithinBounds,
-        T: Stimulus + PartialCmp + IsWithinBounds<Mask=<Rgb<S, T> as HasBoolMask>::Mask>,
-        <Rgb<S, T> as HasBoolMask>::Mask: BitAnd<Output=<Rgb<S, T> as HasBoolMask>::Mask>,
+where
+    Rgb<S, T>: IsWithinBounds,
+    T: Stimulus + PartialCmp + IsWithinBounds<Mask = <Rgb<S, T> as HasBoolMask>::Mask>,
+    <Rgb<S, T> as HasBoolMask>::Mask: BitAnd<Output = <Rgb<S, T> as HasBoolMask>::Mask>,
 {
     #[inline]
     fn is_within_bounds(&self) -> <Rgb<S, T> as HasBoolMask>::Mask {
-        self.color.is_within_bounds()
-            & self.white.gt_eq(&Self::min_white())
-            & self.white.lt_eq(&Self::max_white())
+        self.color.is_within_bounds() & self.white.gt_eq(&Self::min_white()) & self.white.lt_eq(&Self::max_white())
     }
 }
 
 impl<S, T> Clamp for Rgbw<S, T>
-    where
-        Rgb<S, T>: Clamp,
-        T: Stimulus + num::Clamp,
+where
+    Rgb<S, T>: Clamp,
+    T: Stimulus + num::Clamp,
 {
     #[inline]
     fn clamp(self) -> Self {
@@ -123,9 +118,9 @@ impl<S, T> Clamp for Rgbw<S, T>
 }
 
 impl<S, T> ClampAssign for Rgbw<S, T>
-    where
-        Rgb<S, T>: ClampAssign,
-        T: Stimulus + num::ClampAssign,
+where
+    Rgb<S, T>: ClampAssign,
+    T: Stimulus + num::ClampAssign,
 {
     #[inline]
     fn clamp_assign(&mut self) {
@@ -135,15 +130,15 @@ impl<S, T> ClampAssign for Rgbw<S, T>
 }
 
 impl<S, T> HasBoolMask for Rgbw<S, T>
-    where
-        Rgb<S, T>: HasBoolMask,
-        T: HasBoolMask<Mask=<Rgb<S, T> as HasBoolMask>::Mask>,
+where
+    Rgb<S, T>: HasBoolMask,
+    T: HasBoolMask<Mask = <Rgb<S, T> as HasBoolMask>::Mask>,
 {
     type Mask = <Rgb<S, T> as HasBoolMask>::Mask;
 }
 
 impl<S, T> Default for Rgbw<S, T>
-    where T: Stimulus,
+where T: Stimulus
 {
     fn default() -> Rgbw<S, T> {
         return Rgbw {
@@ -182,9 +177,10 @@ impl WhiteMode {
     /// channel using the given white mode. If `color` already has a
     /// white channel, it will be overwritten.
     pub fn apply<C, W>(&self, color: C) -> C::WithWhite
-        where C: WithWhite<W> + Darken<Scalar=W> + Copy,
-              W: Stimulus + Copy,
-              SrgbLuma<W>: FromColor<C>,
+    where
+        C: WithWhite<W> + Darken<Scalar = W> + Copy,
+        W: Stimulus + Copy,
+        SrgbLuma<W>: FromColor<C>,
     {
         let w = SrgbLuma::<W>::from_color(color);
         return match self {
@@ -196,7 +192,7 @@ impl WhiteMode {
 }
 
 pub trait WithWhite<W>: Sized
-    where W: Stimulus,
+where W: Stimulus
 {
     /// The opaque color type, without any white channel.
     ///
@@ -206,7 +202,7 @@ pub trait WithWhite<W>: Sized
     /// The color type with white channel applied.
     ///
     /// This is typically `White<Self::Color, W>`.
-    type WithWhite: WithWhite<W, Color=Self::Color, WithWhite=Self::WithWhite>;
+    type WithWhite: WithWhite<W, Color = Self::Color, WithWhite = Self::WithWhite>;
 
     /// Transforms the color into a color having an extra white
     /// channel with the provided white value. If `Self` already has
@@ -234,9 +230,7 @@ pub trait WithWhite<W>: Sized
     #[must_use]
     #[inline]
     fn full(self) -> Self::WithWhite
-        where
-            W: Stimulus,
-    {
+    where W: Stimulus {
         self.with_white(W::max_intensity())
     }
 
@@ -245,15 +239,13 @@ pub trait WithWhite<W>: Sized
     #[must_use]
     #[inline]
     fn black(self) -> Self::WithWhite
-        where
-            W: Zero,
-    {
+    where W: Zero {
         self.with_white(W::zero())
     }
 }
 
 impl<S, T> WithWhite<T> for Rgbw<S, T>
-    where T: Stimulus,
+where T: Stimulus
 {
     type Color = Rgb<S, T>;
     type WithWhite = Self;
@@ -273,13 +265,16 @@ impl<S, T> WithWhite<T> for Rgbw<S, T>
 }
 
 impl<S, T> WithWhite<T> for Rgb<S, T>
-    where T: Stimulus,
+where T: Stimulus
 {
     type Color = Self;
     type WithWhite = Rgbw<S, T>;
 
     fn with_white(self, white: T) -> Self::WithWhite {
-        return Self::WithWhite { color: self, white };
+        return Self::WithWhite {
+            color: self,
+            white,
+        };
     }
 
     fn without_white(self) -> Self::Color {

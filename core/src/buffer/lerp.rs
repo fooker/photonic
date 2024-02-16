@@ -1,23 +1,26 @@
 use super::BufferReader;
 
-pub struct Lerp<'a, 'b, A, B>
-{
+pub struct Lerp<'a, 'b, A, B> {
     a: &'a A,
     b: &'b B,
     i: f32,
 }
 
-impl<'a, 'b, A, B> Lerp<'a, 'b, A, B>
-{
+impl<'a, 'b, A, B> Lerp<'a, 'b, A, B> {
     pub(super) fn new(a: &'a A, b: &'b B, i: f32) -> Self {
-        return Lerp { a, b, i };
+        return Lerp {
+            a,
+            b,
+            i,
+        };
     }
 }
 
 impl<A, B, E> BufferReader for Lerp<'_, '_, A, B>
-    where A: BufferReader<Element=E>,
-          B: BufferReader<Element=E>,
-          E: crate::math::Lerp,
+where
+    A: BufferReader<Element = E>,
+    B: BufferReader<Element = E>,
+    E: crate::math::Lerp,
 {
     type Element = E;
 

@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use anyhow::Error;
 
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
+use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 #[derive(Clone, Copy, Debug)]
 enum State {
@@ -35,7 +35,7 @@ impl State {
 }
 
 pub struct ButtonAttr<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     value_released: V,
     value_pressed: V,
@@ -48,7 +48,7 @@ pub struct ButtonAttr<V>
 }
 
 impl<V> Attr for ButtonAttr<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     type Value = V;
     const KIND: &'static str = "button";
@@ -68,7 +68,7 @@ impl<V> Attr for ButtonAttr<V>
 }
 
 pub struct Button<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     pub value_release: V,
     pub value_pressed: V,
@@ -79,8 +79,7 @@ pub struct Button<V>
 }
 
 impl<V> BoundAttrDecl for Button<V>
-    where
-        V: AttrValue + Bounded,
+where V: AttrValue + Bounded
 {
     type Value = V;
     type Attr = ButtonAttr<V>;
@@ -97,7 +96,7 @@ impl<V> BoundAttrDecl for Button<V>
 }
 
 impl<V> FreeAttrDecl for Button<V>
-    where V: AttrValue,
+where V: AttrValue
 {
     type Value = V;
     type Attr = ButtonAttr<V>;

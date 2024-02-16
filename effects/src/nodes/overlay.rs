@@ -1,17 +1,18 @@
 use anyhow::Result;
 use palette::IntoColor;
 
-use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
+use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic_dyn::DynamicNode;
 
 // TODO: Support blend modes
 
 #[derive(DynamicNode)]
 pub struct Overlay<Base, Pave, Blend>
-    where Base: NodeDecl,
-          Pave: NodeDecl,
+where
+    Base: NodeDecl,
+    Pave: NodeDecl,
 {
     #[photonic(node)]
     pub base: NodeHandle<Base>,
@@ -24,8 +25,9 @@ pub struct Overlay<Base, Pave, Blend>
 }
 
 pub struct OverlayNode<Base, Pave, Blend>
-    where Base: Node + 'static,
-          Pave: Node + 'static,
+where
+    Base: Node + 'static,
+    Pave: Node + 'static,
 {
     base: NodeRef<Base>,
     pave: NodeRef<Pave>,
@@ -34,11 +36,12 @@ pub struct OverlayNode<Base, Pave, Blend>
 }
 
 impl<Base, Pave, Blend> NodeDecl for Overlay<Base, Pave, Blend>
-    where Base: NodeDecl + 'static,
-          Pave: NodeDecl + 'static,
-          Blend: BoundAttrDecl<Value=f32>,
-          <<Base as NodeDecl>::Node as Node>::Element: Lerp,
-          <<Pave as NodeDecl>::Node as Node>::Element: IntoColor<<<Base as NodeDecl>::Node as Node>::Element>,
+where
+    Base: NodeDecl + 'static,
+    Pave: NodeDecl + 'static,
+    Blend: BoundAttrDecl<Value = f32>,
+    <<Base as NodeDecl>::Node as Node>::Element: Lerp,
+    <<Pave as NodeDecl>::Node as Node>::Element: IntoColor<<<Base as NodeDecl>::Node as Node>::Element>,
 {
     type Node = OverlayNode<Base::Node, Pave::Node, Blend::Attr>;
 
@@ -52,12 +55,12 @@ impl<Base, Pave, Blend> NodeDecl for Overlay<Base, Pave, Blend>
 }
 
 impl<Base, Pave, Blend> Node for OverlayNode<Base, Pave, Blend>
-    where
-        Base: Node,
-        Pave: Node,
-        Blend: Attr<Value=f32>,
-        Base::Element: Lerp,
-        Pave::Element: IntoColor<Base::Element>,
+where
+    Base: Node,
+    Pave: Node,
+    Blend: Attr<Value = f32>,
+    Base::Element: Lerp,
+    Pave::Element: IntoColor<Base::Element>,
 {
     const KIND: &'static str = "overlay";
 

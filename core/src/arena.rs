@@ -3,7 +3,7 @@ use std::marker::{PhantomData, Unsize};
 use std::ops;
 
 pub struct Arena<T>
-    where T: ?Sized,
+where T: ?Sized
 {
     elements: Vec<Box<T>>,
     //phantom: PhantomData<&'arena ()>,
@@ -11,7 +11,7 @@ pub struct Arena<T>
 
 #[allow(dead_code)]
 impl<T> Arena<T>
-    where T: ?Sized,
+where T: ?Sized
 {
     pub fn new() -> Self {
         return Self {
@@ -25,8 +25,7 @@ impl<T> Arena<T>
     }
 
     pub fn append<E>(&mut self, element: E) -> Ref<E, T>
-        where E: Unsize<T>,
-    {
+    where E: Unsize<T> {
         let idx = self.elements.len();
         self.elements.push(Box::<E>::new(element));
 
@@ -53,11 +52,11 @@ impl<T> Arena<T>
         return Ok(());
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=&T> + DoubleEndedIterator {
+    pub fn iter(&self) -> impl Iterator<Item = &T> + DoubleEndedIterator {
         return self.elements.iter().map(|e| e.as_ref());
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item=&mut T> + DoubleEndedIterator {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> + DoubleEndedIterator {
         return self.elements.iter_mut().map(|e| e.as_mut());
     }
 
@@ -70,7 +69,7 @@ impl<T> Arena<T>
 }
 
 pub struct Slice<'arena, T>
-    where T: ?Sized,
+where T: ?Sized
 {
     offset: usize,
     elements: &'arena [Box<T>],
@@ -78,7 +77,7 @@ pub struct Slice<'arena, T>
 
 #[allow(dead_code)]
 impl<'arena, T> Slice<'arena, T>
-    where T: ?Sized,
+where T: ?Sized
 {
     pub fn len(&self) -> usize {
         return self.elements.len();
@@ -86,8 +85,9 @@ impl<'arena, T> Slice<'arena, T>
 }
 
 impl<E, T> ops::Index<Ref<E, T>> for Slice<'_, T>
-    where E: Unsize<T>,
-          T: ?Sized,
+where
+    E: Unsize<T>,
+    T: ?Sized,
 {
     type Output = E;
 
@@ -99,16 +99,18 @@ impl<E, T> ops::Index<Ref<E, T>> for Slice<'_, T>
 }
 
 pub struct Ref<E, T>
-    where E: Unsize<T>,
-          T: ?Sized,
+where
+    E: Unsize<T>,
+    T: ?Sized,
 {
     index: usize,
     phantom: PhantomData<(E, T)>,
 }
 
 impl<E, T> Clone for Ref<E, T>
-    where E: Unsize<T>,
-          T: ?Sized,
+where
+    E: Unsize<T>,
+    T: ?Sized,
 {
     fn clone(&self) -> Self {
         return Self {
@@ -119,13 +121,16 @@ impl<E, T> Clone for Ref<E, T>
 }
 
 impl<E, T> Copy for Ref<E, T>
-    where E: Unsize<T>,
-          T: ?Sized,
-{}
+where
+    E: Unsize<T>,
+    T: ?Sized,
+{
+}
 
 impl<E, T> Debug for Ref<E, T>
-    where E: Unsize<T>,
-          T: ?Sized,
+where
+    E: Unsize<T>,
+    T: ?Sized,
 {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "Ref{{index={}}}", self.index)?;
@@ -213,7 +218,7 @@ mod test {
                     assert_eq!(tail[&ref2], 2_u8);
                 }
 
-                _ => panic!("To many calls")
+                _ => panic!("To many calls"),
             }
 
             i.replace_with(|&mut i| i + 1);
@@ -223,10 +228,9 @@ mod test {
     }
 
     trait Obj<T>: PartialEq<T> + Debug
-        where T: Clone,
-    {}
+    where T: Clone
+    {
+    }
 
-    impl<T> Obj<T> for T
-        where T: PartialEq<T> + Debug + Clone,
-    {}
+    impl<T> Obj<T> for T where T: PartialEq<T> + Debug + Clone {}
 }

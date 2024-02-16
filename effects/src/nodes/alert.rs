@@ -3,7 +3,7 @@ use std::ops::Neg;
 use anyhow::Result;
 use palette::Hsv;
 
-use photonic::{Attr, BoundAttrDecl, Buffer, Context, FreeAttrDecl, math, Node, NodeBuilder, NodeDecl};
+use photonic::{math, Attr, BoundAttrDecl, Buffer, Context, FreeAttrDecl, Node, NodeBuilder, NodeDecl};
 use photonic_dyn::DynamicNode;
 
 #[derive(DynamicNode)]
@@ -27,9 +27,10 @@ pub struct AlertNode<Hue, Block, Speed> {
 }
 
 impl<Hue, Block, Speed> NodeDecl for Alert<Hue, Block, Speed>
-    where Hue: BoundAttrDecl<Value=f32>,
-          Block: BoundAttrDecl<Value=i64>,
-          Speed: FreeAttrDecl<Value=f32>, // TODO: Make speed an attr of duration
+where
+    Hue: BoundAttrDecl<Value = f32>,
+    Block: BoundAttrDecl<Value = i64>,
+    Speed: FreeAttrDecl<Value = f32>, // TODO: Make speed an attr of duration
 {
     type Node = AlertNode<Hue::Attr, Block::Attr, Speed::Attr>;
 
@@ -45,9 +46,10 @@ impl<Hue, Block, Speed> NodeDecl for Alert<Hue, Block, Speed>
 }
 
 impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
-    where Hue: Attr<Value=f32>,
-          Block: Attr<Value=i64>,
-          Speed: Attr<Value=f32>,
+where
+    Hue: Attr<Value = f32>,
+    Block: Attr<Value = i64>,
+    Speed: Attr<Value = f32>,
 {
     const KIND: &'static str = "alert";
 

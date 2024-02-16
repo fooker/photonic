@@ -1,14 +1,12 @@
-use std::usize;
 use super::BufferReader;
+use std::usize;
 
-pub struct IMap<'a, B, F>
-{
+pub struct IMap<'a, B, F> {
     buffer: &'a B,
     mapper: F,
 }
 
-impl<'a, B, F> IMap<'a, B, F>
-{
+impl<'a, B, F> IMap<'a, B, F> {
     pub(super) fn new(buffer: &'a B, mapper: F) -> Self {
         return IMap {
             buffer,
@@ -18,8 +16,9 @@ impl<'a, B, F> IMap<'a, B, F>
 }
 
 impl<B, R, F> BufferReader for IMap<'_, B, F>
-    where B: BufferReader,
-          F: Fn(usize, B::Element) -> R,
+where
+    B: BufferReader,
+    F: Fn(usize, B::Element) -> R,
 {
     type Element = R;
 

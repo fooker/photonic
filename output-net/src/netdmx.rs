@@ -59,13 +59,11 @@ pub struct NetDmxSenderOutput {
     buffer: [u8; 512],
 }
 
-impl OutputDecl for NetDmxSender
-{
+impl OutputDecl for NetDmxSender {
     type Output = NetDmxSenderOutput;
 
     async fn materialize(self, size: usize) -> Result<Self::Output>
-        where Self::Output: Sized,
-    {
+    where Self::Output: Sized {
         let socket = tokio::net::UdpSocket::bind("127.0.0.0:0").await?;
 
         for fixture in &self.fixtures {
@@ -90,13 +88,12 @@ impl OutputDecl for NetDmxSender
     }
 }
 
-impl Output for NetDmxSenderOutput
-{
+impl Output for NetDmxSenderOutput {
     const KIND: &'static str = "netdmx";
 
     type Element = Rgb;
 
-    async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> Result<()> {
+    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> Result<()> {
         for fixture in self.fixtures.iter() {
             let pixel = out.get(fixture.pixel);
             let pixel = fixture.white_mode.apply(pixel);

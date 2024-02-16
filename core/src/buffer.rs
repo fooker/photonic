@@ -1,12 +1,12 @@
 use std::ops::{Deref, DerefMut, Range};
 
-use anyhow::Result;
 use crate::math::Lerp;
+use anyhow::Result;
 
-mod map;
 mod imap;
-mod map_range;
 mod lerp;
+mod map;
+mod map_range;
 
 /// A buffer for data
 pub struct Buffer<E> {
@@ -18,15 +18,15 @@ impl<E> Buffer<E> {
     ///
     /// The generator will be called for each element in the buffer with the index.
     pub fn from_generator<F, R>(size: usize, generator: F) -> Self
-        where F: Fn(usize) -> R,
-              R: Into<E>,
+    where
+        F: Fn(usize) -> R,
+        R: Into<E>,
     {
-        let data = (0..size)
-            .map(generator)
-            .map(Into::into)
-            .collect();
+        let data = (0..size).map(generator).map(Into::into).collect();
 
-        return Self { data };
+        return Self {
+            data,
+        };
     }
 
     /// Returns the size of the buffer.
@@ -42,11 +42,11 @@ impl<E> Buffer<E> {
         self.data[index % self.data.len()] = value;
     }
 
-    pub fn iter(&self) -> impl Iterator<Item=&E> {
+    pub fn iter(&self) -> impl Iterator<Item = &E> {
         return self.data.iter();
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item=&mut E> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut E> {
         return self.data.iter_mut();
     }
 
@@ -55,9 +55,7 @@ impl<E> Buffer<E> {
     /// The provided function is called with the index of the element to update and current element
     /// in buffer. The value returned by the function will be the new value stored in the buffer.
     pub fn update(&mut self, f: impl Fn(usize, &E) -> E) {
-        self.data.iter_mut()
-            .enumerate()
-            .for_each(|(i, e)| *e = f(i, e));
+        self.data.iter_mut().enumerate().for_each(|(i, e)| *e = f(i, e));
     }
 
     /// Update the buffer by calling `f` for each element in the buffer.
@@ -66,14 +64,11 @@ impl<E> Buffer<E> {
     /// in buffer. On successful return of the function, the value will be stored in the buffer
     /// until the first  call fails.
     pub fn try_update<F>(&mut self, f: impl Fn(usize, &E) -> Result<E>) -> Result<()> {
-        self.data = self.data.into_iter()
-            .enumerate()
-            .map(|(i, e)| f(i, e))
-            .collect::<Result<_>>()?;
+        self.data = self.data.into_iter().enumerate().map(|(i, e)| f(i, e)).collect::<Result<_>>()?;
         return Ok(());
     }
 
-    pub fn blit_from(&mut self, source: impl BufferReader<Element=E>) {
+    pub fn blit_from(&mut self, source: impl BufferReader<Element = E>) {
         assert_eq!(self.size(), source.size());
 
         for i in 0..self.size() {
@@ -83,7 +78,8 @@ impl<E> Buffer<E> {
 }
 
 impl<E> Buffer<E>
-    where E: Default {
+where E: Default
+{
     /// Create a buffer and initialize it with the default value.
     pub fn with_default(size: usize) -> Self {
         return Self::from_generator(size, |_| E::default());
@@ -123,44 +119,47 @@ pub trait BufferReader {
 
     fn size(&self) -> usize;
 
-    fn iter(&self) -> impl Iterator<Item=Self::Element>
-        where Self: Sized,
-    {
+    fn iter(&self) -> impl Iterator<Item = Self::Element>
+    where Self: Sized {
         return (0..self.size()).map(|i| self.get(i));
     }
 
-    fn map<R, F>(&self, f: F) -> impl BufferReader<Element=R>
-        where Self: Sized,
-              F: Fn(Self::Element) -> R,
+    fn map<R, F>(&self, f: F) -> impl BufferReader<Element = R>
+    where
+        Self: Sized,
+        F: Fn(Self::Element) -> R,
     {
         return map::Map::new(self, f);
     }
 
-    fn imap<R, F>(&self, f: F) -> impl BufferReader<Element=R>
-        where Self: Sized,
-              F: Fn(usize, Self::Element) -> R,
+    fn imap<R, F>(&self, f: F) -> impl BufferReader<Element = R>
+    where
+        Self: Sized,
+        F: Fn(usize, Self::Element) -> R,
     {
         return imap::IMap::new(self, f);
     }
 
-    fn map_range<F>(&self, range: &Range<usize>, f: F) -> impl BufferReader<Element=Self::Element>
-        where Self: Sized,
-              F: Fn(Self::Element) -> Self::Element,
+    fn map_range<F>(&self, range: &Range<usize>, f: F) -> impl BufferReader<Element = Self::Element>
+    where
+        Self: Sized,
+        F: Fn(Self::Element) -> Self::Element,
     {
         return map_range::MapRange::new(self, range, f);
     }
 
-    fn lerp<R>(&self, other: &R, i: f32) -> impl BufferReader<Element=Self::Element>
-        where Self: Sized,
-              Self::Element: Lerp,
-              R: BufferReader<Element=Self::Element>,
+    fn lerp<R>(&self, other: &R, i: f32) -> impl BufferReader<Element = Self::Element>
+    where
+        Self: Sized,
+        Self::Element: Lerp,
+        R: BufferReader<Element = Self::Element>,
     {
         return lerp::Lerp::new(self, other, i);
     }
 }
 
 impl<E> BufferReader for Buffer<E>
-    where E: Copy,
+where E: Copy
 {
     type Element = E;
 

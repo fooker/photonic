@@ -44,16 +44,15 @@ pub struct Introspection {
 
 impl Introspection {
     pub fn with(root: Arc<NodeInfo>) -> Arc<Self> {
-        let nodes: HashMap<_, _> = TreeIter::new(&root, |node| node.nodes.values())
-            .map(|node| (node.name.clone(), node.clone()))
-            .collect();
+        let nodes: HashMap<_, _> =
+            TreeIter::new(&root, |node| node.nodes.values()).map(|node| (node.name.clone(), node.clone())).collect();
 
         let inputs = TreeIter::new(&root, |node| node.nodes.values())
-             .flat_map(|node| node.attrs.values())
-             .flat_map(|attr| TreeIter::new(attr, |attr| attr.attrs.values()))
-             .flat_map(|attr| attr.inputs.values())
-             .map(|input| (input.name.clone(), input.clone()))
-             .collect();
+            .flat_map(|node| node.attrs.values())
+            .flat_map(|attr| TreeIter::new(attr, |attr| attr.attrs.values()))
+            .flat_map(|attr| attr.inputs.values())
+            .map(|input| (input.name.clone(), input.clone()))
+            .collect();
 
         return Arc::new(Self {
             root,
@@ -67,19 +66,12 @@ impl Introspection {
 
         fn log_input(depth: usize, key: &str, input: &InputInfo) {
             let indent = String::from("  ").repeat(depth);
-            eprintln!("🔎  {}🎛 {} = {}",
-                indent,
-                key,
-                input.name);
+            eprintln!("🔎  {}🎛 {} = {}", indent, key, input.name);
         }
 
         fn log_attr(depth: usize, key: &str, attr: &AttrInfo) {
             let indent = String::from("  ").repeat(depth);
-            eprintln!("🔎  {}🪛 {} = {}:{} {{",
-                      indent,
-                      key,
-                      attr.value_type,
-                      attr.kind);
+            eprintln!("🔎  {}🪛 {} = {}:{} {{", indent, key, attr.value_type, attr.kind);
 
             for (name, attr) in &attr.attrs {
                 log_attr(depth + 1, name, attr);
@@ -94,11 +86,7 @@ impl Introspection {
 
         fn log_node(depth: usize, key: &str, node: &NodeInfo) {
             let indent = String::from("  ").repeat(depth);
-            eprintln!("🔎  {}⭐ {} = {}@{} {{",
-                      indent,
-                      key,
-                      node.kind,
-                      node.name);
+            eprintln!("🔎  {}⭐ {} = {}@{} {{", indent, key, node.kind, node.name);
 
             for (name, attr) in &node.attrs {
                 log_attr(depth + 1, name, attr);
@@ -116,21 +104,23 @@ impl Introspection {
 }
 
 pub trait Interface {
-    fn listen(self, introspection: Arc<Introspection>) -> impl Future<Output=Result<()>> + Send;
+    fn listen(self, introspection: Arc<Introspection>) -> impl Future<Output = Result<()>> + Send;
 }
 
 struct TreeIter<'a, T, F, I>
-where T: 'a,
-      F: Fn(&'a T) -> I,
-      I: Iterator<Item=&'a T>
+where
+    T: 'a,
+    F: Fn(&'a T) -> I,
+    I: Iterator<Item = &'a T>,
 {
     f: F,
     queue: VecDeque<&'a T>,
 }
 
 impl<'a, T, F, I> TreeIter<'a, T, F, I>
-    where F: Fn(&'a T) -> I,
-          I: Iterator<Item=&'a T>
+where
+    F: Fn(&'a T) -> I,
+    I: Iterator<Item = &'a T>,
 {
     pub fn new(t: &'a T, f: F) -> Self {
         return Self {
@@ -141,8 +131,10 @@ impl<'a, T, F, I> TreeIter<'a, T, F, I>
 }
 
 impl<'a, T, F, I> Iterator for TreeIter<'a, T, F, I>
-    where F: Fn(&'a T) -> I,
-          I: Iterator<Item=&'a T>{
+where
+    F: Fn(&'a T) -> I,
+    I: Iterator<Item = &'a T>,
+{
     type Item = &'a T;
 
     #[inline]

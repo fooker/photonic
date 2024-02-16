@@ -22,8 +22,12 @@ impl Mode {
     pub fn element_size(&self) -> usize {
         return match self {
             Self::DRGB => 3,
-            Self::DRGBW { .. } => 4,
-            Self::DNRGB { .. } => 5,
+            Self::DRGBW {
+                ..
+            } => 4,
+            Self::DNRGB {
+                ..
+            } => 5,
         };
     }
 }
@@ -37,41 +41,47 @@ pub struct WledSenderOutput {
     mode: Mode,
 }
 
-impl OutputDecl for WledSender
-{
+impl OutputDecl for WledSender {
     type Output = WledSenderOutput;
 
     async fn materialize(self, _size: usize) -> Result<Self::Output>
-        where Self::Output: Sized,
-    {
+    where Self::Output: Sized {
         return Ok(Self::Output {
             mode: self.mode,
         });
     }
 }
 
-impl Output for WledSenderOutput
-{
+impl Output for WledSenderOutput {
     const KIND: &'static str = "wled";
 
     type Element = Rgb;
 
-    async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> anyhow::Result<()> {
+    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> anyhow::Result<()> {
         let mut buffer = Vec::<u8>::with_capacity(2 + out.size() * self.mode.element_size()); // TODO: Allocate only once and re-use
         buffer.write_u8(match self.mode {
             Mode::DRGB => 2,
-            Mode::DRGBW { .. } => 3,
-            Mode::DNRGB { .. } => 4,
+            Mode::DRGBW {
+                ..
+            } => 3,
+            Mode::DNRGB {
+                ..
+            } => 4,
         })?;
         buffer.write_u8(255)?; // Never automatically switch back to default mode
 
-        if let Mode::DNRGB { offset } = self.mode {
+        if let Mode::DNRGB {
+            offset,
+        } = self.mode
+        {
             buffer.write_u16::<BigEndian>(offset)?;
         }
 
         match self.mode {
-            Mode::DRGB |
-            Mode::DNRGB { .. } => {
+            Mode::DRGB
+            | Mode::DNRGB {
+                ..
+            } => {
                 for rgb in out.iter() {
                     let (r, g, b) = rgb.into_format::<u8>().into_components();
 
@@ -80,7 +90,9 @@ impl Output for WledSenderOutput
                     buffer.write_u8(b)?;
                 }
             }
-            Mode::DRGBW { mode } => {
+            Mode::DRGBW {
+                mode,
+            } => {
                 for rgb in out.iter() {
                     let rgbw = mode.apply(rgb);
                     let (r, g, b, w) = rgbw.into_format::<u8>().into_components();

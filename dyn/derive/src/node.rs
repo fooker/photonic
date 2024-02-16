@@ -1,52 +1,45 @@
-use darling::{ast, FromDeriveInput, FromField};
 use darling::util::Flag;
+use darling::{ast, FromDeriveInput, FromField};
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse_quote};
+use syn::parse_quote;
 
-use crate::{bounds};
+use crate::bounds;
 
 fn field_bound(field: &FieldReceiver) -> Vec<syn::WherePredicate> {
     let ty = &field.ty;
     return if field.is_dynamic() {
-        vec![ parse_quote!(#ty: ::photonic_dyn::dynamic::Dynamic + 'static) ]
+        vec![parse_quote!(#ty: ::photonic_dyn::dynamic::Dynamic + 'static)]
     } else {
-        vec![ parse_quote!(#ty: ::photonic_dyn::serde::de::DeserializeOwned + 'static) ]
-    }
+        vec![parse_quote!(#ty: ::photonic_dyn::serde::de::DeserializeOwned + 'static)]
+    };
 }
 
-fn expand_config(parent: &syn::Ident,
-                 generics: &syn::Generics,
-                 fields: &[FieldReceiver]) -> syn::Result<TokenStream> {
+fn expand_config(parent: &syn::Ident, generics: &syn::Generics, fields: &[FieldReceiver]) -> syn::Result<TokenStream> {
     let generics = bounds::with_where_predicates_from_fields(generics, fields, field_bound);
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-    let field_names = fields.iter()
-        .map(|field| field.ident.as_ref().expect("Fields should never be unnamed"))
-        .collect::<Vec<_>>();
+    let field_names =
+        fields.iter().map(|field| field.ident.as_ref().expect("Fields should never be unnamed")).collect::<Vec<_>>();
 
     let field_types = fields.iter().map(|field| {
-            let ty = &field.ty;
-            return if field.is_dynamic() {
-                quote!(<#ty as ::photonic_dyn::dynamic::Dynamic>::Config)
-            } else {
-                quote!(#ty)
-            }
-        });
+        let ty = &field.ty;
+        return if field.is_dynamic() { quote!(<#ty as ::photonic_dyn::dynamic::Dynamic>::Config) } else { quote!(#ty) };
+    });
 
     let field_values = fields.iter().map(|field| {
         let ident = &field.ident;
         let ty = &field.ty;
         return if field.is_dynamic() {
             quote!(<#ty as ::photonic_dyn::dynamic::Dynamic>::from_config(
-                        builder,
-                        stringify!(#ident),
-                        self.#ident)?
-                    )
+                builder,
+                stringify!(#ident),
+                self.#ident)?
+            )
         } else {
             quote!(self.#ident)
-        }
+        };
     });
 
     return Ok(parse_quote! {

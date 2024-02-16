@@ -2,18 +2,18 @@ use std::marker::PhantomData;
 use std::time::Duration;
 
 use anyhow::Error;
-use rand::distributions::{Distribution, Uniform};
 use rand::distributions::uniform::SampleUniform;
+use rand::distributions::{Distribution, Uniform};
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
+use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 
 pub struct RandomAttr<V>
-    where V: AttrValue + SampleUniform + Bounded,
+where V: AttrValue + SampleUniform + Bounded
 {
     uniform: Uniform<V>,
     random: SmallRng,
@@ -24,7 +24,7 @@ pub struct RandomAttr<V>
 }
 
 impl<V> Attr for RandomAttr<V>
-    where V: AttrValue + SampleUniform + Bounded,
+where V: AttrValue + SampleUniform + Bounded
 {
     type Value = V;
     const KIND: &'static str = "random";
@@ -45,7 +45,7 @@ pub struct Random<V> {
 }
 
 impl<V> BoundAttrDecl for Random<V>
-    where V: AttrValue + SampleUniform + Bounded,
+where V: AttrValue + SampleUniform + Bounded
 {
     type Value = V;
     type Attr = RandomAttr<V>;

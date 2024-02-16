@@ -1,14 +1,14 @@
-use std::ops::Range;
 use anyhow::Result;
+use std::ops::Range;
 
-use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
+use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic_dyn::DynamicNode;
 
 #[derive(DynamicNode)]
 pub struct Brightness<Source, Value>
-    where Source: NodeDecl,
+where Source: NodeDecl
 {
     #[photonic(node)]
     pub source: NodeHandle<Source>,
@@ -20,9 +20,10 @@ pub struct Brightness<Source, Value>
 }
 
 pub struct BrightnessNode<Source, Value>
-    where Source: Node + 'static,
-          Value: Attr<Value=f32>,
-          Source::Element: Lerp,
+where
+    Source: Node + 'static,
+    Value: Attr<Value = f32>,
+    Source::Element: Lerp,
 {
     source: NodeRef<Source>,
 
@@ -31,9 +32,10 @@ pub struct BrightnessNode<Source, Value>
 }
 
 impl<Source, Value> NodeDecl for Brightness<Source, Value>
-    where Source: NodeDecl + 'static,
-          Value: BoundAttrDecl<Value=f32>,
-          <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
+where
+    Source: NodeDecl + 'static,
+    Value: BoundAttrDecl<Value = f32>,
+    <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     type Node = BrightnessNode<Source::Node, Value::Attr>;
 
@@ -47,9 +49,10 @@ impl<Source, Value> NodeDecl for Brightness<Source, Value>
 }
 
 impl<Source, Value> Node for BrightnessNode<Source, Value>
-    where Source: Node,
-          Value: Attr<Value=f32>,
-          Source::Element: Lerp,
+where
+    Source: Node,
+    Value: Attr<Value = f32>,
+    Source::Element: Lerp,
 {
     const KIND: &'static str = "brightness";
 
@@ -60,9 +63,7 @@ impl<Source, Value> Node for BrightnessNode<Source, Value>
         let source = &ctx[self.source];
 
         // TODO: Use better brightness algo here
-        out.blit_from(source.map_range(&self.range, |c|
-            Lerp::lerp(Self::Element::default(), c, value),
-        ));
+        out.blit_from(source.map_range(&self.range, |c| Lerp::lerp(Self::Element::default(), c, value)));
 
         return Ok(());
     }

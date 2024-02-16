@@ -1,12 +1,15 @@
 version = "Two"
-edition = "2018"
+edition = "2021"
 
-max_width = 100
+max_width = 120
 use_small_heuristics = "Max"
 
 newline_style = "Unix"
 
-where_single_line = false
+brace_style = "SameLineWhere"
+control_brace_style  = "AlwaysSameLine"
+
+where_single_line = true
 struct_lit_single_line = false
 overflow_delimited_expr = true
 use_field_init_shorthand = true

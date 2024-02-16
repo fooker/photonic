@@ -1,11 +1,11 @@
-use palette::Hsl;
 use palette::rgb::Rgb;
+use palette::Hsl;
 
-use photonic::{Buffer, Context, Node, NodeBuilder, Random};
-use photonic::attr::{Bounds, Attr};
-use photonic::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl};
-use photonic::attr::range::Range;
 use palette::FromColor;
+use photonic::attr::range::Range;
+use photonic::attr::{Attr, Bounds};
+use photonic::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl};
+use photonic::{Buffer, Context, Node, NodeBuilder, Random};
 
 use anyhow::Result;
 use photonic_dyn::DynamicNode;
@@ -29,9 +29,10 @@ pub struct Raindrops<Rate, Color, Decay> {
 }
 
 pub struct RaindropsNode<Rate, Color, Decay>
-    where Rate: Attr<Value=f32>,
-          Color: Attr<Value=Range<Rgb>>,
-          Decay: Attr<Value=Range<f32>>,
+where
+    Rate: Attr<Value = f32>,
+    Color: Attr<Value = Range<Rgb>>,
+    Decay: Attr<Value = Range<f32>>,
 {
     rate: Rate,
     color: Color,
@@ -43,9 +44,10 @@ pub struct RaindropsNode<Rate, Color, Decay>
 }
 
 impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
-    where Rate: BoundAttrDecl<Value=f32>,
-          Color: FreeAttrDecl<Value=Range<Rgb>>,
-          Decay: BoundAttrDecl<Value=Range<f32>>,
+where
+    Rate: BoundAttrDecl<Value = f32>,
+    Color: FreeAttrDecl<Value = Range<Rgb>>,
+    Decay: BoundAttrDecl<Value = Range<f32>>,
 {
     type Node = RaindropsNode<Rate::Attr, Color::Attr, Decay::Attr>;
 
@@ -61,9 +63,10 @@ impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
 }
 
 impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
-    where Rate: Attr<Value=f32>,
-          Color: Attr<Value=Range<Rgb>>,
-          Decay: Attr<Value=Range<f32>>,
+where
+    Rate: Attr<Value = f32>,
+    Color: Attr<Value = Range<Rgb>>,
+    Decay: Attr<Value = Range<f32>>,
 {
     const KIND: &'static str = "raindrops";
 
@@ -79,10 +82,8 @@ impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
                 drop.color = self.random.mix(Hsl::from_color(color.0), Hsl::from_color(color.1));
                 drop.decay = self.random.range(decay.0, decay.1);
             } else {
-                drop.color.lightness = f32::max(
-                    0.0,
-                    drop.color.lightness * 1.0 - drop.decay * ctx.duration.as_secs_f32(),
-                );
+                drop.color.lightness =
+                    f32::max(0.0, drop.color.lightness * 1.0 - drop.decay * ctx.duration.as_secs_f32());
             }
 
             *out = drop.color;

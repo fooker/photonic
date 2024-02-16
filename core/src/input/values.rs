@@ -1,8 +1,8 @@
-use palette::rgb::Rgb;
 use crate::attr::Range;
+use palette::rgb::Rgb;
 
-use super::{InputValue, InputValueType};
 use super::sink::{InputSink, Sink};
+use super::{InputValue, InputValueType};
 
 impl InputValue for () {
     const TYPE: InputValueType = InputValueType::Trigger;
