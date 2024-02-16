@@ -25,7 +25,11 @@ fn expand_config(parent: &syn::Ident, generics: &syn::Generics, fields: &[FieldR
 
     let field_types = fields.iter().map(|field| {
         let ty = &field.ty;
-        return if field.is_dynamic() { quote!(<#ty as ::photonic_dyn::dynamic::Dynamic>::Config) } else { quote!(#ty) };
+        return if field.is_dynamic() {
+            quote!(<#ty as ::photonic_dyn::dynamic::Dynamic>::Config)
+        } else {
+            quote!(#ty)
+        };
     });
 
     let field_values = fields.iter().map(|field| {
