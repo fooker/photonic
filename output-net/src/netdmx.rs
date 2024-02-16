@@ -1,5 +1,4 @@
 use std::net::SocketAddr;
-use std::ops::RangeBounds;
 
 use anyhow::{bail, Result};
 use palette::rgb::Rgb;

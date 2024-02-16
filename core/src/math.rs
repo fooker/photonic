@@ -1,7 +1,6 @@
 use num_traits::Float;
 use palette::{Hsl, Hsv, Lch, Mix};
 use palette::rgb::Rgb;
-use crate::BufferReader;
 
 pub trait Lerp {
     fn lerp(a: Self, b: Self, i: f32) -> Self;

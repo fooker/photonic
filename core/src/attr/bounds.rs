@@ -1,5 +1,4 @@
 use std::fmt::Display;
-use std::ops;
 use anyhow::ensure;
 use palette::num::{One, Zero};
 

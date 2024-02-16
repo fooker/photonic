@@ -7,8 +7,9 @@ use photonic::{Scene, WhiteMode};
 use photonic::attr::{AsFixedAttr, Range};
 use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
-use photonic_effects::nodes::{Alert, Blackout, Brightness, Noise, Overlay, Raindrops};
-use photonic_output_net::netdmx::{Channels, Fixture, NetDmxSender};
+use photonic_effects::nodes::{Alert, Blackout, Brightness, Noise, Overlay, Raindrops, Switch};
+use photonic_output_net::netdmx::{Channel, Fixture, NetDmxSender};
+use photonic_output_terminal::Terminal;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -38,12 +39,20 @@ async fn main() -> Result<()> {
         },
     })?;
 
-    // TODO: Add switcher for more animations
-    let base = raindrops;
-
-    let base = scene.node("noise", Noise {
+    let noise = scene.node("noise", Noise {
         speed: 0.005.fixed(),
         stretch: 5.0.fixed(),
+    })?;
+
+    // TODO: Add switcher for more animations
+    let input_animation = scene.input::<i64>("animation")?;
+    let animation = scene.node("animation", Switch {
+        sources: vec![
+            noise
+        ],
+        value: input_animation.attr(0),
+        easing: Easings::Quartic(EasingDirection::InOut)
+            .with_speed(Duration::from_secs(3)),
     })?;
 
     let input_brightness = scene.input::<f32>("brightness")?;
@@ -53,7 +62,8 @@ async fn main() -> Result<()> {
             easing: Easings::Cubic(EasingDirection::InOut)
                 .with_speed(Duration::from_secs(1)),
         },
-        source: base,
+        source: animation,
+        range: None,
     })?;
 
     let alert = scene.node("alert", Alert {
@@ -78,37 +88,55 @@ async fn main() -> Result<()> {
         },
     })?;
 
-    let input_kitchen = scene.input("kitchen")?;
+    let input_kitchen = scene.input::<bool>("kitchen")?;
     let kitchen = scene.node("kitchen", Blackout {
         source: alert,
         active: input_kitchen.attr(false),
         value: Srgb::new(1.0, 1.0, 1.0).into_color(),
-        range: Some((0, 1)),
+        range: Some(0..2),
     })?;
 
     let output = NetDmxSender::with_address("127.0.0.1:34254".parse()?)
         .add_fixture(Fixture {
             pixel: 0,
             dmx_address: 500,
-            dmx_channels: Channels::RGBW(WhiteMode::Accurate),
+            dmx_channels: vec![
+                Channel::Red,
+                Channel::Green,
+                Channel::Blue,
+                Channel::White,
+            ],
+            white_mode: WhiteMode::Accurate,
         })
         .add_fixture(Fixture {
             pixel: 1,
-            dmx_address: 504,
-            dmx_channels: Channels::RGBW(WhiteMode::Accurate),
+            dmx_address: 508,
+            dmx_channels: vec![
+                Channel::Red,
+                Channel::Green,
+                Channel::Blue,
+                Channel::White,
+            ],
+            white_mode: WhiteMode::Accurate,
         })
         .add_fixtures(20, |n| Fixture {
-            pixel: n + 1,
+            pixel: n + 2,
             dmx_address: 1 + n * 3,
-            dmx_channels: Channels::RGB,
+            dmx_channels: vec![
+                Channel::Red,
+                Channel::Green,
+                Channel::Blue,
+            ],
+            white_mode: WhiteMode::None,
         });
 
-    // let output = Terminal::with_path("/tmp/photonic")
-    //     .with_waterfall(true);
+    let output = Terminal::with_path("/tmp/photonic")
+        .with_waterfall(true);
 
     let scene = scene.run(kitchen, output).await?;
 
     let cli = photonic_interface_cli::stdio::CLI;
+
     let mqtt = photonic_interface_mqtt::MQTT::new("mqtt://localhost:1884?client_id=photonic")?;
 
     tokio::select! {

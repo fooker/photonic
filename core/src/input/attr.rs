@@ -9,7 +9,7 @@ use crate::scene::{AttrBuilder, InputHandle};
 
 pub struct InputAttrDecl<I, A>
     where I: InputValue,
-          A: AttrValue + From<I>,
+          A: AttrValue + TryFrom<I>,
 {
     input: InputHandle<I>,
     initial: A,
@@ -18,7 +18,7 @@ pub struct InputAttrDecl<I, A>
 impl<I, A> BoundAttrDecl for InputAttrDecl<I, A>
     where
         I: InputValue,
-        A: AttrValue + Bounded + From<I>,
+        A: AttrValue + Bounded + TryFrom<I>,
 {
     type Value = A;
     type Attr = BoundInputAttr<I, A>;
@@ -38,7 +38,7 @@ impl<I, A> BoundAttrDecl for InputAttrDecl<I, A>
 
 impl<I, A> FreeAttrDecl for InputAttrDecl<I, A>
     where I: InputValue,
-          A: AttrValue + From<I>,
+          A: AttrValue + TryFrom<I>,
 {
     type Value = A;
     type Attr = FreeInputAttr<I, A>;
@@ -65,16 +65,20 @@ pub struct BoundInputAttr<I, A>
 
 impl<I, A> Attr for BoundInputAttr<I, A>
     where I: InputValue,
-          A: AttrValue + From<I> + Bounded,
+          A: AttrValue + TryFrom<I> + Bounded,
 {
     type Value = A;
     const KIND: &'static str = "input";
 
     fn update(&mut self, _duration: Duration) -> Self::Value {
         if let Poll::Update(update) = self.input.poll() {
-            let update = update.into();
-            if let Ok(update) = self.bounds.ensure(update) {
-                self.current = update;
+            // TODO: This needs error handling - best idea for now is to couple inputs and attrs more tightly to allow
+            // InputAttrs to report errors to the input they are feeding from by moving the atomic value latch to the
+            // InputAttr and have all direct users of Inputs converted to Attrs (check if possible first)
+            if let Ok(update) = update.try_into() {
+                if let Ok(update) = self.bounds.ensure(update) {
+                    self.current = update;
+                }
             }
         }
 
@@ -92,7 +96,7 @@ pub struct FreeInputAttr<I, A>
 
 impl<I, A> Attr for FreeInputAttr<I, A>
     where I: InputValue,
-          A: AttrValue + From<I>,
+          A: AttrValue + TryFrom<I>,
 {
     type Value = A;
 
@@ -100,7 +104,9 @@ impl<I, A> Attr for FreeInputAttr<I, A>
 
     fn update(&mut self, _duration: Duration) -> Self::Value {
         if let Poll::Update(update) = self.input.poll() {
-            self.current = update.into();
+            if let Ok(update) = update.try_into() {
+                self.current = update;
+            }
         }
 
         return self.current;
@@ -111,7 +117,7 @@ impl<V> InputHandle<V>
     where V: InputValue,
 {
     pub fn attr<A>(self, initial: A) -> InputAttrDecl<V, A>
-        where A: AttrValue + From<V>,
+        where A: AttrValue + TryFrom<V>,
     {
         return InputAttrDecl {
             input: self,

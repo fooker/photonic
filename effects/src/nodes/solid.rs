@@ -1,6 +1,4 @@
 use anyhow::Result;
-use noise::NoiseFn;
-use palette::Lch;
 use palette::rgb::Rgb;
 
 use photonic::{Buffer, Context, Node, NodeBuilder};
@@ -39,7 +37,7 @@ impl<Color> Node for SolidNode<Color>
 
     type Element = Rgb;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> anyhow::Result<()> {
+    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
         let color = self.color.update(ctx.duration);
 
         out.fill(color);

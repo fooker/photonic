@@ -7,6 +7,8 @@ use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
 use photonic_dyn::DynamicNode;
 
+// TODO: Hue range
+
 #[derive(DynamicNode)]
 pub struct Noise<Speed, Stretch> {
     #[photonic(attr)]
@@ -52,7 +54,7 @@ impl<Speed, Stretch> Node for NoiseNode<Speed, Stretch>
 
     type Element = Lch;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> anyhow::Result<()> {
+    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
         let speed = self.speed.update(ctx.duration);
         let stretch = self.stretch.update(ctx.duration);
 

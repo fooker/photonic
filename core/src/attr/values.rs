@@ -13,6 +13,14 @@ impl AttrValue for i64 {
     const TYPE: AttrValueType = AttrValueType::Integer;
 }
 
+impl AttrValue for u64 {
+    const TYPE: AttrValueType = AttrValueType::Integer;
+}
+
+impl AttrValue for usize {
+    const TYPE: AttrValueType = AttrValueType::Integer;
+}
+
 impl AttrValue for f32 {
     const TYPE: AttrValueType = AttrValueType::Decimal;
 }

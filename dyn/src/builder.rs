@@ -108,7 +108,7 @@ impl<Registry> AttrBuilder for Builder<Registry>
             config::Attr::Input { input, initial } => {
                 let initial = V::parse(initial)?;
 
-                let input = self.input(input)?;
+                let input = self.input::<V>(input)?;
                 let attr = input.attr(initial);
 
                 return Ok(Box::new(attr));
@@ -142,7 +142,7 @@ impl<Registry> AttrBuilder for Builder<Registry>
             config::Attr::Input { input, initial } => {
                 let initial = V::parse(initial)?;
 
-                let input = self.input(input)?;
+                let input = self.input::<V>(input)?;
                 let attr = input.attr(initial);
 
                 return Ok(Box::new(attr));

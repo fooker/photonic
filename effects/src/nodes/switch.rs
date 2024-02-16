@@ -1,4 +1,5 @@
 use std::time::Duration;
+
 use anyhow::Result;
 
 use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
@@ -88,7 +89,6 @@ impl<Source, Value> Node for SwitchNode<Source, Value>
             }
 
             out.blit_from(&ctx[self.sources[self.next]]);
-
         } else {
             // Transition in progress
             self.fade += ctx.duration.as_secs_f32() / self.easing.speed.as_secs_f32();

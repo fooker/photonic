@@ -11,6 +11,7 @@ mod blackout;
 mod noise;
 mod solid;
 mod switch;
+mod larson;
 
 pub use color_wheel::ColorWheel;
 pub use brightness::Brightness;
@@ -21,3 +22,4 @@ pub use blackout::Blackout;
 pub use noise::Noise;
 pub use solid::Solid;
 pub use switch::Switch;
+pub use larson::Larson;

@@ -59,7 +59,11 @@ impl<Source, Active> Node for BlackoutNode<Source, Active>
 
         let active = self.active.update(ctx.duration);
 
-        out.blit_from(source.map_range(&self.range, |_| self.value.clone()));
+        if active {
+            out.blit_from(source.map_range(&self.range, |_| self.value.clone()));
+        } else {
+            out.blit_from(source);
+        }
 
         return Ok(());
     }

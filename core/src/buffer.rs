@@ -172,17 +172,3 @@ impl<E> BufferReader for Buffer<E>
         return self.size();
     }
 }
-
-impl<E> BufferReader for &Buffer<E>
-    where E: Copy,
-{
-    type Element = E;
-
-    fn get(&self, index: usize) -> Self::Element {
-        return self.get(index);
-    }
-
-    fn size(&self) -> usize {
-        return self.size();
-    }
-}

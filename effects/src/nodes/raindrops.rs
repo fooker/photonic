@@ -69,7 +69,7 @@ impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
 
     type Element = Hsl;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> anyhow::Result<()> {
+    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
         let rate = self.rate.update(ctx.duration);
         let color = self.color.update(ctx.duration);
         let decay = self.decay.update(ctx.duration);
