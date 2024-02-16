@@ -1,8 +1,10 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref, DerefMut, Range};
 
 use anyhow::Result;
 
 mod map;
+mod imap;
+mod map_range;
 
 /// A buffer for data
 pub struct Buffer<E> {
@@ -113,7 +115,7 @@ impl<E> AsMut<[E]> for Buffer<E> {
 }
 
 pub trait BufferReader {
-    type Element: Copy;
+    type Element;
 
     fn get(&self, index: usize) -> Self::Element;
 
@@ -125,11 +127,25 @@ pub trait BufferReader {
         return (0..self.size()).map(|i| self.get(i));
     }
 
-    fn map<R, F>(&self, f: F) -> map::Map<Self, F>
+    fn map<R, F>(&self, f: F) -> impl BufferReader<Element=R>
         where Self: Sized,
               F: Fn(Self::Element) -> R,
     {
-        return map::Map::map(self, f);
+        return map::Map::new(self, f);
+    }
+
+    fn imap<R, F>(&self, f: F) -> impl BufferReader<Element=R>
+        where Self: Sized,
+              F: Fn(usize, Self::Element) -> R,
+    {
+        return imap::IMap::new(self, f);
+    }
+
+    fn map_range<F>(&self, range: &Range<usize>, f: F) -> impl BufferReader<Element=Self::Element>
+        where Self: Sized,
+              F: Fn(Self::Element) -> Self::Element,
+    {
+        return map_range::MapRange::new(self, range, f);
     }
 }
 

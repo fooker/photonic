@@ -1,3 +1,4 @@
+use std::ops::Range;
 use anyhow::Result;
 
 use photonic::{Attr, Buffer, BufferReader, Context, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
@@ -15,7 +16,7 @@ pub struct Blackout<Source, Active>
     pub active: Active,
 
     pub value: <<Source as NodeDecl>::Node as Node>::Element,
-    pub range: Option<(usize, usize)>,
+    pub range: Option<Range<usize>>,
 }
 
 pub struct BlackoutNode<Source, Active>
@@ -26,7 +27,7 @@ pub struct BlackoutNode<Source, Active>
     active: Active,
 
     value: <Source as Node>::Element,
-    range: (usize, usize),
+    range: Range<usize>,
 }
 
 impl<Source, Active> NodeDecl for Blackout<Source, Active>
@@ -40,7 +41,7 @@ impl<Source, Active> NodeDecl for Blackout<Source, Active>
             source: builder.node("source", self.source).await?,
             active: builder.unbound_attr("active", self.active)?,
             value: self.value,
-            range: self.range.unwrap_or((0, builder.size - 1)), // TODO: Use substring semantics where (5,5) is an empty selection
+            range: self.range.unwrap_or(0..builder.size),
         });
     }
 }
@@ -58,11 +59,7 @@ impl<Source, Active> Node for BlackoutNode<Source, Active>
 
         let active = self.active.update(ctx.duration);
 
-        out.update(|i, _| if self.range.0 <= i && i <= self.range.1 && active {
-            self.value.clone()
-        } else {
-            source.get(i)
-        });
+        out.blit_from(source.map_range(&self.range, |_| self.value.clone()));
 
         return Ok(());
     }

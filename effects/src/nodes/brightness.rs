@@ -1,3 +1,4 @@
+use std::ops::Range;
 use anyhow::Result;
 
 use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
@@ -14,6 +15,8 @@ pub struct Brightness<Source, Value>
 
     #[photonic(attr)]
     pub value: Value,
+
+    pub range: Option<Range<usize>>,
 }
 
 pub struct BrightnessNode<Source, Value>
@@ -23,6 +26,8 @@ pub struct BrightnessNode<Source, Value>
 {
     value: Value,
     source: NodeRef<Source>,
+
+    pub range: Range<usize>,
 }
 
 impl<Source, Value> NodeDecl for Brightness<Source, Value>
@@ -36,6 +41,7 @@ impl<Source, Value> NodeDecl for Brightness<Source, Value>
         return Ok(Self::Node {
             value: builder.bound_attr("value", self.value, Bounds::normal())?,
             source: builder.node("source", self.source).await?,
+            range: self.range.unwrap_or(0..builder.size),
         });
     }
 }
@@ -53,7 +59,9 @@ impl<Source, Value> Node for BrightnessNode<Source, Value>
         let source = &ctx[self.source];
 
         // TODO: Use better brightness algo here
-        out.blit_from(source.map(|c| Lerp::lerp(Self::Element::default(), c, value)));
+        out.blit_from(source.map_range(&self.range, |c|
+            Lerp::lerp(Self::Element::default(), c, value),
+        ));
 
         return Ok(());
     }
