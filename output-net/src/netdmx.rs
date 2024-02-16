@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
+use std::ops::RangeBounds;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use palette::rgb::Rgb;
 
 use photonic::{BufferReader, Output, OutputDecl, WhiteMode};
@@ -63,13 +64,23 @@ impl OutputDecl for NetDmxSender
 {
     type Output = NetDmxSenderOutput;
 
-    async fn materialize(self, _size: usize) -> Result<Self::Output>
+    async fn materialize(self, size: usize) -> Result<Self::Output>
         where Self::Output: Sized,
     {
         let socket = tokio::net::UdpSocket::bind("127.0.0.0:0").await?;
 
-        // TODO: Check fixtures pixel is in bounds
-        // TODO: Check fixtures dmx address is in bounds
+        for fixture in &self.fixtures {
+            // Check DMX addresses are in bounds
+            let addresses = (fixture.dmx_address, fixture.dmx_address + fixture.dmx_channels.len());
+            if addresses.0 < 1 || addresses.1 > 512 {
+                bail!("Invalid fixture address {}:{}", addresses.0, addresses.1);
+            }
+
+            // Check fixtures pixel is in bounds
+            if fixture.pixel >= size {
+                bail!("Fixture pixel out of bounds: {} >= {}", fixture.pixel, size);
+            }
+        }
 
         return Ok(Self::Output {
             socket,
@@ -93,7 +104,7 @@ impl Output for NetDmxSenderOutput
             let pixel = pixel.into_format::<u8>();
 
             for (i, config) in fixture.dmx_channels.iter().enumerate() {
-                self.buffer[fixture.dmx_address + i] = match config {
+                self.buffer[fixture.dmx_address - 1 + i] = match config {
                     Channel::Red => pixel.red,
                     Channel::Green => pixel.green,
                     Channel::Blue => pixel.blue,
