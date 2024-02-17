@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use anyhow::Result;
-use rumqttc::{AsyncClient, Event, Incoming, MqttOptions, QoS};
+use bytes::Bytes;
+use rumqttc::{AsyncClient, Event, Incoming, LastWill, MqttOptions, QoS};
 
 use photonic::interface::{Interface, Introspection};
 
@@ -13,8 +14,8 @@ impl<'a> Realm<'a> {
         return Self(if value.ends_with('/') { &value[0..value.len() - 1] } else { value });
     }
 
-    pub fn topic(&self, suffix: &str) -> String {
-        return format!("{}/{}", self.0, suffix);
+    pub fn topic(&self, suffix: impl AsRef<str>) -> String {
+        return format!("{}/{}", self.0, suffix.as_ref());
     }
 }
 
@@ -40,15 +41,27 @@ impl <'s> MQTT<'s> {
 }
 
 impl Interface for MQTT<'_> {
-    async fn listen(self, introspection: Arc<Introspection>) -> Result<()> {
+    async fn listen(mut self, introspection: Arc<Introspection>) -> Result<()> {
         let realm = Realm::from(&self.realm);
 
+        self.mqtt_options.set_last_will(LastWill {
+            topic: realm.topic("status"),
+            message: Bytes::from("offline"),
+            qos: QoS::AtLeastOnce,
+            retain: true,
+        });
+
         let (client, mut event_loop) = AsyncClient::new(self.mqtt_options, 10);
+
+        client.publish_bytes(realm.topic("status"),
+                             QoS::AtLeastOnce,
+                             true,
+                             Bytes::from("online")).await?;
 
         let mut topics = HashMap::new();
 
         for input in introspection.inputs.values() {
-            let topic = realm.topic(&input.name);
+            let topic = realm.topic(format!("input/{}/set", input.name));
             client.subscribe(&topic, QoS::AtLeastOnce).await?;
 
             eprintln!("⇄ Subscribed to '{}' for input '{}' with type {}", topic, input.name, input.value_type);
