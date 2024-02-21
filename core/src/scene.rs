@@ -31,9 +31,9 @@ struct NodeBufferReader<'b, E, O> {
 }
 
 impl<'b, E, O> BufferReader for NodeBufferReader<'b, E, O>
-where
-    E: Copy,
-    O: Copy + From<E>,
+    where
+        E: Copy,
+        O: Copy + From<E>,
 {
     type Element = O;
 
@@ -47,7 +47,7 @@ where
 }
 
 impl<'ctx, Node> ops::Index<NodeRef<Node>> for Context<'ctx>
-where Node: self::Node
+    where Node: self::Node
 {
     type Output = NodeContainer<Node>;
 
@@ -57,7 +57,7 @@ where Node: self::Node
 }
 
 pub struct NodeHandle<Decl>
-where Decl: NodeDecl
+    where Decl: NodeDecl
 {
     /// The scene-wide unique name of the node
     pub name: String,
@@ -67,14 +67,14 @@ where Decl: NodeDecl
 }
 
 pub struct NodeContainer<Node>
-where Node: self::Node
+    where Node: self::Node
 {
     node: Node,
     buffer: Buffer<Node::Element>,
 }
 
 impl<Node> NodeContainer<Node>
-where Node: self::Node
+    where Node: self::Node
 {
     pub fn build(builder: &NodeBuilder, node: Node) -> Result<Self> {
         let buffer = Buffer::with_default(builder.size);
@@ -87,7 +87,7 @@ where Node: self::Node
 }
 
 impl<Node> BufferReader for NodeContainer<Node>
-where Node: self::Node
+    where Node: self::Node
 {
     type Element = Node::Element;
 
@@ -101,7 +101,7 @@ where Node: self::Node
 }
 
 impl<Node> BufferReader for &NodeContainer<Node>
-where Node: self::Node
+    where Node: self::Node
 {
     type Element = Node::Element;
 
@@ -119,7 +119,7 @@ trait NodeHolder {
 }
 
 impl<Node> NodeHolder for NodeContainer<Node>
-where Node: self::Node
+    where Node: self::Node
 {
     fn update(&mut self, ctx: &Context) -> Result<()> {
         return self.node.update(ctx, &mut self.buffer);
@@ -127,13 +127,13 @@ where Node: self::Node
 }
 
 pub struct NodeRef<Node>
-where Node: self::Node + 'static // TODO: Is static required?
+    where Node: self::Node + 'static // TODO: Is static required?
 {
     node: Ref<NodeContainer<Node>, dyn NodeHolder>,
 }
 
 impl<Node> Clone for NodeRef<Node>
-where Node: self::Node
+    where Node: self::Node
 {
     fn clone(&self) -> Self {
         return Self {
@@ -149,7 +149,7 @@ impl<Node> Copy for NodeRef<Node> where Node: self::Node {}
 /// The handle represents a input registered in a [`Scene'] and can be used to get the real thing
 /// while manifesting the scene.
 pub struct InputHandle<V>
-where V: InputValue
+    where V: InputValue
 {
     /// The scene-wide unique name of the input
     pub name: String,
@@ -158,7 +158,7 @@ where V: InputValue
 }
 
 impl<V> InputHandle<V>
-where V: InputValue
+    where V: InputValue
 {
     /// Returns a sink into the input represented by this handle.
     pub fn sink(&self) -> InputSink {
@@ -169,23 +169,12 @@ where V: InputValue
 /// Declaration of a scene.
 ///
 /// This is used to declare nodes, attributes and inputs.
-pub struct Scene {
-    size: usize,
-}
+pub struct Scene {}
 
 impl Scene {
     /// Create a new scene with a given size.
-    ///
-    /// The size represents the number of lights in the scene.
-    pub fn new(size: usize) -> Self {
-        return Self {
-            size,
-        };
-    }
-
-    /// Returns the size of the scene.
-    pub fn size(&self) -> usize {
-        return self.size;
+    pub fn new() -> Self {
+        return Self {};
     }
 
     /// Declares a new node in the scene.
@@ -195,7 +184,7 @@ impl Scene {
     /// The returned handle represents the node in the scene and can be used to reference the node
     /// in another node.
     pub fn node<Decl>(&mut self, name: &str, decl: Decl) -> Result<NodeHandle<Decl>>
-    where Decl: NodeDecl {
+        where Decl: NodeDecl {
         return Ok(NodeHandle {
             name: name.to_owned(),
             decl,
@@ -209,7 +198,7 @@ impl Scene {
     /// The returned handle represents the input in the scene and can be used to reference the input
     /// in other nodes and attributes.
     pub fn input<V>(&mut self, name: &str) -> Result<InputHandle<V>>
-    where V: InputValue {
+        where V: InputValue {
         return Ok(InputHandle {
             name: name.to_owned(),
             input: Input::new(),
@@ -230,14 +219,16 @@ impl Scene {
         root: NodeHandle<Node>,
         decl: Output,
     ) -> Result<Loop<Node::Node, Output::Output>>
-    where
-        Node: NodeDecl,
-        Output: OutputDecl,
-        <Output::Output as self::Output>::Element: FromColor<<Node::Node as self::Node>::Element>,
-        <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
+        where
+            Node: NodeDecl,
+            Output: OutputDecl,
+            <Output::Output as self::Output>::Element: FromColor<<Node::Node as self::Node>::Element>,
+            <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
+        let output = decl.materialize().await?;
+
         // Materialize the node tree using a builder tracking the info object creation
-        let (scene, root) = SceneBuilder::build(self.size, root).await?;
+        let (scene, root) = SceneBuilder::build(output.size(), root).await?;
 
         let introspection = Introspection::with(scene.root);
         introspection.log();
@@ -245,7 +236,7 @@ impl Scene {
         return Ok(Loop {
             nodes: scene.nodes,
             root,
-            output: decl.materialize(self.size()).await?,
+            output,
             stats: FrameStats::default(),
             introspection,
         });
@@ -257,10 +248,10 @@ impl Scene {
 /// The rendering loop updates a scene and all its elements and then renders the root node to the
 /// output.
 pub struct Loop<Node, Output>
-where
-    Node: self::Node + 'static, // TODO: Is static required?
-    Output: self::Output,
-    Output::Element: FromColor<Node::Element>,
+    where
+        Node: self::Node + 'static, // TODO: Is static required?
+        Output: self::Output,
+        Output::Element: FromColor<Node::Element>,
 {
     nodes: Arena<dyn NodeHolder>,
 
@@ -273,10 +264,10 @@ where
 }
 
 impl<'a, Node, Output> Loop<Node, Output>
-where
-    Node: self::Node + 'static,
-    Output: self::Output,
-    Output::Element: FromColor<Node::Element> + Copy,
+    where
+        Node: self::Node + 'static,
+        Output: self::Output,
+        Output::Element: FromColor<Node::Element> + Copy,
 {
     /// Update and render a single frame.
     ///
@@ -322,7 +313,7 @@ where
         }
     }
 
-    pub fn serve(&self, interface: impl Interface) -> impl Future<Output = Result<()>> {
+    pub fn serve(&self, interface: impl Interface) -> impl Future<Output=Result<()>> {
         return interface.listen(self.introspection.clone());
     }
 }
@@ -371,9 +362,9 @@ pub struct AttrBuilder<'b> {
 impl SceneBuilder {
     /// Create a node from its handle.
     pub async fn build<Node>(size: usize, root: NodeHandle<Node>) -> Result<(Self, NodeRef<Node::Node>)>
-    where
-        Node: NodeDecl,
-        <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
+        where
+            Node: NodeDecl,
+            <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
         let mut nodes = Arena::new();
 
@@ -417,12 +408,20 @@ impl SceneBuilder {
 
 impl NodeBuilder<'_> {
     pub async fn node<Node>(&mut self, key: impl Into<String>, decl: NodeHandle<Node>) -> Result<NodeRef<Node::Node>>
-    where
-        Node: NodeDecl,
-        <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
+        where
+            Node: NodeDecl,
+            <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
+    {
+        return self.node_with_size(key, decl, self.size).await;
+    }
+
+    pub async fn node_with_size<Node>(&mut self, key: impl Into<String>, decl: NodeHandle<Node>, size: usize) -> Result<NodeRef<Node::Node>>
+        where
+            Node: NodeDecl,
+            <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
         let mut builder = NodeBuilder {
-            size: self.size,
+            size,
 
             nodes: &mut self.nodes,
 
@@ -437,7 +436,7 @@ impl NodeBuilder<'_> {
         let node = Node::materialize(decl.decl, &mut builder).await?;
         let info = builder.info;
 
-        let buffer = Buffer::with_default(self.size);
+        let buffer = Buffer::with_default(size);
 
         let node = self.nodes.append(NodeContainer {
             node,
@@ -462,8 +461,8 @@ impl NodeBuilder<'_> {
         decl: Attr,
         bounds: impl Into<Bounds<Attr::Value>>,
     ) -> Result<Attr::Attr>
-    where
-        Attr: BoundAttrDecl,
+        where
+            Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
 
@@ -491,7 +490,7 @@ impl NodeBuilder<'_> {
     /// The created attribute is registered as an attribute to the currently built node.
     // TODO: Rename to `free_attr`
     pub fn unbound_attr<Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
-    where Attr: FreeAttrDecl {
+        where Attr: FreeAttrDecl {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
@@ -522,8 +521,8 @@ impl<'b> AttrBuilder<'b> {
         decl: Attr,
         bounds: impl Into<Bounds<Attr::Value>>,
     ) -> Result<Attr::Attr>
-    where
-        Attr: BoundAttrDecl,
+        where
+            Attr: BoundAttrDecl,
     {
         let bounds = bounds.into();
 
@@ -550,7 +549,7 @@ impl<'b> AttrBuilder<'b> {
     ///
     /// The created attribute is registered as an attribute to the currently built node.
     pub fn unbound_attr<Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
-    where Attr: FreeAttrDecl {
+        where Attr: FreeAttrDecl {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
@@ -574,7 +573,7 @@ impl<'b> AttrBuilder<'b> {
     ///
     /// The created input is registered as an input to the currently built node.
     pub fn input<V>(&mut self, name: impl Into<String>, input: InputHandle<V>) -> Result<Input<V>>
-    where V: InputValue {
+        where V: InputValue {
         let sink = input.sink();
 
         let info = InputInfo {

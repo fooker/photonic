@@ -13,7 +13,7 @@ pub trait NodeDecl {
 pub trait OutputDecl {
     type Output: Output;
 
-    fn materialize(self, size: usize) -> impl Future<Output = Result<Self::Output>>;
+    fn materialize(self) -> impl Future<Output = Result<Self::Output>>;
 }
 
 pub trait FreeAttrDecl {

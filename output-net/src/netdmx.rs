@@ -1,3 +1,4 @@
+use std::future::Future;
 use std::net::SocketAddr;
 
 use anyhow::{bail, Result};
@@ -14,8 +15,6 @@ pub enum Channel {
 }
 
 pub struct Fixture {
-    pub pixel: usize,
-
     pub dmx_address: usize,
     pub dmx_channels: Vec<Channel>,
 
@@ -62,8 +61,9 @@ pub struct NetDmxSenderOutput {
 impl OutputDecl for NetDmxSender {
     type Output = NetDmxSenderOutput;
 
-    async fn materialize(self, size: usize) -> Result<Self::Output>
-    where Self::Output: Sized {
+    async fn materialize(self) -> Result<Self::Output>
+        where Self::Output: Sized,
+    {
         let socket = tokio::net::UdpSocket::bind("127.0.0.0:0").await?;
 
         for fixture in &self.fixtures {
@@ -71,11 +71,6 @@ impl OutputDecl for NetDmxSender {
             let addresses = (fixture.dmx_address, fixture.dmx_address + fixture.dmx_channels.len());
             if addresses.0 < 1 || addresses.1 > 512 {
                 bail!("Invalid fixture address {}:{}", addresses.0, addresses.1);
-            }
-
-            // Check fixtures pixel is in bounds
-            if fixture.pixel >= size {
-                bail!("Fixture pixel out of bounds: {} >= {}", fixture.pixel, size);
             }
         }
 
@@ -93,9 +88,9 @@ impl Output for NetDmxSenderOutput {
 
     type Element = Rgb;
 
-    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> Result<()> {
-        for fixture in self.fixtures.iter() {
-            let pixel = out.get(fixture.pixel);
+    async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> Result<()> {
+        for (i, fixture) in self.fixtures.iter().enumerate() {
+            let pixel = out.get(i);
             let pixel = fixture.white_mode.apply(pixel);
             let pixel = pixel.into_format::<u8>();
 
@@ -113,5 +108,9 @@ impl Output for NetDmxSenderOutput {
         self.socket.send_to(&self.buffer, &self.address).await?;
 
         return Ok(());
+    }
+
+    fn size(&self) -> usize {
+        return self.fixtures.len();
     }
 }

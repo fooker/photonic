@@ -1,3 +1,4 @@
+use std::future::Future;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
@@ -9,23 +10,23 @@ use tokio::io::{AsyncWrite, AsyncWriteExt};
 use photonic::{BufferReader, Output, OutputDecl};
 
 pub struct Terminal {
-    pub waterfall: bool,
+    pub size: usize,
     pub path: Option<PathBuf>,
+    pub waterfall: bool,
 }
 
 impl Terminal {
-    pub fn stdout() -> Self {
+    pub fn new(size: usize) -> Self {
         return Self {
-            waterfall: false,
+            size,
             path: None,
+            waterfall: false,
         };
     }
 
-    pub fn with_path(path: impl AsRef<Path>) -> Self {
-        return Self {
-            waterfall: false,
-            path: Some(path.as_ref().to_path_buf()),
-        };
+    pub fn with_path(mut self, path: impl AsRef<Path>) -> Self {
+        self.path = Some(path.as_ref().to_path_buf());
+        return self;
     }
 
     pub fn with_waterfall(mut self, waterfall: bool) -> Self {
@@ -35,15 +36,18 @@ impl Terminal {
 }
 
 pub struct TerminalOutput {
+    size: usize,
     waterfall: bool,
+
     out: Pin<Box<dyn AsyncWrite>>,
 }
 
 impl OutputDecl for Terminal {
     type Output = TerminalOutput;
 
-    async fn materialize(self, _size: usize) -> Result<Self::Output>
-    where Self::Output: Sized {
+    async fn materialize(self) -> Result<Self::Output>
+        where Self::Output: Sized,
+    {
         let out: Pin<Box<dyn AsyncWrite>> = if let Some(path) = self.path {
             let _ = nix::unistd::unlink(&path);
             nix::unistd::mkfifo(&path, nix::sys::stat::Mode::S_IRWXU)
@@ -60,6 +64,7 @@ impl OutputDecl for Terminal {
         };
 
         return Ok(Self::Output {
+            size: self.size,
             waterfall: self.waterfall,
             out,
         });
@@ -71,7 +76,7 @@ impl Output for TerminalOutput {
 
     type Element = Srgb;
 
-    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> Result<()> {
+    async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> Result<()> {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(out.size() * 20 + 5);
 
@@ -89,5 +94,9 @@ impl Output for TerminalOutput {
         self.out.flush().await?;
 
         return Ok(());
+    }
+
+    fn size(&self) -> usize {
+        return self.size;
     }
 }

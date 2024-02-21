@@ -40,8 +40,8 @@ pub struct Builder<Registry> {
 }
 
 impl<Registry> Builder<Registry> {
-    pub fn new(size: usize) -> Self {
-        let scene = Scene::new(size);
+    pub fn new() -> Self {
+        let scene = Scene::new();
 
         return Self {
             scene,

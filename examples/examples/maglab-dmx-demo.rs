@@ -7,13 +7,13 @@ use photonic::attr::{AsFixedAttr, Range};
 use photonic::{Scene, WhiteMode};
 use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
-use photonic_effects::nodes::{Alert, Blackout, Brightness, ColorWheel, Noise, Overlay, Raindrops, Switch};
+use photonic_effects::nodes::{Alert, Blackout, Brightness, ColorWheel, Larson, Noise, Overlay, Raindrops, Splice, Switch};
 use photonic_output_net::netdmx::{Channel, Fixture, NetDmxSender};
 use photonic_output_terminal::Terminal;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut scene = Scene::new(100);
+    let mut scene = Scene::new();
 
     let input_next = scene.input("next")?;
     let input_prev = scene.input("prev")?;
@@ -96,29 +96,52 @@ async fn main() -> Result<()> {
         range: Some(0..2),
     })?;
 
+    let larson1 = scene.node("larson1", Larson {
+        hue: 0.0.fixed(),
+        width: 4.0.fixed(),
+        speed: 1.0.fixed(),
+    })?;
+
+    let larson2 = scene.node("larson2", Larson {
+        hue: 0.0.fixed(),
+        width: 4.0.fixed(),
+        speed: 1.0.fixed(),
+    })?;
+
+    let larson = scene.node("larson", Splice {
+        n1: larson1,
+        n2: larson2,
+        split: 8,
+    })?;
+
+    let splice = scene.node("larson_splice", Splice {
+       n1: kitchen,
+       n2: larson,
+       split: -16,
+    })?;
+
     let output = NetDmxSender::with_address("127.0.0.1:34254".parse()?)
         .add_fixture(Fixture {
-            pixel: 0,
             dmx_address: 500,
             dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue, Channel::White],
             white_mode: WhiteMode::Accurate,
         })
         .add_fixture(Fixture {
-            pixel: 1,
             dmx_address: 508,
             dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue, Channel::White],
             white_mode: WhiteMode::Accurate,
         })
         .add_fixtures(20, |n| Fixture {
-            pixel: n + 2,
             dmx_address: 1 + n * 3,
             dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue],
             white_mode: WhiteMode::None,
         });
 
-    let output = Terminal::with_path("/tmp/photonic").with_waterfall(true);
+    let output = Terminal::new(100)
+        .with_path("/tmp/photonic")
+        .with_waterfall(true);
 
-    let scene = scene.run(kitchen, output).await?;
+    let scene = scene.run(splice, output).await?;
 
     let cli = photonic_interface_cli::stdio::CLI;
 

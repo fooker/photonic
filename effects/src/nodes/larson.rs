@@ -66,7 +66,7 @@ where
         let width = self.width.update(ctx.duration);
         let speed = self.speed.update(ctx.duration);
 
-        let size = out.size() as f32;
+        let size = (out.size() - 1) as f32;
         let delta = ctx.duration.as_secs_f32() * speed;
 
         match self.direction {

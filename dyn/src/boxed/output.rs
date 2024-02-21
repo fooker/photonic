@@ -10,7 +10,7 @@ use photonic::{BufferReader, Output, OutputDecl};
 
 #[async_trait(? Send)]
 pub trait DynOutputDecl {
-    async fn materialize(self: Box<Self>, size: usize) -> Result<BoxedOutput>;
+    async fn materialize(self: Box<Self>) -> Result<BoxedOutput>;
 }
 
 #[async_trait(? Send)]
@@ -19,8 +19,8 @@ where
     T: OutputDecl + 'static,
     <<T as OutputDecl>::Output as Output>::Element: Copy + FromColor<Rgb>,
 {
-    async fn materialize(self: Box<Self>, size: usize) -> Result<BoxedOutput> {
-        let output = <T as OutputDecl>::materialize(*self, size).await?;
+    async fn materialize(self: Box<Self>) -> Result<BoxedOutput> {
+        let output = <T as OutputDecl>::materialize(*self).await?;
         return Ok(Box::new(output) as Box<dyn DynOutput>);
     }
 }
@@ -30,14 +30,16 @@ pub type BoxedOutputDecl = Box<dyn DynOutputDecl>;
 impl OutputDecl for BoxedOutputDecl {
     type Output = BoxedOutput;
 
-    fn materialize(self, size: usize) -> impl Future<Output = Result<Self::Output>> {
-        return DynOutputDecl::materialize(self, size);
+    fn materialize(self) -> impl Future<Output = Result<Self::Output>> {
+        return DynOutputDecl::materialize(self);
     }
 }
 
 #[async_trait(? Send)]
 pub trait DynOutput {
     async fn render(&mut self, out: &dyn BufferReader<Element = Rgb>) -> Result<()>;
+    
+    fn size(&self) -> usize;
 }
 
 #[async_trait(? Send)]
@@ -48,6 +50,10 @@ where
 {
     async fn render(&mut self, out: &dyn BufferReader<Element = Rgb>) -> Result<()> {
         return Output::render(self, OutputBuffer::wrap(out)).await;
+    }
+
+    fn size(&self) -> usize {
+        return Output::size(self);
     }
 }
 
@@ -60,6 +66,10 @@ impl Output for BoxedOutput {
 
     async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> Result<()> {
         return DynOutput::render(self.as_mut(), &out).await;
+    }
+
+    fn size(&self) -> usize {
+        return DynOutput::size(self.as_ref());
     }
 }
 

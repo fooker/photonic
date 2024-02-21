@@ -1,3 +1,4 @@
+use std::future::Future;
 use byteorder::{BigEndian, WriteBytesExt};
 
 use anyhow::Result;
@@ -35,19 +36,23 @@ impl Mode {
 #[derive(Default)]
 pub struct WledSender {
     pub mode: Mode,
+    pub size: usize,
 }
 
 pub struct WledSenderOutput {
     mode: Mode,
+    size: usize,
 }
 
 impl OutputDecl for WledSender {
     type Output = WledSenderOutput;
 
-    async fn materialize(self, _size: usize) -> Result<Self::Output>
-    where Self::Output: Sized {
+    async fn materialize(self) -> Result<Self::Output>
+        where Self::Output: Sized,
+    {
         return Ok(Self::Output {
             mode: self.mode,
+            size: self.size,
         });
     }
 }
@@ -57,7 +62,7 @@ impl Output for WledSenderOutput {
 
     type Element = Rgb;
 
-    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> anyhow::Result<()> {
+    async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> anyhow::Result<()> {
         let mut buffer = Vec::<u8>::with_capacity(2 + out.size() * self.mode.element_size()); // TODO: Allocate only once and re-use
         buffer.write_u8(match self.mode {
             Mode::DRGB => 2,
@@ -106,5 +111,9 @@ impl Output for WledSenderOutput {
         }
 
         return Ok(());
+    }
+
+    fn size(&self) -> usize {
+        return self.size;
     }
 }

@@ -9,4 +9,6 @@ pub trait Output: Sized {
     type Element;
 
     fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> impl Future<Output = Result<()>>;
+
+    fn size(&self) -> usize;
 }
