@@ -10,48 +10,53 @@ use photonic_dyn::DynamicNode;
 // TODO: Hue range
 
 #[derive(DynamicNode)]
-pub struct Noise<Speed, Stretch> {
+pub struct Noise<Speed, Stretch, F> {
     #[photonic(attr)]
     pub speed: Speed,
 
     #[photonic(attr)]
     pub stretch: Stretch,
+
+    pub noise: F,
 }
 
-pub struct NoiseNode<Speed, Stretch>
+pub struct NoiseNode<Speed, Stretch, F>
 where
     Speed: Attr<Value = f32>,
     Stretch: Attr<Value = f32>,
+    F: NoiseFn<f64, 2>
 {
     speed: Speed,
     stretch: Stretch,
 
     position: f64,
 
-    noise: noise::Perlin,
+    noise: F,
 }
 
-impl<Speed, Stretch> NodeDecl for Noise<Speed, Stretch>
+impl<Speed, Stretch, F> NodeDecl for Noise<Speed, Stretch, F>
 where
     Speed: FreeAttrDecl<Value = f32>,
     Stretch: FreeAttrDecl<Value = f32>,
+    F: NoiseFn<f64, 2>,
 {
-    type Node = NoiseNode<Speed::Attr, Stretch::Attr>;
+    type Node = NoiseNode<Speed::Attr, Stretch::Attr, F>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         return Ok(Self::Node {
             speed: builder.unbound_attr("speed", self.speed)?,
             stretch: builder.unbound_attr("stretch", self.stretch)?,
             position: 0.0,
-            noise: noise::Perlin::default(),
+            noise: self.noise,
         });
     }
 }
 
-impl<Speed, Stretch> Node for NoiseNode<Speed, Stretch>
+impl<Speed, Stretch, F> Node for NoiseNode<Speed, Stretch, F>
 where
     Speed: Attr<Value = f32>,
     Stretch: Attr<Value = f32>,
+    F: NoiseFn<f64, 2>,
 {
     const KIND: &'static str = "noise";
 

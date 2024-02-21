@@ -36,8 +36,9 @@ async fn main() -> Result<()> {
     })?;
 
     let noise = scene.node("noise", Noise {
-        speed: 0.005.fixed(),
-        stretch: 5.0.fixed(),
+        speed: 0.05.fixed(),
+        stretch: 1.0.fixed(),
+        noise: noise::OpenSimplex::default(),
     })?;
 
     // TODO: Add switcher for more animations

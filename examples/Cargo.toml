@@ -11,6 +11,7 @@ photonic = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 palette = { workspace = true }
+noise = "*"
 
 photonic-effects = { path = "../effects" }
 photonic-interface-cli = { path = "../interface-cli" }
