@@ -48,9 +48,14 @@ impl Node for ColorWheelNode {
     fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
         self.position += ctx.duration.as_secs_f32() * self.speed;
 
-        for i in 0..out.len() {
-            let hue = (i as f32 / out.len() as f32 * self.scale + self.offset + self.position) * 360.0;
-            out[i] = Hsv::new(hue, self.saturation, self.intensity);
+        if self.scale <= 0.0 {
+            let hue = (self.offset + self.position) * 360.0;
+            out.fill(Hsv::new(hue, self.saturation, self.intensity))
+        } else {
+            for i in 0..out.len() {
+                let hue = (i as f32 / out.len() as f32 * self.scale + self.offset + self.position) * 360.0;
+                out[i] = Hsv::new(hue, self.saturation, self.intensity);
+            }
         }
 
         return Ok(());

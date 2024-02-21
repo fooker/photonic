@@ -7,7 +7,7 @@ use photonic::attr::{AsFixedAttr, Range};
 use photonic::{Scene, WhiteMode};
 use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
-use photonic_effects::nodes::{Alert, Blackout, Brightness, Noise, Overlay, Raindrops, Switch};
+use photonic_effects::nodes::{Alert, Blackout, Brightness, ColorWheel, Noise, Overlay, Raindrops, Switch};
 use photonic_output_net::netdmx::{Channel, Fixture, NetDmxSender};
 use photonic_output_terminal::Terminal;
 
@@ -41,10 +41,18 @@ async fn main() -> Result<()> {
         noise: noise::OpenSimplex::default(),
     })?;
 
+    let colors = scene.node("colors", ColorWheel {
+        scale: 0.0,
+        speed: 0.1,
+        offset: 0.0,
+        saturation: 1.0,
+        intensity: 1.0,
+    })?;
+
     // TODO: Add switcher for more animations
     let input_animation = scene.input::<i64>("animation")?;
     let animation = scene.node("animation", Switch {
-        sources: vec![noise],
+        sources: vec![colors],
         value: input_animation.attr(0),
         easing: Easings::Quartic(EasingDirection::InOut).with_speed(Duration::from_secs(3)),
     })?;
