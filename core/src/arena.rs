@@ -141,7 +141,6 @@ where
 #[cfg(test)]
 mod test {
     use std::cell::RefCell;
-    use std::fmt::Debug;
 
     use anyhow::Result;
 
@@ -183,9 +182,9 @@ mod test {
 
         let slice = arena.as_slice();
 
-        assert_eq!(slice[&ref1], 1u8);
-        assert_eq!(slice[&ref2], 2u8);
-        assert_eq!(slice[&ref3], 3u8);
+        assert_eq!(slice[ref1], 1u8);
+        assert_eq!(slice[ref2], 2u8);
+        assert_eq!(slice[ref3], 3u8);
     }
 
     #[test]
@@ -194,7 +193,7 @@ mod test {
 
         let ref1 = arena.append(1_u8);
         let ref2 = arena.append(2_u8);
-        let ref3 = arena.append(3_u8);
+        let _ = arena.append(3_u8);
 
         let i = RefCell::new(0);
 
@@ -208,14 +207,14 @@ mod test {
                 1 => {
                     assert_eq!(curr, &2_u8);
                     assert_eq!(tail.len(), 1);
-                    assert_eq!(tail[&ref1], 1_u8);
+                    assert_eq!(tail[ref1], 1_u8);
                 }
 
                 2 => {
                     assert_eq!(curr, &3_u8);
                     assert_eq!(tail.len(), 2);
-                    assert_eq!(tail[&ref1], 1_u8);
-                    assert_eq!(tail[&ref2], 2_u8);
+                    assert_eq!(tail[ref1], 1_u8);
+                    assert_eq!(tail[ref2], 2_u8);
                 }
 
                 _ => panic!("To many calls"),

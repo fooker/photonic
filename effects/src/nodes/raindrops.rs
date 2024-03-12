@@ -1,4 +1,3 @@
-use palette::rgb::Rgb;
 use palette::Hsl;
 
 use palette::FromColor;
@@ -31,7 +30,7 @@ pub struct Raindrops<Rate, Color, Decay> {
 pub struct RaindropsNode<Rate, Color, Decay>
 where
     Rate: Attr<Value = f32>,
-    Color: Attr<Value = Range<Rgb>>,
+    Color: Attr<Value = Range<Hsl>>,
     Decay: Attr<Value = Range<f32>>,
 {
     rate: Rate,
@@ -46,7 +45,7 @@ where
 impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
 where
     Rate: BoundAttrDecl<Value = f32>,
-    Color: FreeAttrDecl<Value = Range<Rgb>>,
+    Color: FreeAttrDecl<Value = Range<Hsl>>,
     Decay: BoundAttrDecl<Value = Range<f32>>,
 {
     type Node = RaindropsNode<Rate::Attr, Color::Attr, Decay::Attr>;
@@ -65,7 +64,7 @@ where
 impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
 where
     Rate: Attr<Value = f32>,
-    Color: Attr<Value = Range<Rgb>>,
+    Color: Attr<Value = Range<Hsl>>,
     Decay: Attr<Value = Range<f32>>,
 {
     const KIND: &'static str = "raindrops";

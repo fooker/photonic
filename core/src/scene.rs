@@ -223,6 +223,7 @@ impl Scene {
             Node: NodeDecl,
             Output: OutputDecl,
             <Output::Output as self::Output>::Element: FromColor<<Node::Node as self::Node>::Element>,
+            <Node as NodeDecl>::Node: 'static,
             <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
         let output = decl.materialize().await?;
@@ -364,6 +365,7 @@ impl SceneBuilder {
     pub async fn build<Node>(size: usize, root: NodeHandle<Node>) -> Result<(Self, NodeRef<Node::Node>)>
         where
             Node: NodeDecl,
+            <Node as NodeDecl>::Node: 'static,
             <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
         let mut nodes = Arena::new();
@@ -410,6 +412,7 @@ impl NodeBuilder<'_> {
     pub async fn node<Node>(&mut self, key: impl Into<String>, decl: NodeHandle<Node>) -> Result<NodeRef<Node::Node>>
         where
             Node: NodeDecl,
+            <Node as NodeDecl>::Node: 'static,
             <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
         return self.node_with_size(key, decl, self.size).await;
@@ -418,6 +421,7 @@ impl NodeBuilder<'_> {
     pub async fn node_with_size<Node>(&mut self, key: impl Into<String>, decl: NodeHandle<Node>, size: usize) -> Result<NodeRef<Node::Node>>
         where
             Node: NodeDecl,
+            <Node as NodeDecl>::Node: 'static,
             <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
         let mut builder = NodeBuilder {

@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
         _ => bail!("Unknown scene file extension"),
     };
 
-    let mut builder = Builder::<MyRegistry>::new(scene.size);
+    let mut builder = Builder::<MyRegistry>::new();
 
     let root = builder.node("root", scene.root)?;
     let output = builder.output(scene.output)?;
@@ -74,13 +74,25 @@ impl Registry for MyRegistry {
                 BoxedBoundAttrDecl<i64>,
                 BoxedFreeAttrDecl<f32>,
             >::factory(),
-            "blackout" => photonic_effects::nodes::Blackout::<BoxedNodeDecl, BoxedFreeAttrDecl<bool>>::factory(),
-            "brightness" => photonic_effects::nodes::Brightness::<BoxedNodeDecl, BoxedBoundAttrDecl<f32>>::factory(),
-            "color_wheel" => photonic_effects::nodes::ColorWheel::factory(),
-            "noise" => photonic_effects::nodes::Noise::<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>>::factory(),
-            "overlay" => {
-                photonic_effects::nodes::Overlay::<BoxedNodeDecl, BoxedNodeDecl, BoxedBoundAttrDecl<f32>>::factory()
-            }
+            "blackout" => photonic_effects::nodes::Blackout::<
+                BoxedNodeDecl,
+                BoxedFreeAttrDecl<bool>,
+            >::factory(),
+            "brightness" => photonic_effects::nodes::Brightness::<
+                BoxedNodeDecl,
+                BoxedBoundAttrDecl<f32>,
+            >::factory(),
+            "color_wheel" => photonic_effects::nodes::ColorWheel::<
+            >::factory(),
+            // "noise" => photonic_effects::nodes::Noise::<
+            //     BoxedFreeAttrDecl<f32>,
+            //     BoxedFreeAttrDecl<f32>,
+            // >::factory(),
+            "overlay" => photonic_effects::nodes::Overlay::<
+                BoxedNodeDecl,
+                BoxedNodeDecl,
+                BoxedBoundAttrDecl<f32>,
+            >::factory(),
             //"raindrops" => photonic_effects::nodes::Raindrops::<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<photonic::color::palette::rgb::Rgb>>, BoxedBoundAttrDecl<Range<f32>>>::factory(),
             _ => return None,
         });
@@ -159,6 +171,7 @@ impl Registry for MyRegistry {
                 let config: Config = Config::deserialize(config)?;
 
                 return Ok(Box::new(Terminal {
+                    size: 80,
                     waterfall: config.waterfall,
                     path: config.path,
                 }));

@@ -1,4 +1,3 @@
-use std::future::Future;
 use std::net::SocketAddr;
 
 use anyhow::{bail, Result};

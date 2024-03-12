@@ -5,6 +5,8 @@ pub use fixed::{AsFixedAttr, FixedAttr, FixedAttrDecl};
 pub use range::Range;
 pub use values::AttrValue;
 
+pub use self::ext::FreeAttrDeclExt;
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AttrValueType {
     Boolean,
@@ -39,3 +41,4 @@ pub mod bounds;
 pub mod fixed;
 pub mod range;
 pub mod values;
+pub mod ext;

@@ -26,9 +26,9 @@ async fn main() -> Result<()> {
                 next: Some(input_next),
                 prev: Some(input_prev),
                 values: vec![
-                    Range(Hsl::new(245.31, 0.5, 0.5).into_color(), Hsl::new(333.47, 0.7, 0.5).into_color()),
-                    Range(Hsl::new(0.0, 0.45, 0.5).into_color(), Hsl::new(17.5, 0.55, 0.5).into_color()),
-                    Range(Hsl::new(187.5, 0.25, 0.5).into_color(), Hsl::new(223.92, 0.5, 0.5).into_color()),
+                    Range(Hsl::new(245.31, 0.5, 0.5), Hsl::new(333.47, 0.7, 0.5)),
+                    Range(Hsl::new(0.0, 0.45, 0.5), Hsl::new(17.5, 0.55, 0.5)),
+                    Range(Hsl::new(187.5, 0.25, 0.5), Hsl::new(223.92, 0.5, 0.5)),
                 ],
             },
             easing: Easings::Quadratic(EasingDirection::InOut).with_speed(Duration::from_secs(2)),

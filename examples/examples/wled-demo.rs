@@ -10,7 +10,7 @@ use photonic_output_terminal::Terminal;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut scene = Scene::new(100);
+    let mut scene = Scene::new();
 
     let base = scene.node("color_wheel", ColorWheel {
         scale: 1.0,
@@ -27,15 +27,16 @@ async fn main() -> Result<()> {
     })?;
 
     let brightness = scene.node("brightness", Brightness {
-        value: 1.0,
+        value: 1.0.fixed(),
         source: base,
+        range: None,
     })?;
 
     // let (scene, introspection) = scene.run(brightness, Terminal {
     //     waterfall: true,
     // })?;
 
-    let (scene, introspection) = scene.run(brightness, Null::<Srgb>::default())?;
+    let scene = scene.run(brightness, Null::<Srgb>::default()).await?;
 
     //scene.run(60).await?;
 

@@ -1,4 +1,3 @@
-use std::future::Future;
 use byteorder::{BigEndian, WriteBytesExt};
 
 use anyhow::Result;
