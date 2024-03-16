@@ -67,6 +67,9 @@ impl Interface for MQTT<'_> {
         for input in introspection.inputs.values() {
             let topic = realm.topic(format!("input/{}/set", input.name));
             topics.insert(topic, input);
+            
+            client.subscribe(topic.to_owned(), QoS::AtLeastOnce).await?;
+            eprintln!("⇄ Subscribed to '{}' for input '{}' with type {}", topic, input.name, input.value_type);
         }
 
         while let Ok(event) = event_loop.poll().await {
