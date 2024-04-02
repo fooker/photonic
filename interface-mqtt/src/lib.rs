@@ -38,8 +38,8 @@ impl MQTT {
         });
     }
 
-    pub fn with_realm(mut self, realm: String) -> Self {
-        self.realm = realm;
+    pub fn with_realm(mut self, realm: impl Into<String>) -> Self {
+        self.realm = realm.into();
         return self;
     }
 }
