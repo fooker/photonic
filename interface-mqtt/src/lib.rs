@@ -27,7 +27,7 @@ pub struct MQTT<'s> {
 }
 
 impl <'s> MQTT<'s> {
-    pub fn new(url: impl Into<String>) -> Result<Self> {
+    pub fn with_url(url: impl Into<String>) -> Result<Self> {
         let mut mqtt_options = MqttOptions::parse_url(url)?;
         mqtt_options.set_keep_alive(Duration::from_secs(5));
         mqtt_options.set_clean_session(true);

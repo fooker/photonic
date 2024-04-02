@@ -145,7 +145,7 @@ async fn main() -> Result<()> {
 
     let cli = photonic_interface_cli::stdio::CLI;
 
-    let mqtt = photonic_interface_mqtt::MQTT::new("mqtt://localhost:1884?client_id=photonic")?;
+    let mqtt = photonic_interface_mqtt::MQTT::with_url("mqtt://localhost:1884?client_id=photonic")?;
 
     tokio::select! {
         Err(err) = scene.serve(cli) => bail!(err),
