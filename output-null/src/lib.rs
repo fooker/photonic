@@ -14,6 +14,15 @@ pub struct NullOutput<E> {
     phantom: PhantomData<E>,
 }
 
+impl <E> Null<E> {
+    pub fn with_size(size: usize) -> Self {
+        return Self {
+            size,
+            phantom: PhantomData::default(),
+        };
+    }
+}
+
 impl<E> OutputDecl for Null<E> {
     type Output = NullOutput<E>;
 
