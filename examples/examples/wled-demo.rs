@@ -1,12 +1,10 @@
 use anyhow::Result;
 use palette::{Hsl, Srgb};
-use photonic::attr::AsFixedAttr;
 
+use photonic::attr::AsFixedAttr;
 use photonic::Scene;
 use photonic_effects::nodes::{Brightness, ColorWheel, Raindrops};
-use photonic_output_net::wled::WledSender;
 use photonic_output_null::Null;
-use photonic_output_terminal::Terminal;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -38,7 +36,5 @@ async fn main() -> Result<()> {
 
     let scene = scene.run(brightness, Null::<Srgb>::default()).await?;
 
-    //scene.run(60).await?;
-
-    return Ok(());
+    return Ok(scene.run(60).await?);
 }

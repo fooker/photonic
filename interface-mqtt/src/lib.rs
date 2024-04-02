@@ -20,13 +20,13 @@ impl<'a> Realm<'a> {
     }
 }
 
-pub struct MQTT<'s> {
+pub struct MQTT {
     pub mqtt_options: MqttOptions,
 
-    pub realm: &'s str,
+    pub realm: String,
 }
 
-impl <'s> MQTT<'s> {
+impl MQTT {
     pub fn with_url(url: impl Into<String>) -> Result<Self> {
         let mut mqtt_options = MqttOptions::parse_url(url)?;
         mqtt_options.set_keep_alive(Duration::from_secs(5));
@@ -34,17 +34,17 @@ impl <'s> MQTT<'s> {
 
         return Ok(Self {
             mqtt_options,
-            realm: "photonic", // TODO: Extract realm from URL
+            realm: "photonic".into(), // TODO: Extract realm from URL
         });
     }
 
-    pub fn with_realm(mut self, realm: &'s str) -> Self {
+    pub fn with_realm(mut self, realm: String) -> Self {
         self.realm = realm;
         return self;
     }
 }
 
-impl Interface for MQTT<'_> {
+impl Interface for MQTT {
     async fn listen(mut self, introspection: Arc<Introspection>) -> Result<()> {
         let realm = Realm::from(&self.realm);
 
@@ -55,63 +55,63 @@ impl Interface for MQTT<'_> {
             retain: true,
         });
 
-        let (client, mut event_loop) = AsyncClient::new(self.mqtt_options, 10);
-
-        client.publish_bytes(realm.topic("status"),
-                             QoS::AtLeastOnce,
-                             true,
-                             Bytes::from("online")).await?;
+        self.mqtt_options.set_keep_alive(Duration::from_secs(5));
 
         let mut topics = HashMap::new();
 
         for input in introspection.inputs.values() {
             let topic = realm.topic(format!("input/{}/set", input.name));
-            
-            client.subscribe(topic.clone(), QoS::AtLeastOnce).await?;
-            eprintln!("⇄ Subscribed to '{}' for input '{}' with type {}", topic, input.name, input.value_type);
-            
             topics.insert(topic, input);
         }
 
-        while let Ok(event) = event_loop.poll().await {
-            match event {
-                Event::Incoming(Incoming::Connect(_)) => {
-                    for (topic, input) in &topics {
-                        client.subscribe(topic.clone(), QoS::AtLeastOnce).await?;
-                        eprintln!("⇄ Subscribed to '{}' for input '{}' with type {}", topic, input.name, input.value_type);
-                    }
-                }
+        loop {
+            let (client, mut event_loop) = AsyncClient::new(self.mqtt_options.clone(), 10);
 
-                Event::Incoming(Incoming::Publish(publish)) => {
-                    let input = match topics.get(&publish.topic) {
-                        Some(input) => input,
-                        None => {
-                            eprintln!("Got notification for unknown topic: {}", publish.topic);
-                            continue;
-                        }
-                    };
+            while let Ok(event) = event_loop.poll().await {
+                match event {
+                    Event::Incoming(Incoming::ConnAck(_)) => {
+                        // Report online status
+                        client.publish_bytes(realm.topic("status"),
+                                             QoS::AtLeastOnce,
+                                             true,
+                                             Bytes::from("online")).await?;
 
-                    let payload = match String::from_utf8(publish.payload.to_vec()) {
-                        Ok(payload) => payload,
-                        Err(err) => {
-                            eprintln!("⇄ Invalid value on '{}' = {:?}: {}", publish.topic, publish.payload, err);
-                            continue;
-                        }
-                    };
-
-                    match input.sink.send_str(&payload) {
-                        Ok(()) => {}
-                        Err(err) => {
-                            eprintln!("⇄ Invalid value on '{}' = {:?}: {}", publish.topic, payload, err);
-                            continue;
+                        // Subscribe to all input topics
+                        for (topic, input) in &topics {
+                            client.subscribe(topic.clone(), QoS::AtLeastOnce).await?;
+                            eprintln!("xxxx ⇄ Subscribed to '{}' for input '{}' with type {}", topic, input.name, input.value_type);
                         }
                     }
-                }
 
-                _ => {}
+                    Event::Incoming(Incoming::Publish(publish)) => {
+                        let input = match topics.get(&publish.topic) {
+                            Some(input) => input,
+                            None => {
+                                eprintln!("Got notification for unknown topic: {}", publish.topic);
+                                continue;
+                            }
+                        };
+
+                        let payload = match String::from_utf8(publish.payload.to_vec()) {
+                            Ok(payload) => payload,
+                            Err(err) => {
+                                eprintln!("⇄ Invalid value on '{}' = {:?}: {}", publish.topic, publish.payload, err);
+                                continue;
+                            }
+                        };
+
+                        match input.sink.send_str(&payload) {
+                            Ok(()) => {}
+                            Err(err) => {
+                                eprintln!("⇄ Invalid value on '{}' = {:?}: {}", publish.topic, payload, err);
+                                continue;
+                            }
+                        }
+                    }
+
+                    _ => {}
+                }
             }
         }
-
-        return Ok(());
     }
 }

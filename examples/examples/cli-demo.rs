@@ -1,11 +1,10 @@
-use anyhow::{bail, Result};
+use anyhow::Result;
 use palette::{FromColor, Hsl, IntoColor};
 use palette::rgb::Rgb;
 
 use photonic::attr::{AsFixedAttr, Range};
 use photonic::attr::FreeAttrDeclExt;
 use photonic::Scene;
-use photonic::scene::InputHandle;
 use photonic_effects::nodes::{Brightness, Raindrops};
 use photonic_output_terminal::Terminal;
 
@@ -35,13 +34,10 @@ async fn main() -> Result<()> {
         .with_path("/tmp/photonic")
         .with_waterfall(true);
 
-    let scene = scene.run(brightness, output).await?;
+    let mut scene = scene.run(brightness, output).await?;
 
     let cli = photonic_interface_cli::stdio::CLI;
+    scene.serve("CLI", cli);
 
-    tokio::select! {
-        Err(err) = scene.serve(cli) => bail!(err),
-        Err(err) = scene.run(60) => bail!(err),
-        else => return Ok(())
-    }
+    return Ok(scene.run(60).await?);
 }

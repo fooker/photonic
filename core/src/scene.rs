@@ -4,19 +4,22 @@ use std::collections::HashMap;
 use std::future::Future;
 use std::marker::PhantomData;
 use std::ops;
+use std::pin::{Pin, pin};
 use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
+use futures::future::SelectAll;
+use futures::FutureExt;
 use palette::FromColor;
 
+use crate::{AttrInfo, Buffer, BufferReader, InputInfo, Node, NodeInfo, Output};
 use crate::arena::{Arena, Ref, Slice};
 use crate::attr::{Attr, AttrValue, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl, OutputDecl};
 use crate::input::{Input, InputSink, InputValue};
 use crate::interface::{Interface, Introspection};
 use crate::utils::{FrameStats, FrameTimer};
-use crate::{AttrInfo, Buffer, BufferReader, InputInfo, Node, NodeInfo, Output};
 
 pub struct Context<'ctx> {
     /// Duration since last update
@@ -240,6 +243,7 @@ impl Scene {
             output,
             stats: FrameStats::default(),
             introspection,
+            servers: Vec::new(),
         });
     }
 }
@@ -262,6 +266,8 @@ pub struct Loop<Node, Output>
     stats: FrameStats,
 
     pub introspection: Arc<Introspection>,
+
+    servers: Vec<Pin<Box<dyn Future<Output=Result<()>>>>>,
 }
 
 impl<'a, Node, Output> Loop<Node, Output>
@@ -270,38 +276,37 @@ impl<'a, Node, Output> Loop<Node, Output>
         Output: self::Output,
         Output::Element: FromColor<Node::Element> + Copy,
 {
-    /// Update and render a single frame.
-    ///
-    /// The passed `duration` is the time passed since the last call to this function.
-    pub async fn frame(&mut self, duration: Duration) -> Result<()> {
-        self.nodes.try_walk(|curr, tail| {
-            let ctx = Context {
-                duration,
-                nodes: tail,
-            };
-
-            return curr.update(&ctx);
-        })?;
-
-        let root = &self.nodes.as_slice()[self.root.node];
-
-        // Render node tree to output
-        self.output.render(root.buffer.map(Output::Element::from_color)).await?;
-
-        self.stats.update(duration);
-
-        return Ok(());
-    }
-
     /// Constantly run the render loop.
     ///
     /// The loop is driven by this function at the given rate.
     pub async fn run(mut self, fps: usize) -> Result<()> {
+        // Wait for any server to finish
+        let mut servers = pin!(self.servers.into_iter()
+            .collect::<SelectAll<_>>());
+
         let mut timer = FrameTimer::new(fps);
         loop {
-            let duration = timer.tick().await;
+            let duration =
+                tokio::select! {
+                duration = timer.tick() => duration,
+                (server, _, _) = &mut servers => return server,
+            };
 
-            self.frame(duration).await?;
+            self.nodes.try_walk(|curr, tail| {
+                let ctx = Context {
+                    duration,
+                    nodes: tail,
+                };
+
+                return curr.update(&ctx);
+            })?;
+
+            let root = &self.nodes.as_slice()[self.root.node];
+
+            // Render node tree to output
+            self.output.render(root.buffer.map(Output::Element::from_color)).await?;
+
+            self.stats.update(duration);
 
             if let Some(stats) = self.stats.reset(fps) {
                 eprintln!(
@@ -314,8 +319,13 @@ impl<'a, Node, Output> Loop<Node, Output>
         }
     }
 
-    pub fn serve(&self, interface: impl Interface) -> impl Future<Output=Result<()>> {
-        return interface.listen(self.introspection.clone());
+    pub fn serve(&mut self, name: &'static str, interface: impl Interface) {
+        let interface = interface.listen(self.introspection.clone());
+        let interface = interface.inspect(move |result| if let Ok(()) = result {
+           eprintln!("Server terminated: {}", name);
+        });
+
+        self.servers.push(Box::pin(interface));
     }
 }
 

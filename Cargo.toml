@@ -37,3 +37,5 @@ palette = { version = "0.7", features = ["random"] }
 rand = { version = "0.8", features = ["small_rng"] }
 
 num-traits = { version = "0.2" }
+
+noise = { version = "0.9" }

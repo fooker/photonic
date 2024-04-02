@@ -104,7 +104,7 @@ impl Introspection {
 }
 
 pub trait Interface {
-    fn listen(self, introspection: Arc<Introspection>) -> impl Future<Output = Result<()>> + Send;
+    fn listen(self, introspection: Arc<Introspection>) -> impl Future<Output = Result<()>> + Send + 'static;
 }
 
 struct TreeIter<'a, T, F, I>

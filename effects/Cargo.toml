@@ -15,7 +15,7 @@ anyhow = { workspace = true }
 palette = { workspace = true, features = ["serializing"] }
 rand = { workspace = true }
 num-traits = { workspace = true }
+noise = { workspace = true }
 
 ezing = "0.2"
-noise = "0.8"
 serde = { version = "1.0.196", features = ["derive"] }

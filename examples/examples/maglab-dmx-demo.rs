@@ -52,7 +52,7 @@ async fn main() -> Result<()> {
     // TODO: Add switcher for more animations
     let input_animation = scene.input::<i64>("animation")?;
     let animation = scene.node("animation", Switch {
-        sources: vec![colors],
+        sources: vec![noise],
         value: input_animation.attr(0),
         easing: Easings::Quartic(EasingDirection::InOut).with_speed(Duration::from_secs(3)),
     })?;
@@ -141,16 +141,13 @@ async fn main() -> Result<()> {
         .with_path("/tmp/photonic")
         .with_waterfall(true);
 
-    let scene = scene.run(splice, output).await?;
+    let mut scene = scene.run(splice, output).await?;
 
     let cli = photonic_interface_cli::stdio::CLI;
+    scene.serve("CLI", cli);
 
-    let mqtt = photonic_interface_mqtt::MQTT::with_url("mqtt://localhost:1884?client_id=photonic")?;
+    let mqtt = photonic_interface_mqtt::MQTT::with_url("mqtt://localhost:1883?client_id=photonic")?;
+    scene.serve("MQTT", mqtt);
 
-    tokio::select! {
-        Err(err) = scene.serve(cli) => bail!(err),
-        Err(err) = scene.serve(mqtt) => bail!(err),
-        Err(err) = scene.run(20) => bail!(err),
-        else => return Ok(())
-    }
+    return Ok(scene.run(20).await?);
 }
