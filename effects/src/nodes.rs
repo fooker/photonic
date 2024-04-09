@@ -23,6 +23,5 @@ mod blackout;
 mod larson;
 mod noise;
 mod solid;
-mod switch;
 mod splice;
-
+mod switch;

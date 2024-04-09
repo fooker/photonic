@@ -11,4 +11,8 @@ photonic = { workspace = true }
 palette = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
+futures = { workspace = true }
+
 shlex = { version = "1.3" }
+
+tokio-stream = { version = "0.1", features = ["full"] }

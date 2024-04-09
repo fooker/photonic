@@ -45,8 +45,7 @@ impl OutputDecl for Terminal {
     type Output = TerminalOutput;
 
     async fn materialize(self) -> Result<Self::Output>
-        where Self::Output: Sized,
-    {
+    where Self::Output: Sized {
         let out: Pin<Box<dyn AsyncWrite>> = if let Some(path) = self.path {
             let _ = nix::unistd::unlink(&path);
             nix::unistd::mkfifo(&path, nix::sys::stat::Mode::S_IRWXU)
@@ -75,7 +74,7 @@ impl Output for TerminalOutput {
 
     type Element = Srgb;
 
-    async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> Result<()> {
+    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> Result<()> {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(out.size() * 20 + 5);
 

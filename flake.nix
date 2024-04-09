@@ -34,7 +34,13 @@
           src = craneLib.cleanCargoSource (craneLib.path ./.);
           strictDeps = true;
 
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+          ];
+
           buildInputs = with pkgs; [
+            protobuf
+            openssl
           ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
             pkgs.libiconv
           ];
@@ -62,11 +68,13 @@
         devShells.default = craneLib.devShell {
           checks = self.checks.${system};
 
+          inputsFrom = [ photonic ];
+
           packages = with pkgs; [
           ];
 
           RUST_BACKTRACE = 1;
-          RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";
+          RUST_SRC_PATH = "${rust}/lib.rs/rustlib/src/rust/library";
         };
       });
 }

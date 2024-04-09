@@ -9,6 +9,8 @@ members = [
     "output-net",
     "interface-cli",
     "interface-grpc",
+    "interface-grpc/proto",
+    "interface-grpc/client",
     "interface-mqtt",
     "dyn",
     "dyn/derive",

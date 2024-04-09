@@ -3,12 +3,11 @@ use anyhow::{bail, Result};
 use photonic::{Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic_dyn::DynamicNode;
 
-
 #[derive(DynamicNode)]
 pub struct Splice<N1, N2>
-    where
-        N1: NodeDecl,
-        N2: NodeDecl,
+where
+    N1: NodeDecl,
+    N2: NodeDecl,
 {
     pub n1: NodeHandle<N1>,
     pub n2: NodeHandle<N2>,
@@ -17,8 +16,9 @@ pub struct Splice<N1, N2>
 }
 
 pub struct SpliceNode<N1, N2>
-    where N1: Node + 'static,
-          N2: Node + 'static,
+where
+    N1: Node + 'static,
+    N2: Node + 'static,
 {
     n1: NodeRef<N1>,
     n2: NodeRef<N2>,
@@ -40,12 +40,12 @@ fn calculate_split(split: isize, size: usize) -> Result<usize> {
 }
 
 impl<N1, N2, E> NodeDecl for Splice<N1, N2>
-    where
-        N1: NodeDecl,
-        N2: NodeDecl,
-        <N1 as NodeDecl>::Node: Node<Element=E> + 'static,
-        <N2 as NodeDecl>::Node: Node<Element=E> + 'static,
-        E: Default + Copy,
+where
+    N1: NodeDecl,
+    N2: NodeDecl,
+    <N1 as NodeDecl>::Node: Node<Element = E> + 'static,
+    <N2 as NodeDecl>::Node: Node<Element = E> + 'static,
+    E: Default + Copy,
 {
     type Node = SpliceNode<N1::Node, N2::Node>;
 
@@ -62,10 +62,10 @@ impl<N1, N2, E> NodeDecl for Splice<N1, N2>
 }
 
 impl<N1, N2, E> Node for SpliceNode<N1, N2>
-    where
-        N1: Node<Element=E> + 'static,
-        N2: Node<Element=E> + 'static,
-        E: Default + Copy,
+where
+    N1: Node<Element = E> + 'static,
+    N2: Node<Element = E> + 'static,
+    E: Default + Copy,
 {
     const KIND: &'static str = "splice";
 

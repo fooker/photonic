@@ -1,7 +1,13 @@
+use std::pin::Pin;
 use std::sync::Arc;
 
 use anyhow::Result;
+use futures::{Stream, TryStreamExt};
+use photonic::input::InputSink;
 use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt, BufReader, BufWriter};
+use tokio_stream::wrappers::errors::BroadcastStreamRecvError;
+use tokio_stream::wrappers::BroadcastStream;
+use tokio_stream::StreamMap;
 
 use photonic::interface::Introspection;
 
@@ -15,6 +21,41 @@ pub(self) async fn run(
 ) -> Result<()> {
     let i = BufReader::new(i);
     let mut o = BufWriter::new(o);
+
+    let inputs = introspection
+        .inputs
+        .iter()
+        .map(|(name, info)| {
+            (name.clone(), match &info.sink {
+                InputSink::Trigger(sink) => {
+                    Box::pin(BroadcastStream::new(sink.subscribe()).map_ok(|()| "()".to_string()))
+                        as Pin<Box<dyn Stream<Item = Result<String, BroadcastStreamRecvError>> + Send>>
+                }
+                InputSink::Boolean(sink) => {
+                    Box::pin(BroadcastStream::new(sink.subscribe()).map_ok(|value| value.to_string()))
+                }
+                InputSink::Integer(sink) => {
+                    Box::pin(BroadcastStream::new(sink.subscribe()).map_ok(|value| value.to_string()))
+                }
+                InputSink::Decimal(sink) => {
+                    Box::pin(BroadcastStream::new(sink.subscribe()).map_ok(|value| value.to_string()))
+                }
+                InputSink::Color(sink) => Box::pin(
+                    BroadcastStream::new(sink.subscribe()).map_ok(|value| format!("{:02x}", value.into_format::<u8>())),
+                ),
+                InputSink::IntegerRange(sink) => {
+                    Box::pin(BroadcastStream::new(sink.subscribe()).map_ok(|value| value.to_string()))
+                }
+                InputSink::DecimalRange(sink) => {
+                    Box::pin(BroadcastStream::new(sink.subscribe()).map_ok(|value| value.to_string()))
+                }
+                InputSink::ColorRange(sink) => Box::pin(BroadcastStream::new(sink.subscribe()).map_ok(|value| {
+                    value.map(|component| format!("{:02x}", component.into_format::<u8>())).to_string()
+                })),
+            })
+        })
+        //.map(|(name, stream)| stream.map_ok(|value| format!("↯ {}: {}", name, value)))
+        .collect::<StreamMap<String, _>>();
 
     let mut lines = i.lines();
     loop {

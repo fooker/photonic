@@ -38,7 +38,7 @@ pub trait Attr {
 }
 
 pub mod bounds;
+pub mod ext;
 pub mod fixed;
 pub mod range;
 pub mod values;
-pub mod ext;

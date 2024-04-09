@@ -24,7 +24,7 @@ pub struct NoiseNode<Speed, Stretch, F>
 where
     Speed: Attr<Value = f32>,
     Stretch: Attr<Value = f32>,
-    F: NoiseFn<f64, 2>
+    F: NoiseFn<f64, 2>,
 {
     speed: Speed,
     stretch: Stretch,

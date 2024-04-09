@@ -61,8 +61,7 @@ impl OutputDecl for NetDmxSender {
     type Output = NetDmxSenderOutput;
 
     async fn materialize(self) -> Result<Self::Output>
-        where Self::Output: Sized,
-    {
+    where Self::Output: Sized {
         let socket = tokio::net::UdpSocket::bind("127.0.0.0:0").await?;
 
         for fixture in &self.fixtures {
@@ -87,7 +86,7 @@ impl Output for NetDmxSenderOutput {
 
     type Element = Rgb;
 
-    async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> Result<()> {
+    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> Result<()> {
         for (i, fixture) in self.fixtures.iter().enumerate() {
             let pixel = out.get(i);
             let pixel = fixture.white_mode.apply(pixel);

@@ -1,0 +1,10 @@
+Node: {{ name }}
+    Kind: {{ kind }}
+    Nodes:
+    {%- for (key, node) in nodes %}
+        - {{ key }}: {{ node }}
+    {%- endfor %}
+    Attributes:
+    {%- for attr in attrs %}
+        - {{ attr }}
+    {%- endfor %}

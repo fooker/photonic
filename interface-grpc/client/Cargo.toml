@@ -1,0 +1,22 @@
+[package]
+name = "photonic-interface-grpc-client"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+photonic-interface-grpc-proto = { path = "../proto" }
+
+anyhow = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+futures = { workspace = true }
+palette = { workspace = true }
+
+tonic = "0.11"
+
+yansi = "1.0"
+askama = "0.12"
+
+reedline-repl-rs = { version = "1.1.1", features = ["derive", "async"] }
+clap = { version = "4.5.4", features = ["derive", "cargo"] }

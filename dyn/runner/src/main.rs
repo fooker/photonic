@@ -74,25 +74,16 @@ impl Registry for MyRegistry {
                 BoxedBoundAttrDecl<i64>,
                 BoxedFreeAttrDecl<f32>,
             >::factory(),
-            "blackout" => photonic_effects::nodes::Blackout::<
-                BoxedNodeDecl,
-                BoxedFreeAttrDecl<bool>,
-            >::factory(),
-            "brightness" => photonic_effects::nodes::Brightness::<
-                BoxedNodeDecl,
-                BoxedBoundAttrDecl<f32>,
-            >::factory(),
-            "color_wheel" => photonic_effects::nodes::ColorWheel::<
-            >::factory(),
+            "blackout" => photonic_effects::nodes::Blackout::<BoxedNodeDecl, BoxedFreeAttrDecl<bool>>::factory(),
+            "brightness" => photonic_effects::nodes::Brightness::<BoxedNodeDecl, BoxedBoundAttrDecl<f32>>::factory(),
+            "color_wheel" => photonic_effects::nodes::ColorWheel::factory(),
             // "noise" => photonic_effects::nodes::Noise::<
             //     BoxedFreeAttrDecl<f32>,
             //     BoxedFreeAttrDecl<f32>,
             // >::factory(),
-            "overlay" => photonic_effects::nodes::Overlay::<
-                BoxedNodeDecl,
-                BoxedNodeDecl,
-                BoxedBoundAttrDecl<f32>,
-            >::factory(),
+            "overlay" => {
+                photonic_effects::nodes::Overlay::<BoxedNodeDecl, BoxedNodeDecl, BoxedBoundAttrDecl<f32>>::factory()
+            }
             //"raindrops" => photonic_effects::nodes::Raindrops::<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<photonic::color::palette::rgb::Rgb>>, BoxedBoundAttrDecl<Range<f32>>>::factory(),
             _ => return None,
         });

@@ -7,7 +7,9 @@ use photonic::attr::{AsFixedAttr, Range};
 use photonic::{Scene, WhiteMode};
 use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
-use photonic_effects::nodes::{Alert, Blackout, Brightness, ColorWheel, Larson, Noise, Overlay, Raindrops, Splice, Switch};
+use photonic_effects::nodes::{
+    Alert, Blackout, Brightness, ColorWheel, Larson, Noise, Overlay, Raindrops, Splice, Switch,
+};
 use photonic_output_net::netdmx::{Channel, Fixture, NetDmxSender};
 use photonic_output_terminal::Terminal;
 
@@ -114,11 +116,11 @@ async fn main() -> Result<()> {
         split: 8,
     })?;
 
-    let splice = scene.node("larson_splice", Splice {
-       n1: kitchen,
-       n2: larson,
-       split: -16,
-    })?;
+    // let splice = scene.node("larson_splice", Splice {
+    //    n1: kitchen,
+    //    n2: larson.,
+    //    split: -16,
+    // })?;
 
     let output = NetDmxSender::with_address("127.0.0.1:34254".parse()?)
         .add_fixture(Fixture {
@@ -137,17 +139,18 @@ async fn main() -> Result<()> {
             white_mode: WhiteMode::None,
         });
 
-    let output = Terminal::new(100)
-        .with_path("/tmp/photonic")
-        .with_waterfall(true);
+    let output = Terminal::new(100).with_path("/tmp/photonic").with_waterfall(true);
 
-    let mut scene = scene.run(splice, output).await?;
+    let mut scene = scene.run(kitchen, output).await?;
 
     let cli = photonic_interface_cli::stdio::CLI;
     scene.serve("CLI", cli);
 
     let mqtt = photonic_interface_mqtt::MQTT::with_url("mqtt://localhost:1883?client_id=photonic")?;
     scene.serve("MQTT", mqtt);
+
+    let grpc = photonic_interface_grpc::GRPC::new()?;
+    scene.serve("GRPC", grpc);
 
     return Ok(scene.run(20).await?);
 }

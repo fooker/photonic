@@ -38,7 +38,7 @@ impl OutputDecl for BoxedOutputDecl {
 #[async_trait(? Send)]
 pub trait DynOutput {
     async fn render(&mut self, out: &dyn BufferReader<Element = Rgb>) -> Result<()>;
-    
+
     fn size(&self) -> usize;
 }
 

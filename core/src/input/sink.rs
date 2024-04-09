@@ -1,27 +1,28 @@
 use std::str::FromStr;
-use std::sync::atomic::Ordering;
-use std::sync::Arc;
 
 use anyhow::Result;
 use palette::rgb::Rgb;
 use palette::Srgb;
+use tokio::sync::broadcast;
+use tokio::sync::broadcast::Receiver;
 
 use crate::attr::Range;
 
-use super::{InputValue, Poll, Shared};
+use super::InputValue;
 
-#[derive(Clone)]
 pub struct Sink<V> {
-    pub(super) shared: Arc<Shared<V>>,
+    pub(super) tx: broadcast::Sender<V>,
 }
 
 impl<V> Sink<V>
 where V: InputValue
 {
     pub fn send(&self, next: V) {
-        let mut value = self.shared.value.lock().expect("Failed to lock input value");
-        *value = Poll::Update(next);
-        self.shared.dirty.store(true, Ordering::Relaxed);
+        let _ = self.tx.send(next);
+    }
+
+    pub fn subscribe(&self) -> Receiver<V> {
+        return self.tx.subscribe();
     }
 }
 

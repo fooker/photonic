@@ -1,5 +1,11 @@
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::fmt::Write;
+use std::pin::pin;
+use std::sync::atomic::AtomicBool;
+use std::sync::Mutex;
+use std::task::Context;
+
+use futures::Future;
+use tokio::sync::broadcast;
 
 pub use sink::{InputSink, Sink};
 
@@ -14,7 +20,9 @@ pub enum InputValueType {
     Integer,
     Decimal,
     Color,
-    Range(&'static InputValueType),
+    IntegerRange,
+    DecimalRange,
+    ColorRange,
 }
 
 impl std::fmt::Display for InputValueType {
@@ -25,7 +33,9 @@ impl std::fmt::Display for InputValueType {
             Self::Integer => f.write_str("integer"),
             Self::Decimal => f.write_str("decimal"),
             Self::Color => f.write_str("color"),
-            Self::Range(t) => write!(f, "range<{}>", t),
+            Self::IntegerRange => f.write_str("range<integer>"),
+            Self::DecimalRange => f.write_str("range<decimal>"),
+            Self::ColorRange => f.write_str("range<color>"),
         };
     }
 }
@@ -43,41 +53,37 @@ pub enum Poll<T> {
     Pending,
 }
 
-struct Shared<V> {
-    dirty: AtomicBool,
-    value: Mutex<Poll<V>>,
-}
-
 pub struct Input<V>
 where V: InputValue
 {
-    shared: Arc<Shared<V>>,
+    //shared: Arc<Shared<V>>,
+    tx: broadcast::Sender<V>,
+    rx: broadcast::Receiver<V>,
 }
 
 impl<V> Input<V>
 where V: InputValue
 {
     pub fn new() -> Self {
+        let (tx, rx) = broadcast::channel(1);
+
         return Self {
-            shared: Arc::new(Shared {
-                dirty: AtomicBool::new(false),
-                value: Mutex::new(Poll::Pending),
-            }),
+            tx,
+            rx,
         };
     }
 
     pub fn poll(&mut self) -> Poll<V> {
-        if self.shared.dirty.swap(false, Ordering::Relaxed) {
-            let mut value = self.shared.value.lock().expect("Failed to lock input value");
-            return std::mem::replace(&mut *value, Poll::Pending);
-        } else {
-            return Poll::Pending;
-        }
+        return match pin!(self.rx.recv()).as_mut().poll(&mut Context::from_waker(futures::task::noop_waker_ref())) {
+            std::task::Poll::Ready(Ok(value)) => Poll::Update(value),
+            std::task::Poll::Ready(Err(_)) => Poll::Pending, // We can ignore dangling or lagging here
+            std::task::Poll::Pending => Poll::Pending,
+        };
     }
 
     pub fn sink(&self) -> Sink<V> {
         return Sink {
-            shared: self.shared.clone(),
+            tx: self.tx.clone(),
         };
     }
 }

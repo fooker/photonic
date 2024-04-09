@@ -14,7 +14,7 @@ pub struct NullOutput<E> {
     phantom: PhantomData<E>,
 }
 
-impl <E> Null<E> {
+impl<E> Null<E> {
     pub fn with_size(size: usize) -> Self {
         return Self {
             size,
@@ -27,8 +27,7 @@ impl<E> OutputDecl for Null<E> {
     type Output = NullOutput<E>;
 
     async fn materialize(self) -> Result<Self::Output>
-        where Self::Output: Sized,
-    {
+    where Self::Output: Sized {
         return Ok(Self::Output {
             size: self.size,
             phantom: self.phantom,
@@ -41,7 +40,7 @@ impl<E> Output for NullOutput<E> {
 
     type Element = E;
 
-    async fn render(&mut self, _: impl BufferReader<Element=Self::Element>) -> Result<()> {
+    async fn render(&mut self, _: impl BufferReader<Element = Self::Element>) -> Result<()> {
         return Ok(());
     }
 

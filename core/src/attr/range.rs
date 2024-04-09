@@ -1,5 +1,6 @@
 use anyhow::Result;
 use palette::num::{One, Zero};
+use std::fmt;
 
 use crate::attr::bounds::Bounded;
 use crate::math::Lerp;
@@ -73,5 +74,13 @@ where V: PartialEq
 {
     fn eq(&self, other: &Self) -> bool {
         return self.0.eq(&other.0) && self.1.eq(&other.1);
+    }
+}
+
+impl<V> fmt::Display for Range<V>
+where V: fmt::Display
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        return write!(f, "[{}..{}]", self.0, self.1);
     }
 }

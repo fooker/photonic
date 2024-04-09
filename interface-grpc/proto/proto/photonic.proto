@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
+
+package photonic;
+
+message AttrRef {
+  string node = 1;
+  repeated string path = 2;
+}
+
+enum InputValueType {
+  TRIGGER = 0;
+  BOOL = 1;
+  INTEGER = 2;
+  DECIMAL = 3;
+  COLOR = 4;
+  INTEGER_RANGE = 5;
+  DECIMAL_RANGE = 6;
+  COLOR_RANGE = 7;
+}
+
+message NodesResponse {
+  repeated string nodes = 1;
+}
+
+message InputsResponse {
+  repeated string inputs = 1;
+}
+
+message NodeInfoResponse {
+  string name = 1;
+
+  string kind = 2;
+
+  map<string, string> nodes = 3;
+  repeated string attrs = 4;
+}
+
+message AttrInfoResponse {
+  AttrRef attr = 1;
+
+  string kind = 2;
+  string valueType = 3;
+
+  repeated string attrs = 4;
+  map<string, string> inputs = 5;
+}
+
+message InputInfoResponse {
+  string name = 1;
+
+  InputValueType valueType = 2;
+}
+
+message NodeInfoRequest {
+  string name = 1;
+}
+
+message AttrInfoRequest {
+  AttrRef attr = 1;
+}
+
+message InputInfoRequest {
+  string name = 1;
+}
+
+message InputValue {
+  message RGB {
+    float r = 1;
+    float g = 2;
+    float b = 3;
+  }
+
+  message IntegerRange {
+    sint64 a = 1;
+    sint64 b = 2;
+  }
+
+  message DecimalRange {
+    float a = 1;
+    float b = 2;
+  }
+
+  message ColorRange {
+    RGB a = 1;
+    RGB b = 2;
+  }
+
+  oneof value {
+    google.protobuf.Empty trigger = 1;
+    bool bool = 2;
+    sint64 integer = 3;
+    float decimal = 4;
+    RGB color = 5;
+    IntegerRange integerRange = 6;
+    DecimalRange decimalRange = 7;
+    ColorRange colorRange = 8;
+  }
+}
+
+message InputSendRequest {
+  string name = 1;
+  InputValue value = 2;
+}
+
+message InputSubscribeRequest {
+  string name = 1;
+}
+
+service Interface {
+  rpc Nodes(google.protobuf.Empty) returns (NodesResponse);
+  rpc Inputs(google.protobuf.Empty) returns (InputsResponse);
+
+  rpc RootInfo(google.protobuf.Empty) returns (NodeInfoResponse);
+
+  rpc NodeInfo(NodeInfoRequest) returns (NodeInfoResponse);
+  rpc AttrInfo(AttrInfoRequest) returns (AttrInfoResponse);
+  rpc InputInfo(InputInfoRequest) returns (InputInfoResponse);
+
+  rpc InputSend(InputSendRequest) returns (google.protobuf.Empty);
+
+  rpc InputSubscribe(InputSubscribeRequest) returns (stream InputValue);
+}

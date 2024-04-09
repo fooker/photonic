@@ -1,5 +1,7 @@
+use std::borrow::Borrow;
 use std::collections::{HashMap, VecDeque};
 use std::future::Future;
+use std::hash::Hash;
 use std::sync::Arc;
 
 use anyhow::Result;
@@ -17,6 +19,20 @@ pub struct NodeInfo {
     pub attrs: HashMap<String, Arc<AttrInfo>>,
 }
 
+impl NodeInfo {
+    pub fn find_attr<'i, I, Q>(&self, mut path: I) -> Option<&AttrInfo>
+    where
+        I: Iterator<Item = &'i Q>,
+        Q: Hash + Eq + 'i,
+        String: Borrow<Q>,
+    {
+        return match path.next() {
+            None => None,
+            Some(attr) => self.attrs.get(attr)?.find_attr(path),
+        };
+    }
+}
+
 #[derive(Debug)]
 pub struct AttrInfo {
     pub kind: &'static str,
@@ -25,6 +41,20 @@ pub struct AttrInfo {
 
     pub attrs: HashMap<String, Arc<AttrInfo>>,
     pub inputs: HashMap<String, Arc<InputInfo>>,
+}
+
+impl AttrInfo {
+    pub fn find_attr<'i, I, Q>(&self, mut path: I) -> Option<&Self>
+    where
+        I: Iterator<Item = &'i Q>,
+        Q: Hash + Eq + 'i,
+        String: Borrow<Q>,
+    {
+        return match path.next() {
+            None => Some(self),
+            Some(attr) => self.attrs.get(attr)?.find_attr(path),
+        };
+    }
 }
 
 #[derive(Debug)]

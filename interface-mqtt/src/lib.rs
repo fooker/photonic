@@ -71,15 +71,17 @@ impl Interface for MQTT {
                 match event {
                     Event::Incoming(Incoming::ConnAck(_)) => {
                         // Report online status
-                        client.publish_bytes(realm.topic("status"),
-                                             QoS::AtLeastOnce,
-                                             true,
-                                             Bytes::from("online")).await?;
+                        client
+                            .publish_bytes(realm.topic("status"), QoS::AtLeastOnce, true, Bytes::from("online"))
+                            .await?;
 
                         // Subscribe to all input topics
                         for (topic, input) in &topics {
                             client.subscribe(topic.clone(), QoS::AtLeastOnce).await?;
-                            eprintln!("xxxx ⇄ Subscribed to '{}' for input '{}' with type {}", topic, input.name, input.value_type);
+                            eprintln!(
+                                "⇄ Subscribed to '{}' for input '{}' with type {}",
+                                topic, input.name, input.value_type
+                            );
                         }
                     }
 
