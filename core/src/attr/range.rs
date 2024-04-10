@@ -13,6 +13,11 @@ impl<V> Range<V> {
     pub fn new(v1: V, v2: V) -> Self {
         return Self(v1, v2);
     }
+
+    pub fn point(v: V) -> Self
+    where V: Clone {
+        return Self(v.clone(), v);
+    }
 }
 
 impl<V> Range<V> {

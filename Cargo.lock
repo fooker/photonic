@@ -719,6 +719,7 @@ dependencies = [
  "photonic-interface-cli",
  "photonic-interface-grpc",
  "photonic-interface-mqtt",
+ "photonic-interface-restore",
  "photonic-output-net",
  "photonic-output-null",
  "photonic-output-terminal",
@@ -1658,6 +1659,7 @@ dependencies = [
  "photonic-output-null",
  "rand",
  "tokio",
+ "tokio-stream",
 ]
 
 [[package]]
@@ -1732,7 +1734,6 @@ dependencies = [
  "photonic",
  "shlex",
  "tokio",
- "tokio-stream",
 ]
 
 [[package]]
@@ -1781,10 +1782,23 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytes",
+ "futures",
  "palette",
  "photonic",
  "rumqttc",
  "tokio",
+]
+
+[[package]]
+name = "photonic-interface-restore"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "photonic",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-stream",
 ]
 
 [[package]]

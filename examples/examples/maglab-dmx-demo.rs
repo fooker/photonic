@@ -5,6 +5,7 @@ use palette::{Hsl, IntoColor, Srgb};
 
 use photonic::attr::{AsFixedAttr, Range};
 use photonic::{Scene, WhiteMode};
+use photonic::scene::InputHandle;
 use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
 use photonic_effects::nodes::{
@@ -142,6 +143,13 @@ async fn main() -> Result<()> {
     let output = Terminal::new(100).with_path("/tmp/photonic").with_waterfall(true);
 
     let mut scene = scene.run(kitchen, output).await?;
+
+    let restore = photonic_interface_restore::Restore {
+        path: "/tmp/photonic.example.restore".into(),
+        write_threshold: 5,
+        write_timeout: Duration::from_secs(5),
+    };
+    scene.serve("restore", restore);
 
     let cli = photonic_interface_cli::stdio::CLI;
     scene.serve("CLI", cli);

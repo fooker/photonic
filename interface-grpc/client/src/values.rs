@@ -1,8 +1,8 @@
-use anyhow::bail;
 use palette::Srgb;
 use photonic_interface_grpc_proto::input_value::{ColorRange, DecimalRange, IntegerRange, Rgb};
 use std::str::FromStr;
 
+#[derive(Copy, Clone)]
 pub struct ColorValue {
     pub r: f32,
     pub g: f32,
@@ -41,20 +41,24 @@ pub struct RangeValue<V> {
 
 impl<V> FromStr for RangeValue<V>
 where
-    V: FromStr,
+    V: FromStr + Copy,
     <V as FromStr>::Err: Into<anyhow::Error>,
 {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Some((a, b)) = s.split_once("..") {
-            return Ok(Self {
+        return Ok(if let Some((a, b)) = s.split_once("..") {
+            Self {
                 a: a.parse().map_err(Into::into)?,
                 b: b.parse().map_err(Into::into)?,
-            });
+            }
         } else {
-            bail!("Not a range");
-        }
+            let s = s.parse().map_err(Into::into)?;
+            Self {
+                a: s,
+                b: s,
+            }
+        });
     }
 }
 

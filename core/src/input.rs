@@ -1,13 +1,11 @@
 use std::fmt::Write;
 use std::pin::pin;
-use std::sync::atomic::AtomicBool;
-use std::sync::Mutex;
 use std::task::Context;
 
 use futures::Future;
 use tokio::sync::broadcast;
 
-pub use sink::{InputSink, Sink};
+pub use sink::{AnyInputValue, InputSink, InputValueFormatter, InputValueParser, Sink};
 
 mod attr;
 mod sink;

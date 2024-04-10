@@ -12,6 +12,7 @@ members = [
     "interface-grpc/proto",
     "interface-grpc/client",
     "interface-mqtt",
+    "interface-restore",
     "dyn",
     "dyn/derive",
     "dyn/runner",
@@ -29,6 +30,7 @@ authors = [
 photonic = { path = "core" }
 
 tokio = { version = "1.35" }
+tokio-stream = { version = "0.1.15" }
 
 futures = { version = "0.3" }
 

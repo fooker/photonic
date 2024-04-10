@@ -5,9 +5,10 @@ use std::hash::Hash;
 use std::sync::Arc;
 
 use anyhow::Result;
+use futures::Stream;
 
 use crate::attr::AttrValueType;
-use crate::input::{InputSink, InputValueType};
+use crate::input::{AnyInputValue, InputSink, InputValueType};
 
 #[derive(Debug)]
 pub struct NodeInfo {
@@ -63,6 +64,12 @@ pub struct InputInfo {
     pub value_type: InputValueType,
 
     pub sink: InputSink,
+}
+
+impl InputInfo {
+    pub fn subscribe(&self) -> impl Stream<Item = AnyInputValue> + Send + Unpin {
+        return self.sink.subscribe();
+    }
 }
 
 pub struct Introspection {

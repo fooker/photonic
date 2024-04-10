@@ -4,8 +4,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use anyhow::Result;
-use futures::TryStreamExt;
-use tonic::codegen::tokio_stream::wrappers::BroadcastStream;
+use futures::StreamExt;
 use tonic::codegen::tokio_stream::Stream;
 use tonic::transport::Server;
 use tonic::{async_trait, Request, Response, Status};
@@ -236,90 +235,74 @@ impl interface_server::Interface for InterfaceImpl {
             .ok_or_else(|| Status::not_found(format!("No such input: {}", request.name)))?;
 
         let stream = match &input.sink {
-            InputSink::Trigger(sink) => Box::pin(
-                BroadcastStream::new(sink.subscribe())
-                    .map_ok(|value| InputValue {
-                        value: Some(input_value::Value::Trigger(value)),
-                    })
-                    .map_err(|err| Status::internal(err.to_string())),
-            ) as Pin<Box<dyn Stream<Item = Result<_, _>> + Send + 'static>>,
+            InputSink::Trigger(sink) => Box::pin(sink.subscribe().map(|value| {
+                Ok(InputValue {
+                    value: Some(input_value::Value::Trigger(value)),
+                })
+            })) as Pin<Box<dyn Stream<Item = Result<_, _>> + Send + 'static>>,
 
-            InputSink::Boolean(sink) => Box::pin(
-                BroadcastStream::new(sink.subscribe())
-                    .map_ok(|value| InputValue {
-                        value: Some(input_value::Value::Bool(value)),
-                    })
-                    .map_err(|err| Status::internal(err.to_string())),
-            ),
+            InputSink::Boolean(sink) => Box::pin(sink.subscribe().map(|value| {
+                Ok(InputValue {
+                    value: Some(input_value::Value::Bool(value)),
+                })
+            })),
 
-            InputSink::Integer(sink) => Box::pin(
-                BroadcastStream::new(sink.subscribe())
-                    .map_ok(|value| InputValue {
-                        value: Some(input_value::Value::Integer(value)),
-                    })
-                    .map_err(|err| Status::internal(err.to_string())),
-            ),
+            InputSink::Integer(sink) => Box::pin(sink.subscribe().map(|value| {
+                Ok(InputValue {
+                    value: Some(input_value::Value::Integer(value)),
+                })
+            })),
 
-            InputSink::Decimal(sink) => Box::pin(
-                BroadcastStream::new(sink.subscribe())
-                    .map_ok(|value| InputValue {
-                        value: Some(input_value::Value::Decimal(value)),
-                    })
-                    .map_err(|err| Status::internal(err.to_string())),
-            ),
+            InputSink::Decimal(sink) => Box::pin(sink.subscribe().map(|value| {
+                Ok(InputValue {
+                    value: Some(input_value::Value::Decimal(value)),
+                })
+            })),
 
-            InputSink::Color(sink) => Box::pin(
-                BroadcastStream::new(sink.subscribe())
-                    .map_ok(|value| InputValue {
-                        value: Some(input_value::Value::Color(Rgb {
-                            r: value.red,
-                            g: value.green,
-                            b: value.blue,
-                        })),
-                    })
-                    .map_err(|err| Status::internal(err.to_string())),
-            ),
+            InputSink::Color(sink) => Box::pin(sink.subscribe().map(|value| {
+                Ok(InputValue {
+                    value: Some(input_value::Value::Color(Rgb {
+                        r: value.red,
+                        g: value.green,
+                        b: value.blue,
+                    })),
+                })
+            })),
 
-            InputSink::IntegerRange(sink) => Box::pin(
-                BroadcastStream::new(sink.subscribe())
-                    .map_ok(|value| InputValue {
-                        value: Some(input_value::Value::IntegerRange(IntegerRange {
-                            a: value.0,
-                            b: value.1,
-                        })),
-                    })
-                    .map_err(|err| Status::internal(err.to_string())),
-            ),
+            InputSink::IntegerRange(sink) => Box::pin(sink.subscribe().map(|value| {
+                Ok(InputValue {
+                    value: Some(input_value::Value::IntegerRange(IntegerRange {
+                        a: value.0,
+                        b: value.1,
+                    })),
+                })
+            })),
 
-            InputSink::DecimalRange(sink) => Box::pin(
-                BroadcastStream::new(sink.subscribe())
-                    .map_ok(|value| InputValue {
-                        value: Some(input_value::Value::DecimalRange(DecimalRange {
-                            a: value.0,
-                            b: value.1,
-                        })),
-                    })
-                    .map_err(|err| Status::internal(err.to_string())),
-            ),
+            InputSink::DecimalRange(sink) => Box::pin(sink.subscribe().map(|value| {
+                Ok(InputValue {
+                    value: Some(input_value::Value::DecimalRange(DecimalRange {
+                        a: value.0,
+                        b: value.1,
+                    })),
+                })
+            })),
 
-            InputSink::ColorRange(sink) => Box::pin(
-                BroadcastStream::new(sink.subscribe())
-                    .map_ok(|value| InputValue {
-                        value: Some(input_value::Value::ColorRange(ColorRange {
-                            a: Some(Rgb {
-                                r: value.0.red,
-                                g: value.0.green,
-                                b: value.0.blue,
-                            }),
-                            b: Some(Rgb {
-                                r: value.1.red,
-                                g: value.1.green,
-                                b: value.1.blue,
-                            }),
-                        })),
-                    })
-                    .map_err(|err| Status::internal(err.to_string())),
-            ),
+            InputSink::ColorRange(sink) => Box::pin(sink.subscribe().map(|value| {
+                Ok(InputValue {
+                    value: Some(input_value::Value::ColorRange(ColorRange {
+                        a: Some(Rgb {
+                            r: value.0.red,
+                            g: value.0.green,
+                            b: value.0.blue,
+                        }),
+                        b: Some(Rgb {
+                            r: value.1.red,
+                            g: value.1.green,
+                            b: value.1.blue,
+                        }),
+                    })),
+                })
+            })),
         };
 
         return Ok(Response::new(stream));
