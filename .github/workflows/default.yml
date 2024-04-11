@@ -22,6 +22,11 @@ jobs:
         with:
           fail-mode: true
 
+      - name: Load environment
+        run: |
+          nix develop --command \
+              echo "All fine"
+
   check:
     needs: [ "prepare" ]
     runs-on: ubuntu-latest
