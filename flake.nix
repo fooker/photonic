@@ -38,10 +38,10 @@
 
           nativeBuildInputs = with pkgs; [
             pkg-config
+            protobuf
           ];
 
           buildInputs = with pkgs; [
-            protobuf
             openssl
           ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
             pkgs.libiconv
