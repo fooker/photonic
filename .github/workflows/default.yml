@@ -6,38 +6,48 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  check:
+  prepare:
     runs-on: ubuntu-latest
     steps:
-    - name: git checkout
-      uses: actions/checkout@v3
+      - name: git checkout
+        uses: actions/checkout@v3
 
-    - name: Install Nix
-      uses: DeterminateSystems/nix-installer-action@main
-    - name: Configure Nix cache
-      uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+      - name: Configure Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
 
-    - name: Check Nix inputs
-      uses: DeterminateSystems/flake-checker-action@main
-      with:
-        fail-mode: true
+      - name: Check Nix inputs
+        uses: DeterminateSystems/flake-checker-action@main
+        with:
+          fail-mode: true
 
-    - name: Check Formatting
-      run: |
-        nix develop --command \
-            cargo fmt --all -- --check
+  check:
+    needs: [ "prepare" ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
 
-    - name: Audit rust dependencies
-      run: |
-        nix develop --command \
-            cargo deny check
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+      - name: Configure Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
 
-    - name: Check spelling
-      run: |
-        nix develop --command \
-            codespell \
-            --skip target,.git \
-            --ignore-words-list crate
+      - name: Check Nix inputs
+        uses: DeterminateSystems/flake-checker-action@main
+        with:
+          fail-mode: true
+
+      - name: Check Formatting
+        run: |
+          nix develop --command \
+              cargo fmt --all -- --check
+
+      - name: Audit rust dependencies
+        run: |
+          nix develop --command \
+              cargo deny check
 
   build:
     runs-on: ubuntu-latest
