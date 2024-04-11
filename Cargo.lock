@@ -1787,6 +1787,7 @@ dependencies = [
  "photonic",
  "rumqttc",
  "tokio",
+ "tokio-stream",
 ]
 
 [[package]]

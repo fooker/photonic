@@ -1,12 +1,9 @@
 use std::pin::Pin;
-use std::str::FromStr;
 
 use anyhow::Result;
-use futures::{Stream, StreamExt, TryStreamExt};
+use futures::{Stream, StreamExt};
 use palette::rgb::Rgb;
-use palette::Srgb;
 use tokio::sync::broadcast;
-use tokio::sync::broadcast::Receiver;
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::attr::Range;
@@ -70,19 +67,6 @@ where V: InputValue
 }
 
 impl InputSink {
-    pub fn send_from_str<P: InputValueParser>(&self, s: &str) -> Result<()> {
-        return Ok(match self {
-            Self::Trigger(sink) => sink.send(P::parse_trigger(s)?),
-            Self::Boolean(sink) => sink.send(P::parse_boolean(s)?),
-            Self::Integer(sink) => sink.send(P::parse_integer(s)?),
-            Self::Decimal(sink) => sink.send(P::parse_decimal(s)?),
-            Self::Color(sink) => sink.send(P::parse_color(s)?),
-            Self::IntegerRange(sink) => sink.send(P::parse_integer_range(s)?),
-            Self::DecimalRange(sink) => sink.send(P::parse_decimal_range(s)?),
-            Self::ColorRange(sink) => sink.send(P::parse_color_range(s)?),
-        });
-    }
-
     pub fn subscribe(&self) -> impl Stream<Item = AnyInputValue> + Send + Unpin {
         return match self {
             InputSink::Trigger(sink) => {
@@ -108,21 +92,6 @@ pub enum AnyInputValue {
     IntegerRange(Range<i64>),
     DecimalRange(Range<f32>),
     ColorRange(Range<Rgb>),
-}
-
-impl AnyInputValue {
-    pub fn format<F: InputValueFormatter>(self) -> String {
-        return match self {
-            AnyInputValue::Trigger => F::format_trigger(),
-            AnyInputValue::Boolean(value) => F::format_boolean(value),
-            AnyInputValue::Integer(value) => F::format_integer(value),
-            AnyInputValue::Decimal(value) => F::format_decimal(value),
-            AnyInputValue::Color(value) => F::format_color(value),
-            AnyInputValue::IntegerRange(value) => F::format_integer_range(value),
-            AnyInputValue::DecimalRange(value) => F::format_decimal_range(value),
-            AnyInputValue::ColorRange(value) => F::format_color_range(value),
-        };
-    }
 }
 
 impl From<()> for AnyInputValue {
@@ -171,26 +140,4 @@ impl From<Range<Rgb>> for AnyInputValue {
     fn from(value: Range<Rgb>) -> Self {
         return Self::ColorRange(value);
     }
-}
-
-pub trait InputValueParser {
-    fn parse_trigger(s: &str) -> Result<()>;
-    fn parse_boolean(s: &str) -> Result<bool>;
-    fn parse_integer(s: &str) -> Result<i64>;
-    fn parse_decimal(s: &str) -> Result<f32>;
-    fn parse_color(s: &str) -> Result<Rgb>;
-    fn parse_integer_range(s: &str) -> Result<Range<i64>>;
-    fn parse_decimal_range(s: &str) -> Result<Range<f32>>;
-    fn parse_color_range(s: &str) -> Result<Range<Rgb>>;
-}
-
-pub trait InputValueFormatter {
-    fn format_trigger() -> String;
-    fn format_boolean(value: bool) -> String;
-    fn format_integer(value: i64) -> String;
-    fn format_decimal(value: f32) -> String;
-    fn format_color(value: Rgb) -> String;
-    fn format_integer_range(value: Range<i64>) -> String;
-    fn format_decimal_range(value: Range<f32>) -> String;
-    fn format_color_range(value: Range<Rgb>) -> String;
 }

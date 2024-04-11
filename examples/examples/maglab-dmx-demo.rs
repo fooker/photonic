@@ -4,8 +4,8 @@ use anyhow::{bail, Result};
 use palette::{Hsl, IntoColor, Srgb};
 
 use photonic::attr::{AsFixedAttr, Range};
-use photonic::{Scene, WhiteMode};
 use photonic::scene::InputHandle;
+use photonic::{Scene, WhiteMode};
 use photonic_effects::attrs::{Button, Fader, Sequence};
 use photonic_effects::easing::{EasingDirection, Easings};
 use photonic_effects::nodes::{

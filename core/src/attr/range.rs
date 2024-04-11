@@ -1,6 +1,7 @@
 use anyhow::Result;
 use palette::num::{One, Zero};
 use std::fmt;
+use std::str::FromStr;
 
 use crate::attr::bounds::Bounded;
 use crate::math::Lerp;
@@ -87,5 +88,21 @@ where V: fmt::Display
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         return write!(f, "[{}..{}]", self.0, self.1);
+    }
+}
+
+impl<V> FromStr for Range<V>
+where
+    V: FromStr + Clone,
+    <V as FromStr>::Err: std::error::Error + Send + Sync + 'static,
+{
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        return Ok(if let Some((a, b)) = s.split_once("..") {
+            Range::new(a.parse()?, b.parse()?)
+        } else {
+            Range::point(s.parse()?)
+        });
     }
 }

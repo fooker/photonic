@@ -11,6 +11,8 @@ photonic = { workspace = true }
 palette = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true }
+tokio-stream = { workspace = true, features = ["sync"] }
+futures = { workspace = true }
 
 rumqttc = { version = "0.23.0", features = ["url"] }
 bytes = "1.5"

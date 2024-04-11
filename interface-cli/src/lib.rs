@@ -1,4 +1,3 @@
-use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::Result;
@@ -6,7 +5,7 @@ use palette::rgb::Rgb;
 use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt, BufReader, BufWriter};
 
 use photonic::attr::Range;
-use photonic::input::InputValueParser;
+use photonic::input::InputSink;
 use photonic::interface::Introspection;
 
 pub mod stdio;
@@ -75,7 +74,23 @@ pub(self) async fn run(
                 if let Some(input) = line.get(1) {
                     if let Some(input) = introspection.inputs.get(input) {
                         if let Some(value) = line.get(2) {
-                            match input.sink.send_from_str::<CLIInputValueParser>(&value) {
+                            let res: Result<()> = (|| {
+                                match &input.sink {
+                                    InputSink::Trigger(sink) => sink.send(()),
+                                    InputSink::Boolean(sink) => sink.send(value.parse()?),
+                                    InputSink::Integer(sink) => sink.send(value.parse()?),
+                                    InputSink::Decimal(sink) => sink.send(value.parse()?),
+                                    InputSink::Color(sink) => sink.send(value.parse::<Rgb<_, u8>>()?.into_format()),
+                                    InputSink::IntegerRange(sink) => sink.send(value.parse()?),
+                                    InputSink::DecimalRange(sink) => sink.send(value.parse()?),
+                                    InputSink::ColorRange(sink) => {
+                                        sink.send(value.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format))
+                                    }
+                                }
+                                return Ok(());
+                            })();
+
+                            match res {
                                 Ok(()) => {}
                                 Err(err) => {
                                     o.write_all(
@@ -110,54 +125,4 @@ pub(self) async fn run(
     }
 
     return Ok(());
-}
-
-struct CLIInputValueParser;
-
-impl CLIInputValueParser {
-    fn parse_range<V, E>(s: &str, parse: impl Fn(&str) -> Result<V, E>) -> Result<Range<V>>
-    where
-        V: Clone,
-        E: Into<anyhow::Error>,
-    {
-        return Ok(if let Some((a, b)) = s.split_once("..") {
-            Range::new(parse(a).map_err(Into::into)?, parse(b).map_err(Into::into)?)
-        } else {
-            Range::point(parse(s).map_err(Into::into)?)
-        });
-    }
-}
-
-impl InputValueParser for CLIInputValueParser {
-    fn parse_trigger(_: &str) -> Result<()> {
-        return Ok(());
-    }
-
-    fn parse_boolean(s: &str) -> Result<bool> {
-        return Ok(s.parse()?);
-    }
-
-    fn parse_integer(s: &str) -> Result<i64> {
-        return Ok(s.parse()?);
-    }
-
-    fn parse_decimal(s: &str) -> Result<f32> {
-        return Ok(s.parse()?);
-    }
-
-    fn parse_color(s: &str) -> Result<Rgb> {
-        return Ok(s.parse::<Rgb<_, u8>>()?.into_format());
-    }
-
-    fn parse_integer_range(s: &str) -> Result<Range<i64>> {
-        return Self::parse_range(s, FromStr::from_str);
-    }
-
-    fn parse_decimal_range(s: &str) -> Result<Range<f32>> {
-        return Self::parse_range(s, FromStr::from_str);
-    }
-
-    fn parse_color_range(s: &str) -> Result<Range<Rgb>> {
-        return Self::parse_range(s, Self::parse_color);
-    }
 }

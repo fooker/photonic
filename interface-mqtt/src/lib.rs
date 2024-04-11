@@ -1,10 +1,14 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::Result;
 use bytes::Bytes;
+use futures::StreamExt;
+use palette::rgb::Rgb;
+use photonic::attr::Range;
+use photonic::input::{AnyInputValue, InputSink};
 use rumqttc::{AsyncClient, Event, Incoming, LastWill, MqttOptions, QoS};
+use tokio_stream::StreamMap;
 
 use photonic::interface::{Interface, Introspection};
 
@@ -57,36 +61,44 @@ impl Interface for MQTT {
 
         self.mqtt_options.set_keep_alive(Duration::from_secs(5));
 
-        let mut topics = HashMap::new();
+        let (client, mut event_loop) = AsyncClient::new(self.mqtt_options.clone(), 10);
 
-        for input in introspection.inputs.values() {
-            let topic = realm.topic(format!("input/{}/set", input.name));
-            topics.insert(topic, input);
-        }
+        let mut inputs = introspection
+            .inputs
+            .iter()
+            .map(|(name, input)| (realm.topic(format!("input/{}", name)), input.subscribe()))
+            .collect::<StreamMap<_, _>>();
 
         loop {
-            let (client, mut event_loop) = AsyncClient::new(self.mqtt_options.clone(), 10);
+            tokio::select! {
+                Some((topic, value)) = inputs.next() => {
+                    let value = match value {
+                        AnyInputValue::Trigger => String::new(),
+                        AnyInputValue::Boolean(value) => value.to_string(),
+                        AnyInputValue::Integer(value) => value.to_string(),
+                        AnyInputValue::Decimal(value) => value.to_string(),
+                        AnyInputValue::Color(value) => format!("#{:06x}", value.into_format::<u8>()),
+                        AnyInputValue::IntegerRange(value) => value.to_string(),
+                        AnyInputValue::DecimalRange(value) => value.to_string(),
+                        AnyInputValue::ColorRange(value) => value.map(|value| format!("#{:06x}", value.into_format::<u8>())).to_string(),
+                    };
+                    client.publish(topic, QoS::AtLeastOnce, false, value).await?;
+                }
 
-            while let Ok(event) = event_loop.poll().await {
-                match event {
-                    Event::Incoming(Incoming::ConnAck(_)) => {
-                        // Report online status
-                        client
-                            .publish_bytes(realm.topic("status"), QoS::AtLeastOnce, true, Bytes::from("online"))
-                            .await?;
-
+                event = event_loop.poll() => match event {
+                    Ok(Event::Incoming(Incoming::ConnAck(_))) => {
                         // Subscribe to all input topics
-                        for (topic, input) in &topics {
-                            client.subscribe(topic.clone(), QoS::AtLeastOnce).await?;
-                            eprintln!(
-                                "⇄ Subscribed to '{}' for input '{}' with type {}",
-                                topic, input.name, input.value_type
-                            );
-                        }
+                        client.subscribe(realm.topic("input/+/set"), QoS::AtLeastOnce).await?;
+
+                        // Report online status
+                        client.publish_bytes(realm.topic("status"), QoS::AtLeastOnce, true, Bytes::from("online")).await?;
                     }
 
-                    Event::Incoming(Incoming::Publish(publish)) => {
-                        let input = match topics.get(&publish.topic) {
+                    Ok(Event::Incoming(Incoming::Publish(publish))) => {
+                        let input = introspection.inputs.iter()
+                            .find_map(|(name, input)| (realm.topic(format!("input/{}/set", name)) == publish.topic).then_some(input));
+
+                        let input = match input {
                             Some(input) => input,
                             None => {
                                 eprintln!("Got notification for unknown topic: {}", publish.topic);
@@ -102,7 +114,22 @@ impl Interface for MQTT {
                             }
                         };
 
-                        match input.sink.send_str(&payload) {
+                        let res: Result<()> = (|| {
+                            match &input.sink {
+                                InputSink::Trigger(sink) => sink.send(()),
+                                InputSink::Boolean(sink) => sink.send(payload.parse()?),
+                                InputSink::Integer(sink) => sink.send(payload.parse()?),
+                                InputSink::Decimal(sink) => sink.send(payload.parse()?),
+                                InputSink::Color(sink) => sink.send(payload.parse::<Rgb<_, u8>>()?.into_format()),
+                                InputSink::IntegerRange(sink) => sink.send(payload.parse()?),
+                                InputSink::DecimalRange(sink) => sink.send(payload.parse()?),
+                                InputSink::ColorRange(sink) => sink.send(payload.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format)),
+                            };
+
+                            return Ok(());
+                        })();
+
+                        match res {
                             Ok(()) => {}
                             Err(err) => {
                                 eprintln!("⇄ Invalid value on '{}' = {:?}: {}", publish.topic, payload, err);
@@ -111,7 +138,12 @@ impl Interface for MQTT {
                         }
                     }
 
-                    _ => {}
+                    Ok(_) => {}
+
+                    Err(err) => {
+                        eprintln!("MQTT error: {}", err);
+                        tokio::time::sleep(Duration::from_secs(5)).await;
+                    }
                 }
             }
         }
