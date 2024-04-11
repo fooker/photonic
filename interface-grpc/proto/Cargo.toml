@@ -4,6 +4,7 @@ name = "photonic-interface-grpc-proto"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [dependencies]
 tonic = "0.11"

@@ -26,6 +26,8 @@ authors = [
     "Dustin Frisch <fooker@lab.sh>",
 ]
 
+license = "MIT"
+
 [workspace.dependencies]
 photonic = { path = "core" }
 

@@ -4,6 +4,7 @@ name = "photonic-dyn-runner"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [[bin]]
 name = "photonic"
