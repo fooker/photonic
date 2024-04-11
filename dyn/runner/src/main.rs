@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
+use clap::Parser;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
-use clap::Parser;
 
 use photonic::attr::{Bounded, Range};
 use photonic::{AttrValue, FreeAttrDecl};
