@@ -74,6 +74,7 @@
 
           packages = with pkgs; [
             cargo-deny
+            cargo-outdated
             codespell
           ];
 

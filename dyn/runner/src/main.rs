@@ -5,7 +5,7 @@ use std::time::Duration;
 use anyhow::{bail, Context, Result};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
-use structopt::StructOpt;
+use clap::Parser;
 
 use photonic::attr::{Bounded, Range};
 use photonic::{AttrValue, FreeAttrDecl};
@@ -16,9 +16,9 @@ use photonic_dyn::builder::{AttrBuilder, Builder, NodeBuilder, OutputBuilder};
 use photonic_dyn::registry::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory, Registry};
 use photonic_dyn::{config, DynamicNode};
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct Opt {
-    #[structopt(default_value = "scene.yaml")]
+    #[clap(default_value = "scene.yaml")]
     scene: PathBuf,
 
     #[structopt(short, long, default_value = "30")]
@@ -29,7 +29,7 @@ struct Opt {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let opt = Opt::from_args();
+    let opt = Opt::parse();
 
     let scene = tokio::fs::read_to_string(&opt.scene)
         .await

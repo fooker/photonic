@@ -14,5 +14,5 @@ tokio = { workspace = true }
 tokio-stream = { workspace = true, features = ["sync"] }
 futures = { workspace = true }
 
-rumqttc = { version = "0.23.0", features = ["url"] }
+rumqttc = { version = "0.24.0", features = ["url"] }
 bytes = "1.5"

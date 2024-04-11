@@ -12,4 +12,4 @@ palette = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["io-std", "net"] }
 
-nix = { version = "0.27", features = ["fs"] }
+nix = { version = "0.28", features = ["fs"] }
