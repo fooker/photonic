@@ -3,7 +3,7 @@ use palette::Hsv;
 
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
-use photonic::{BoundAttrDecl, Buffer, Context, Node, NodeBuilder};
+use photonic::{BoundAttrDecl, Buffer, RenderContext, Node, NodeBuilder};
 use photonic_dyn::DynamicNode;
 
 enum Direction {
@@ -61,7 +61,7 @@ where
 
     type Element = Hsv;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let hue = self.hue.update(ctx.duration);
         let width = self.width.update(ctx.duration);
         let speed = self.speed.update(ctx.duration);

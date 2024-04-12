@@ -4,7 +4,7 @@ use palette::Lch;
 
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
-use photonic::{Buffer, Context, Node, NodeBuilder};
+use photonic::{Buffer, RenderContext, Node, NodeBuilder};
 use photonic_dyn::DynamicNode;
 
 // TODO: Hue range
@@ -62,7 +62,7 @@ where
 
     type Element = Lch;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let speed = self.speed.update(ctx.duration);
         let stretch = self.stretch.update(ctx.duration);
 

@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use palette::rgb::Rgb;
 use palette::{FromColor, IntoColor};
 
-use photonic::{Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl};
+use photonic::{Buffer, BufferReader, RenderContext, Node, NodeBuilder, NodeDecl};
 
 #[async_trait(?Send)]
 pub trait DynNodeDecl {
@@ -53,7 +53,7 @@ where
     const KIND: &'static str = "boxed";
     type Element = Rgb;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         self.node.update(ctx, &mut self.buffer)?;
 
         out.blit_from(self.buffer.map(|e| e.into_color()));
@@ -62,7 +62,7 @@ where
 }
 
 pub trait DynNode {
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Rgb>) -> Result<()>;
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Rgb>) -> Result<()>;
 }
 
 impl<N> DynNode for WrappedNode<N>
@@ -70,7 +70,7 @@ where
     N: Node,
     Rgb: FromColor<<N as Node>::Element>,
 {
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Rgb>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Rgb>) -> Result<()> {
         return Node::update(self, ctx, out);
     }
 }
@@ -82,7 +82,7 @@ impl Node for BoxedNode {
 
     type Element = Rgb;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         return DynNode::update(self.as_mut(), ctx, out);
     }
 }

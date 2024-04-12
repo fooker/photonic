@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 
-use photonic::{Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
+use photonic::{Buffer, BufferReader, RenderContext, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic_dyn::DynamicNode;
 
 #[derive(DynamicNode)]
@@ -71,7 +71,7 @@ where
 
     type Element = E;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let n1 = &ctx[self.n1];
         let n2 = &ctx[self.n2];
 

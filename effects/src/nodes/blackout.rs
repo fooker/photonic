@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::ops::Range;
 
-use photonic::{Attr, Buffer, BufferReader, Context, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
+use photonic::{Attr, Buffer, BufferReader, RenderContext, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic_dyn::DynamicNode;
 
 #[derive(DynamicNode)]
@@ -58,7 +58,7 @@ where
 
     type Element = Source::Element;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let source = &ctx[self.source];
 
         let active = self.active.update(ctx.duration);

@@ -3,7 +3,7 @@ use palette::rgb::Rgb;
 
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
-use photonic::{Buffer, Context, Node, NodeBuilder};
+use photonic::{Buffer, RenderContext, Node, NodeBuilder};
 use photonic_dyn::DynamicNode;
 
 #[derive(DynamicNode)]
@@ -37,7 +37,7 @@ where Color: Attr<Value = Rgb>
 
     type Element = Rgb;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let color = self.color.update(ctx.duration);
 
         out.fill(color);

@@ -1,7 +1,7 @@
 use anyhow::Result;
 use palette::Hsv;
 
-use photonic::{Buffer, Context, Node, NodeBuilder, NodeDecl};
+use photonic::{Buffer, RenderContext, Node, NodeBuilder, NodeDecl};
 use photonic_dyn::DynamicNode;
 
 #[derive(DynamicNode)]
@@ -45,7 +45,7 @@ impl Node for ColorWheelNode {
 
     type Element = Hsv;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         self.position += ctx.duration.as_secs_f32() * self.speed;
 
         if self.scale <= 0.0 {

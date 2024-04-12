@@ -1,4 +1,4 @@
-use crate::{Buffer, Context};
+use crate::{Buffer, RenderContext};
 
 use anyhow::Result;
 
@@ -7,5 +7,5 @@ pub trait Node: Sized {
 
     type Element: Copy + Default;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()>;
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()>;
 }

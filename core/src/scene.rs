@@ -19,7 +19,7 @@ use crate::interface::{Interface, Introspection};
 use crate::utils::{FrameStats, FrameTimer};
 use crate::{AttrInfo, Buffer, BufferReader, InputInfo, Node, NodeInfo, Output};
 
-pub struct Context<'ctx> {
+pub struct RenderContext<'ctx> {
     /// Duration since last update
     pub duration: Duration,
 
@@ -47,7 +47,7 @@ where
     }
 }
 
-impl<'ctx, Node> ops::Index<NodeRef<Node>> for Context<'ctx>
+impl<'ctx, Node> ops::Index<NodeRef<Node>> for RenderContext<'ctx>
 where Node: self::Node
 {
     type Output = NodeContainer<Node>;
@@ -118,13 +118,13 @@ where Node: self::Node
 }
 
 trait NodeHolder {
-    fn update(&mut self, ctx: &Context) -> Result<()>;
+    fn update(&mut self, ctx: &RenderContext) -> Result<()>;
 }
 
 impl<Node> NodeHolder for NodeContainer<Node>
 where Node: self::Node
 {
-    fn update(&mut self, ctx: &Context) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext) -> Result<()> {
         return self.node.update(ctx, &mut self.buffer);
     }
 }
@@ -293,7 +293,7 @@ where
             };
 
             self.nodes.try_walk(|curr, tail| {
-                let ctx = Context {
+                let ctx = RenderContext {
                     duration,
                     nodes: tail,
                 };

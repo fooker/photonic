@@ -4,7 +4,7 @@ use palette::FromColor;
 use photonic::attr::range::Range;
 use photonic::attr::{Attr, Bounds};
 use photonic::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl};
-use photonic::{Buffer, Context, Node, NodeBuilder, Random};
+use photonic::{Buffer, RenderContext, Node, NodeBuilder, Random};
 
 use anyhow::Result;
 use photonic_dyn::DynamicNode;
@@ -71,7 +71,7 @@ where
 
     type Element = Hsl;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let rate = self.rate.update(ctx.duration);
         let color = self.color.update(ctx.duration);
         let decay = self.decay.update(ctx.duration);

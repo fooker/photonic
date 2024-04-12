@@ -3,7 +3,7 @@ use palette::IntoColor;
 
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
-use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, Context, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
+use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, RenderContext, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
 use photonic_dyn::DynamicNode;
 
 // TODO: Support blend modes
@@ -66,7 +66,7 @@ where
 
     type Element = Base::Element;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let base = &ctx[self.base];
         let pave = &ctx[self.pave];
 

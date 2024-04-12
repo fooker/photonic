@@ -3,7 +3,7 @@ use std::ops::Neg;
 use anyhow::Result;
 use palette::Hsv;
 
-use photonic::{math, Attr, BoundAttrDecl, Buffer, Context, FreeAttrDecl, Node, NodeBuilder, NodeDecl};
+use photonic::{math, Attr, BoundAttrDecl, Buffer, RenderContext, FreeAttrDecl, Node, NodeBuilder, NodeDecl};
 use photonic_dyn::DynamicNode;
 
 #[derive(DynamicNode)]
@@ -55,7 +55,7 @@ where
 
     type Element = Hsv;
 
-    fn update(&mut self, ctx: &Context, out: &mut Buffer<Self::Element>) -> Result<()> {
+    fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let hue = self.hue.update(ctx.duration);
         let block = self.block.update(ctx.duration);
         let speed = self.speed.update(ctx.duration);
