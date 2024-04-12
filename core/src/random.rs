@@ -9,6 +9,7 @@ use rand::{Rng, SeedableRng};
 use crate::math;
 use crate::math::Lerp;
 
+#[derive(Debug)]
 pub struct Random(SmallRng);
 
 impl Random {

@@ -1,8 +1,6 @@
-use std::pin::Pin;
-
-use anyhow::Result;
 use futures::{Stream, StreamExt};
 use palette::rgb::Rgb;
+use std::pin::Pin;
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
 
@@ -10,6 +8,7 @@ use crate::attr::Range;
 
 use super::InputValue;
 
+#[derive(Debug)]
 pub struct Sink<V> {
     pub(super) tx: broadcast::Sender<V>,
 }
@@ -68,10 +67,8 @@ where V: InputValue
 
 impl InputSink {
     pub fn subscribe(&self) -> impl Stream<Item = AnyInputValue> + Send + Unpin {
-        return match self {
-            InputSink::Trigger(sink) => {
-                Box::pin(sink.subscribe().map(AnyInputValue::from)) as Pin<Box<dyn Stream<Item = _> + Send>>
-            }
+        let result: Pin<Box<dyn Stream<Item = _> + Send>> = match self {
+            InputSink::Trigger(sink) => Box::pin(sink.subscribe().map(AnyInputValue::from)),
             InputSink::Boolean(sink) => Box::pin(sink.subscribe().map(AnyInputValue::from)),
             InputSink::Integer(sink) => Box::pin(sink.subscribe().map(AnyInputValue::from)),
             InputSink::Decimal(sink) => Box::pin(sink.subscribe().map(AnyInputValue::from)),
@@ -80,9 +77,12 @@ impl InputSink {
             InputSink::DecimalRange(sink) => Box::pin(sink.subscribe().map(AnyInputValue::from)),
             InputSink::ColorRange(sink) => Box::pin(sink.subscribe().map(AnyInputValue::from)),
         };
+
+        return result;
     }
 }
 
+#[derive(Debug, Copy, Clone)]
 pub enum AnyInputValue {
     Trigger,
     Boolean(bool),

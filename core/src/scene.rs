@@ -1,5 +1,3 @@
-extern crate anyhow;
-
 use std::collections::HashMap;
 use std::future::Future;
 use std::marker::PhantomData;
@@ -8,7 +6,7 @@ use std::pin::{pin, Pin};
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use futures::future::SelectAll;
 use futures::FutureExt;
 use palette::FromColor;
@@ -59,6 +57,7 @@ where Node: self::Node
     }
 }
 
+#[derive(Debug)]
 pub struct NodeHandle<Decl>
 where Decl: NodeDecl
 {
@@ -69,6 +68,7 @@ where Decl: NodeDecl
     pub decl: Decl,
 }
 
+#[derive(Debug)]
 pub struct NodeContainer<Node>
 where Node: self::Node
 {
@@ -129,6 +129,7 @@ where Node: self::Node
     }
 }
 
+#[derive(Debug)]
 pub struct NodeRef<Node>
 where Node: self::Node + 'static // TODO: Is static required?
 {
@@ -149,8 +150,9 @@ impl<Node> Copy for NodeRef<Node> where Node: self::Node {}
 
 /// Handle to a [`Input`].
 ///
-/// The handle represents a input registered in a [`Scene'] and can be used to get the real thing
+/// The handle represents an input registered in a [`Scene`] and can be used to get the real thing
 /// while manifesting the scene.
+#[derive(Debug)]
 pub struct InputHandle<V>
 where V: InputValue
 {
@@ -464,7 +466,9 @@ impl NodeBuilder<'_> {
 
         eprintln!("✨ Materialized node {} ({:?})", info.name, node);
 
-        self.info.nodes.insert(key.into(), Arc::new(info));
+        if let Err(err) = self.info.nodes.try_insert(key.into(), Arc::new(info)) {
+            bail!("Duplicated node: {}", err.entry.key())
+        }
 
         return Ok(NodeRef {
             node,
@@ -498,8 +502,9 @@ impl NodeBuilder<'_> {
 
         let attr = decl.materialize(bounds, &mut builder)?;
 
-        let info = Arc::new(builder.info);
-        self.info.attrs.insert(name.into(), info);
+        if let Err(err) = self.info.attrs.try_insert(name.into(), Arc::new(builder.info)) {
+            bail!("Duplicated attribute: {}", err.entry.key())
+        }
 
         return Ok(attr);
     }
@@ -523,8 +528,9 @@ impl NodeBuilder<'_> {
 
         let attr = decl.materialize(&mut builder)?;
 
-        let info = Arc::new(builder.info);
-        self.info.attrs.insert(name.into(), info);
+        if let Err(err) = self.info.attrs.try_insert(name.into(), Arc::new(builder.info)) {
+            bail!("Duplicated attribute: {}", err.entry.key())
+        }
 
         return Ok(attr);
     }
@@ -558,8 +564,9 @@ impl<'b> AttrBuilder<'b> {
 
         let attr = decl.materialize(bounds, &mut builder)?;
 
-        let info = Arc::new(builder.info);
-        self.info.attrs.insert(name.into(), info);
+        if let Err(err) = self.info.attrs.try_insert(name.into(), Arc::new(builder.info)) {
+            bail!("Duplicated attribute: {}", err.entry.key())
+        }
 
         return Ok(attr);
     }
@@ -582,8 +589,9 @@ impl<'b> AttrBuilder<'b> {
 
         let attr = decl.materialize(&mut builder)?;
 
-        let info = Arc::new(builder.info);
-        self.info.attrs.insert(name.into(), info);
+        if let Err(err) = self.info.attrs.try_insert(name.into(), Arc::new(builder.info)) {
+            bail!("Duplicated attribute: {}", err.entry.key())
+        }
 
         return Ok(attr);
     }
@@ -601,8 +609,9 @@ impl<'b> AttrBuilder<'b> {
             sink,
         };
 
-        let info = Arc::new(info);
-        self.info.inputs.insert(name.into(), info);
+        if let Err(err) = self.info.inputs.try_insert(name.into(), Arc::new(info)) {
+            bail!("Duplicated attribute: {}", err.entry.key())
+        }
 
         return Ok(input.input);
     }

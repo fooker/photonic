@@ -92,7 +92,7 @@ where
     type Output = E;
 
     fn index(&self, index: Ref<E, T>) -> &Self::Output {
-        let entry = self.elements[index.index - self.offset].as_ref() as *const T;
+        let entry: *const T = self.elements[index.index - self.offset].as_ref();
         let entry = unsafe { &*(entry as *const E) };
         return entry;
     }

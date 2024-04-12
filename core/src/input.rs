@@ -42,6 +42,7 @@ pub trait InputValue: Send + Copy + 'static {
     fn sink(sink: Sink<Self>) -> InputSink;
 }
 
+#[derive(Debug)]
 pub enum Poll<T> {
     /// Represents that a value is immediately available.
     Update(T),
@@ -50,6 +51,7 @@ pub enum Poll<T> {
     Pending,
 }
 
+#[derive(Debug)]
 pub struct Input<V>
 where V: InputValue
 {

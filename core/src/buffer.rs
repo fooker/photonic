@@ -9,6 +9,7 @@ mod map;
 mod map_range;
 
 /// A buffer for data
+#[derive(Debug)]
 pub struct Buffer<E> {
     data: Box<[E]>,
 }

@@ -5,6 +5,7 @@ use std::fmt::Display;
 // TODO: Replace with ops::Range?
 
 /// Inclusive on both sides
+#[derive(Debug)]
 pub struct Bounds<V> {
     pub min: V,
     pub max: V,

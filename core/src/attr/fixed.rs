@@ -7,6 +7,7 @@ use crate::attr::{Attr, AttrValue, Bounded, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl};
 use crate::AttrBuilder;
 
+#[derive(Debug)]
 pub struct FixedAttr<V>(V)
 where V: AttrValue;
 
@@ -32,6 +33,7 @@ where V: AttrValue
     }
 }
 
+#[derive(Debug)]
 pub struct FixedAttrDecl<V>(V)
 where V: AttrValue;
 

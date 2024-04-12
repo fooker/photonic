@@ -7,6 +7,7 @@ use crate::decl::{BoundAttrDecl, FreeAttrDecl};
 use crate::input::{Input, InputValue, Poll};
 use crate::scene::{AttrBuilder, InputHandle};
 
+#[derive(Debug)]
 pub struct InputAttrDecl<I, A>
 where
     I: InputValue,
@@ -55,6 +56,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct BoundInputAttr<I, A>
 where
     I: InputValue,
@@ -90,6 +92,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct FreeInputAttr<I, A>
 where
     I: InputValue,

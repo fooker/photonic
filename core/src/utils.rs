@@ -10,7 +10,7 @@ where F: FnOnce(V, V) -> V {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FrameStats {
     cycles: usize,
 
@@ -78,6 +78,7 @@ impl Default for FrameStats {
     }
 }
 
+#[derive(Debug)]
 pub struct FrameTimer {
     ticker: tokio::time::Interval,
 
@@ -113,6 +114,7 @@ impl FrameTimer {
     }
 }
 
+#[derive(Debug)]
 pub struct TreeIterator<E, F, I>
 where
     F: Fn(&E) -> I,

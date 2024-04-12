@@ -72,6 +72,7 @@ impl InputInfo {
     }
 }
 
+#[derive(Debug)]
 pub struct Introspection {
     pub root: Arc<NodeInfo>,
 

@@ -26,6 +26,7 @@ where Decl: FreeAttrDecl
     }
 }
 
+#[derive(Debug)]
 pub struct FreeMapDecl<Inner, F, R>
 where
     Inner: FreeAttrDecl,
@@ -55,6 +56,7 @@ where
     }
 }
 
+#[derive(Debug)]
 pub struct MapAttr<Inner, F, R>
 where
     Inner: Attr,
