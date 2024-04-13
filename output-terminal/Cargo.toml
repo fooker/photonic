@@ -11,6 +11,6 @@ photonic = { workspace = true }
 
 palette = { workspace = true }
 anyhow = { workspace = true }
-tokio = { workspace = true, features = ["io-std", "net"] }
+tokio = { workspace = true, features = ["io-std", "net", "io-util"] }
 
 nix = { version = "0.28", features = ["fs"] }

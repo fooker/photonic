@@ -8,7 +8,7 @@ license.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-tokio = { workspace = true, features = ["time"] }
+tokio = { workspace = true, features = ["time", "macros"] }
 tokio-stream = { workspace = true, features = ["sync"] }
 futures = { workspace = true }
 palette = { workspace = true }

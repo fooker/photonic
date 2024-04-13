@@ -1,8 +1,8 @@
+use std::{future, ops};
 use std::collections::HashMap;
 use std::future::Future;
 use std::marker::PhantomData;
-use std::ops;
-use std::pin::{pin, Pin};
+use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -11,13 +11,13 @@ use futures::future::SelectAll;
 use futures::FutureExt;
 use palette::FromColor;
 
+use crate::{AttrInfo, Buffer, BufferReader, InputInfo, Node, NodeInfo, Output};
 use crate::arena::{Arena, Ref, Slice};
 use crate::attr::{Attr, AttrValue, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl, OutputDecl};
 use crate::input::{Input, InputSink, InputValue};
 use crate::interface::{Interface, Introspection};
 use crate::utils::{FrameStats, FrameTimer};
-use crate::{AttrInfo, Buffer, BufferReader, InputInfo, Node, NodeInfo, Output};
 
 pub struct RenderContext<'ctx> {
     /// Duration since last update
@@ -283,13 +283,18 @@ where
     /// The loop is driven by this function at the given rate.
     pub async fn run(mut self, fps: usize) -> Result<()> {
         // Wait for any server to finish
-        let mut servers = pin!(self.servers.into_iter().collect::<SelectAll<_>>());
+        let mut servers: Pin<Box<dyn Future<Output=Result<()>>>> = if !self.servers.is_empty() {
+            Box::pin(self.servers.into_iter().collect::<SelectAll<_>>()
+                .map(|(result, _, _)| result))
+        } else {
+            Box::pin(future::pending())
+        };
 
         let mut timer = FrameTimer::new(fps);
         loop {
             let duration = tokio::select! {
                 duration = timer.tick() => duration,
-                (server, _, _) = &mut servers => return server,
+                result = &mut servers => return result,
             };
 
             self.nodes.try_walk(|curr, tail| {

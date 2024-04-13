@@ -63,8 +63,8 @@ impl<E> Buffer<E> {
     ///
     /// The provided function is called with the index of the element to update and current element
     /// in buffer. On successful return of the function, the value will be stored in the buffer
-    /// until the first  call fails.
-    pub fn try_update<F>(&mut self, f: impl Fn(usize, &E) -> Result<E>) -> Result<()> {
+    /// until the first call fails.
+    pub fn try_update(&mut self, f: impl Fn(usize, &E) -> Result<E>) -> Result<()> {
         self.data = self.data.into_iter().enumerate().map(|(i, e)| f(i, e)).collect::<Result<_>>()?;
         return Ok(());
     }

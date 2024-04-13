@@ -15,6 +15,7 @@ palette = { workspace = true }
 noise = { workspace = true }
 
 photonic-effects = { path = "../effects" }
+photonic-lua = { path = "../lua" }
 photonic-interface-restore = { path = "../interface-restore" }
 photonic-interface-cli = { path = "../interface-cli" }
 photonic-interface-mqtt = { path = "../interface-mqtt" }

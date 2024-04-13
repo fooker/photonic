@@ -13,6 +13,7 @@ members = [
     "interface-grpc/client",
     "interface-mqtt",
     "interface-restore",
+    "lua",
     "dyn",
     "dyn/derive",
     "dyn/runner",
