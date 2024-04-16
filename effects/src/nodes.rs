@@ -10,18 +10,39 @@ pub use solid::Solid;
 pub use splice::Splice;
 pub use switch::Switch;
 
-mod brightness;
-mod color_wheel;
+use photonic_dynamic::{BoxedNodeDecl, NodeBuilder, NodeFactory, Registry};
 
 mod alert;
-mod raindrops;
-
-mod overlay;
-
 mod blackout;
-
+mod brightness;
+mod color_wheel;
 mod larson;
 mod noise;
+mod overlay;
+mod raindrops;
 mod solid;
 mod splice;
 mod switch;
+
+pub struct NodeRegistry;
+
+impl<B> Registry<BoxedNodeDecl, B> for NodeRegistry
+where B: NodeBuilder
+{
+    fn lookup(kind: &str) -> Option<Box<NodeFactory<B>>> {
+        return Some(match kind {
+            "alert" => alert::factory(),
+            "blackout" => blackout::factory(),
+            "brightness" => brightness::factory(),
+            "color-wheel" => color_wheel::factory(),
+            "larson" => larson::factory(),
+            "noise" => noise::factory(),
+            "overlay" => overlay::factory(),
+            "raindrops" => raindrops::factory(),
+            "solid" => solid::factory(),
+            "splice" => splice::factory(),
+            "switch" => switch::factory(),
+            _ => return None,
+        });
+    }
+}

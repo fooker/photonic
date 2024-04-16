@@ -12,7 +12,6 @@ photonic = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["fs"] }
 
-#mlua = { version = "0.9.7", features = ["async", "macros", "lua54", "vendored", "unstable"] }
 ezlua = { version = "0.5", features = ["async", "vendored"] }
 
 [dev-dependencies]

@@ -1,26 +1,24 @@
 use anyhow::Result;
 use palette::IntoColor;
+use serde::Deserialize;
 
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
-use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, RenderContext, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
-use photonic_dyn::DynamicNode;
+use photonic::{
+    Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
+};
+use photonic_dynamic::boxed::DynNodeDecl;
+use photonic_dynamic::{config, NodeFactory};
 
 // TODO: Support blend modes
 
-#[derive(DynamicNode)]
 pub struct Overlay<Base, Pave, Blend>
 where
     Base: NodeDecl,
     Pave: NodeDecl,
 {
-    #[photonic(node)]
     pub base: NodeHandle<Base>,
-
-    #[photonic(node)]
     pub pave: NodeHandle<Pave>,
-
-    #[photonic(attr)]
     pub blend: Blend,
 }
 
@@ -82,4 +80,25 @@ where
 
         return Ok(());
     }
+}
+
+#[cfg(feature = "dynamic")]
+pub fn factory<B>() -> Box<NodeFactory<B>>
+where B: photonic_dynamic::NodeBuilder {
+    #[derive(Deserialize, Debug)]
+    struct Config {
+        pub base: config::Node,
+        pub pave: config::Node,
+        pub blend: config::Attr,
+    }
+
+    return Box::new(|config: config::Anything, builder: &mut B| {
+        let config: Config = Deserialize::deserialize(config)?;
+
+        return Ok(Box::new(Overlay {
+            base: builder.node("base", config.base)?,
+            pave: builder.node("pave", config.pave)?,
+            blend: builder.bound_attr("blend", config.blend)?,
+        }) as Box<dyn DynNodeDecl>);
+    });
 }

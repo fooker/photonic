@@ -4,10 +4,14 @@ use palette::FromColor;
 use photonic::attr::range::Range;
 use photonic::attr::{Attr, Bounds};
 use photonic::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl};
-use photonic::{Buffer, RenderContext, Node, NodeBuilder, Random};
+use photonic::{Buffer, Node, NodeBuilder, Random, RenderContext};
 
 use anyhow::Result;
-use photonic_dyn::DynamicNode;
+use palette::rgb::Rgb;
+use photonic::attr::FreeAttrDeclExt;
+use photonic_dynamic::boxed::DynNodeDecl;
+use photonic_dynamic::{config, NodeFactory};
+use serde::Deserialize;
 
 #[derive(Default)]
 struct Raindrop {
@@ -15,15 +19,9 @@ struct Raindrop {
     decay: f32,
 }
 
-#[derive(DynamicNode)]
 pub struct Raindrops<Rate, Color, Decay> {
-    #[photonic(attr)]
     pub rate: Rate,
-
-    #[photonic(attr)]
     pub color: Color,
-
-    #[photonic(attr)]
     pub decay: Decay,
 }
 
@@ -93,4 +91,25 @@ where
 
         return Ok(());
     }
+}
+
+#[cfg(feature = "dynamic")]
+pub fn factory<B>() -> Box<NodeFactory<B>>
+where B: photonic_dynamic::NodeBuilder {
+    #[derive(Deserialize, Debug)]
+    struct Config {
+        pub rate: config::Attr,
+        pub color: config::Attr,
+        pub decay: config::Attr,
+    }
+
+    return Box::new(|config: config::Anything, builder: &mut B| {
+        let config: Config = Deserialize::deserialize(config)?;
+
+        return Ok(Box::new(Raindrops {
+            rate: builder.bound_attr("rate", config.rate)?,
+            color: builder.free_attr::<Range<Rgb>>("color", config.color)?.map(|range| range.map(Hsl::from_color)),
+            decay: builder.bound_attr("decay", config.decay)?,
+        }) as Box<dyn DynNodeDecl>);
+    });
 }

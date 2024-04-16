@@ -14,9 +14,9 @@ members = [
     "interface-mqtt",
     "interface-restore",
     "lua",
-    "dyn",
-    "dyn/derive",
-    "dyn/runner",
+    "dynamic",
+    "dynamic/registry",
+    "dynamic/runner",
     "examples",
 ]
 
@@ -46,3 +46,5 @@ rand = { version = "0.8", features = ["small_rng"] }
 num-traits = { version = "0.2" }
 
 noise = { version = "0.9" }
+
+serde = { version = "1" }

@@ -13,6 +13,7 @@ tokio-stream = { workspace = true, features = ["sync"] }
 futures = { workspace = true }
 palette = { workspace = true }
 rand = { workspace = true }
+serde = { workspace = true }
 
 num-traits = { workspace = true }
 

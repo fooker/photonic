@@ -1,5 +1,5 @@
 [package]
-name = "photonic-dyn-runner"
+name = "photonic-dynamic-runner"
 
 version.workspace = true
 authors.workspace = true
@@ -12,8 +12,9 @@ path = "src/main.rs"
 
 [dependencies]
 photonic = { workspace = true }
-photonic-dyn = { path = ".." }
-photonic-effects = { path = "../../effects" }
+photonic-dynamic = { path = ".." }
+photonic-dynamic-registry = { path = "../registry" }
+photonic-effects = { path = "../../effects", features = ["dynamic"] }
 photonic-output-terminal = { path = "../../output-terminal" }
 
 anyhow = { workspace = true }

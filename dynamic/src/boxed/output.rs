@@ -6,14 +6,16 @@ use async_trait::async_trait;
 use palette::rgb::Rgb;
 use palette::{FromColor, IntoColor};
 
+use crate::config::Anything;
 use photonic::{BufferReader, Output, OutputDecl};
+use photonic_dynamic_registry::Producible;
 
-#[async_trait(? Send)]
+#[async_trait(?Send)]
 pub trait DynOutputDecl {
     async fn materialize(self: Box<Self>) -> Result<BoxedOutput>;
 }
 
-#[async_trait(? Send)]
+#[async_trait(?Send)]
 impl<T> DynOutputDecl for T
 where
     T: OutputDecl + 'static,
@@ -26,6 +28,10 @@ where
 }
 
 pub type BoxedOutputDecl = Box<dyn DynOutputDecl>;
+
+impl Producible for BoxedOutputDecl {
+    type Config = Anything;
+}
 
 impl OutputDecl for BoxedOutputDecl {
     type Output = BoxedOutput;

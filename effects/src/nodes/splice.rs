@@ -1,9 +1,10 @@
 use anyhow::{bail, Result};
+use serde::Deserialize;
 
-use photonic::{Buffer, BufferReader, RenderContext, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
-use photonic_dyn::DynamicNode;
+use photonic::{Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext};
+use photonic_dynamic::boxed::DynNodeDecl;
+use photonic_dynamic::{config, NodeFactory};
 
-#[derive(DynamicNode)]
 pub struct Splice<N1, N2>
 where
     N1: NodeDecl,
@@ -85,4 +86,25 @@ where
 
         return Ok(());
     }
+}
+
+#[cfg(feature = "dynamic")]
+pub fn factory<B>() -> Box<NodeFactory<B>>
+where B: photonic_dynamic::NodeBuilder {
+    #[derive(Deserialize, Debug)]
+    struct Config {
+        pub n1: config::Node,
+        pub n2: config::Node,
+        pub split: isize,
+    }
+
+    return Box::new(|config: config::Anything, builder: &mut B| {
+        let config: Config = Deserialize::deserialize(config)?;
+
+        return Ok(Box::new(Splice {
+            n1: builder.node("n1", config.n1)?,
+            n2: builder.node("n2", config.n2)?,
+            split: config.split,
+        }) as Box<dyn DynNodeDecl>);
+    });
 }

@@ -1,24 +1,24 @@
 use std::time::Duration;
 
 use anyhow::Result;
+use serde::Deserialize;
 
 use photonic::math::Lerp;
-use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, RenderContext, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
-use photonic_dyn::DynamicNode;
+use photonic::{
+    Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
+};
+use photonic_dynamic::boxed::DynNodeDecl;
+use photonic_dynamic::{config, NodeFactory};
 
-use crate::easing::Easing;
+use crate::easing::{Easing, Easings};
 
-#[derive(DynamicNode)]
 pub struct Switch<Source, Value>
 where
     Source: NodeDecl,
     Value: BoundAttrDecl<Value = usize>,
     <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
-    #[photonic(node)]
     pub sources: Vec<NodeHandle<Source>>,
-
-    #[photonic(attr)]
     pub value: Value,
 
     pub easing: Easing<f32>,
@@ -111,4 +111,33 @@ where
 
         return Ok(());
     }
+}
+
+#[cfg(feature = "dynamic")]
+pub fn factory<B>() -> Box<NodeFactory<B>>
+where B: photonic_dynamic::NodeBuilder {
+    #[derive(Deserialize, Debug)]
+    struct Config {
+        pub sources: Vec<config::Node>,
+        pub value: config::Attr,
+        pub easing_func: Easings,
+        pub easing_speed: Duration,
+    }
+
+    return Box::new(|config: config::Anything, builder: &mut B| {
+        let config: Config = Deserialize::deserialize(config)?;
+
+        let sources = config
+            .sources
+            .into_iter()
+            .enumerate()
+            .map(|(i, source)| builder.node(&format!("sources.{}", i), source))
+            .collect::<Result<_>>()?;
+
+        return Ok(Box::new(Switch {
+            sources,
+            value: builder.bound_attr("value", config.value)?,
+            easing: config.easing_func.with_speed(config.easing_speed),
+        }) as Box<dyn DynNodeDecl>);
+    });
 }

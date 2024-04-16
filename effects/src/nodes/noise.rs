@@ -1,22 +1,19 @@
 use anyhow::Result;
 use noise::NoiseFn;
 use palette::Lch;
+use serde::Deserialize;
 
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
-use photonic::{Buffer, RenderContext, Node, NodeBuilder};
-use photonic_dyn::DynamicNode;
+use photonic::{Buffer, Node, NodeBuilder, RenderContext};
+use photonic_dynamic::boxed::DynNodeDecl;
+use photonic_dynamic::{config, NodeFactory};
 
-// TODO: Hue range
+// TODO: Color range and noise lerps between colors
 
-#[derive(DynamicNode)]
 pub struct Noise<Speed, Stretch, F> {
-    #[photonic(attr)]
     pub speed: Speed,
-
-    #[photonic(attr)]
     pub stretch: Stretch,
-
     pub noise: F,
 }
 
@@ -75,4 +72,54 @@ where
 
         return Ok(());
     }
+}
+
+#[cfg(feature = "dynamic")]
+pub fn factory<B>() -> Box<NodeFactory<B>>
+where B: photonic_dynamic::NodeBuilder {
+    #[derive(Deserialize, Debug)]
+    enum Noise {
+        Checkerboard,
+        Cylinders,
+        OpenSimplex,
+        Perlin,
+        PerlinSurflet,
+        Simplex,
+        SuperSimplex,
+        Value,
+        Worley,
+    }
+
+    impl Noise {
+        fn into(self) -> Box<dyn NoiseFn<f64, 2>> {
+            return match self {
+                Noise::Checkerboard => Box::new(noise::Checkerboard::default()),
+                Noise::Cylinders => Box::new(noise::Cylinders::default()),
+                Noise::OpenSimplex => Box::new(noise::OpenSimplex::default()),
+                Noise::Perlin => Box::new(noise::Perlin::default()),
+                Noise::PerlinSurflet => Box::new(noise::PerlinSurflet::default()),
+                Noise::Simplex => Box::new(noise::Simplex::default()),
+                Noise::SuperSimplex => Box::new(noise::SuperSimplex::default()),
+                Noise::Value => Box::new(noise::Value::default()),
+                Noise::Worley => Box::new(noise::Worley::default()),
+            };
+        }
+    }
+
+    #[derive(Deserialize, Debug)]
+    struct Config {
+        pub speed: config::Attr,
+        pub stretch: config::Attr,
+        pub noise: Noise,
+    }
+
+    return Box::new(|config: config::Anything, builder: &mut B| {
+        let config: Config = Deserialize::deserialize(config)?;
+
+        return Ok(Box::new(self::Noise {
+            speed: builder.free_attr("speed", config.speed)?,
+            stretch: builder.free_attr("stretch", config.stretch)?,
+            noise: config.noise.into(),
+        }) as Box<dyn DynNodeDecl>);
+    });
 }

@@ -1,25 +1,21 @@
 use anyhow::Result;
 use palette::Hsv;
+use serde::Deserialize;
 
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
-use photonic::{BoundAttrDecl, Buffer, RenderContext, Node, NodeBuilder};
-use photonic_dyn::DynamicNode;
+use photonic::{BoundAttrDecl, Buffer, Node, NodeBuilder, RenderContext};
+use photonic_dynamic::boxed::DynNodeDecl;
+use photonic_dynamic::{config, NodeFactory};
 
 enum Direction {
     Positive,
     Negative,
 }
 
-#[derive(DynamicNode)]
 pub struct Larson<Hue, Width, Speed> {
-    #[photonic(attr)]
     pub hue: Hue,
-
-    #[photonic(attr)]
     pub width: Width,
-
-    #[photonic(attr)]
     pub speed: Speed,
 }
 
@@ -97,4 +93,25 @@ where
 
         return Ok(());
     }
+}
+
+#[cfg(feature = "dynamic")]
+pub fn factory<B>() -> Box<NodeFactory<B>>
+where B: photonic_dynamic::NodeBuilder {
+    #[derive(Deserialize, Debug)]
+    struct Config {
+        pub hue: config::Attr,
+        pub width: config::Attr,
+        pub speed: config::Attr,
+    }
+
+    return Box::new(|config: config::Anything, builder: &mut B| {
+        let config: Config = Deserialize::deserialize(config)?;
+
+        return Ok(Box::new(Larson {
+            hue: builder.bound_attr("hue", config.hue)?,
+            width: builder.bound_attr("width", config.width)?,
+            speed: builder.free_attr("speed", config.speed)?,
+        }) as Box<dyn DynNodeDecl>);
+    });
 }

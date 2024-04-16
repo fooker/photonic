@@ -406,7 +406,7 @@ dependencies = [
  "anstream",
  "anstyle",
  "clap_lex",
- "strsim 0.11.1",
+ "strsim",
 ]
 
 [[package]]
@@ -560,41 +560,6 @@ checksum = "1bfb12502f3fc46cca1bb51ac28df9d618d813cdc3d2f25b9fe775a34af26bb3"
 dependencies = [
  "generic-array",
  "typenum",
-]
-
-[[package]]
-name = "darling"
-version = "0.20.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54e36fcd13ed84ffdfda6f5be89b31287cbb80c439841fe69e04841435464391"
-dependencies = [
- "darling_core",
- "darling_macro",
-]
-
-[[package]]
-name = "darling_core"
-version = "0.20.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c2cf1c23a687a1feeb728783b993c4e1ad83d99f351801977dd809b48d0a70f"
-dependencies = [
- "fnv",
- "ident_case",
- "proc-macro2",
- "quote",
- "strsim 0.10.0",
- "syn 2.0.58",
-]
-
-[[package]]
-name = "darling_macro"
-version = "0.20.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a668eda54683121533a393014d8692171709ff57a7d61f187b6e782719f8933f"
-dependencies = [
- "darling_core",
- "quote",
- "syn 2.0.58",
 ]
 
 [[package]]
@@ -1149,12 +1114,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ident_case"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
-
-[[package]]
 name = "idna"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1682,12 +1641,13 @@ dependencies = [
  "photonic-effects",
  "photonic-output-null",
  "rand",
+ "serde",
  "tokio",
  "tokio-stream",
 ]
 
 [[package]]
-name = "photonic-dyn"
+name = "photonic-dynamic"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1696,7 +1656,7 @@ dependencies = [
  "inventory",
  "palette",
  "photonic",
- "photonic-dyn-derive",
+ "photonic-dynamic-registry",
  "photonic-output-terminal",
  "serde",
  "serde_json",
@@ -1704,23 +1664,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "photonic-dyn-derive"
+name = "photonic-dynamic-registry"
 version = "0.1.0"
 dependencies = [
- "darling",
- "proc-macro2",
- "quote",
- "syn 2.0.58",
+ "anyhow",
 ]
 
 [[package]]
-name = "photonic-dyn-runner"
+name = "photonic-dynamic-runner"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
  "photonic",
- "photonic-dyn",
+ "photonic-dynamic",
+ "photonic-dynamic-registry",
  "photonic-effects",
  "photonic-output-terminal",
  "ron",
@@ -1743,7 +1701,7 @@ dependencies = [
  "num-traits",
  "palette",
  "photonic",
- "photonic-dyn",
+ "photonic-dynamic",
  "rand",
  "serde",
 ]
@@ -2539,12 +2497,6 @@ checksum = "55ff8ef943b384c414f54aefa961dd2bd853add74ec75e7ac74cf91dba62bcfa"
 dependencies = [
  "vte",
 ]
-
-[[package]]
-name = "strsim"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "strsim"

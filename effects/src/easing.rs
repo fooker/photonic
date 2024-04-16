@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use num_traits::Float;
-use photonic_dyn::serde::{Deserialize, Deserializer};
+use photonic_dynamic::serde::{Deserialize, Deserializer};
 
 pub struct Easing<F: Float> {
     pub func: fn(F) -> F,

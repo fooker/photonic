@@ -1,5 +1,5 @@
 [package]
-name = "photonic-dyn"
+name = "photonic-dynamic"
 
 version.workspace = true
 authors.workspace = true
@@ -10,7 +10,7 @@ license.workspace = true
 photonic = { workspace = true }
 photonic-output-terminal = { path = "../output-terminal" }
 
-photonic-dyn-derive = { path = "./derive" }
+photonic-dynamic-registry = { path = "./registry" }
 
 palette = { workspace = true }
 anyhow = { workspace = true }

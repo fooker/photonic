@@ -1,14 +1,14 @@
 use anyhow::Result;
 use palette::rgb::Rgb;
+use serde::Deserialize;
 
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
-use photonic::{Buffer, RenderContext, Node, NodeBuilder};
-use photonic_dyn::DynamicNode;
+use photonic::{Buffer, Node, NodeBuilder, RenderContext};
+use photonic_dynamic::boxed::DynNodeDecl;
+use photonic_dynamic::{config, NodeFactory};
 
-#[derive(DynamicNode)]
 pub struct Solid<Color> {
-    #[photonic(attr)]
     pub color: Color,
 }
 
@@ -44,4 +44,21 @@ where Color: Attr<Value = Rgb>
 
         return Ok(());
     }
+}
+
+#[cfg(feature = "dynamic")]
+pub fn factory<B>() -> Box<NodeFactory<B>>
+where B: photonic_dynamic::NodeBuilder {
+    #[derive(Deserialize, Debug)]
+    struct Config {
+        pub color: config::Attr,
+    }
+
+    return Box::new(|config: config::Anything, builder: &mut B| {
+        let config: Config = Deserialize::deserialize(config)?;
+
+        return Ok(Box::new(Solid {
+            color: builder.free_attr("color", config.color)?,
+        }) as Box<dyn DynNodeDecl>);
+    });
 }

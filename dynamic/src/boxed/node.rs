@@ -3,7 +3,9 @@ use async_trait::async_trait;
 use palette::rgb::Rgb;
 use palette::{FromColor, IntoColor};
 
-use photonic::{Buffer, BufferReader, RenderContext, Node, NodeBuilder, NodeDecl};
+use crate::config::Anything;
+use photonic::{Buffer, BufferReader, Node, NodeBuilder, NodeDecl, RenderContext};
+use photonic_dynamic_registry::Producible;
 
 #[async_trait(?Send)]
 pub trait DynNodeDecl {
@@ -29,6 +31,10 @@ where
 }
 
 pub type BoxedNodeDecl = Box<dyn DynNodeDecl>;
+
+impl Producible for BoxedNodeDecl {
+    type Config = Anything;
+}
 
 impl NodeDecl for BoxedNodeDecl {
     type Node = BoxedNode;

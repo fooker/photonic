@@ -1,19 +1,19 @@
 use anyhow::Result;
+use serde::Deserialize;
 use std::ops::Range;
 
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
-use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, RenderContext, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef};
-use photonic_dyn::DynamicNode;
+use photonic::{
+    Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
+};
+use photonic_dynamic::boxed::DynNodeDecl;
+use photonic_dynamic::{config, NodeFactory};
 
-#[derive(DynamicNode)]
 pub struct Brightness<Source, Value>
 where Source: NodeDecl
 {
-    #[photonic(node)]
     pub source: NodeHandle<Source>,
-
-    #[photonic(attr)]
     pub value: Value,
 
     pub range: Option<Range<usize>>,
@@ -67,4 +67,26 @@ where
 
         return Ok(());
     }
+}
+
+#[cfg(feature = "dynamic")]
+pub fn factory<B>() -> Box<NodeFactory<B>>
+where B: photonic_dynamic::NodeBuilder {
+    #[derive(Deserialize, Debug)]
+    struct Config {
+        pub source: config::Node,
+        pub value: config::Attr,
+
+        pub range: Option<Range<usize>>,
+    }
+
+    return Box::new(|config: config::Anything, builder: &mut B| {
+        let config: Config = Deserialize::deserialize(config)?;
+
+        return Ok(Box::new(Brightness {
+            source: builder.node("source", config.source)?,
+            value: builder.bound_attr("value", config.value)?,
+            range: config.range,
+        }) as Box<dyn DynNodeDecl>);
+    });
 }

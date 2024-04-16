@@ -8,7 +8,7 @@ use photonic_output_terminal::Terminal;
 async fn main() -> Result<()> {
     let mut scene = Scene::new();
 
-    let lua = scene.node("raindrops", Lua {
+    let lua = scene.node("example", Lua {
         script: "lua/examples/example.lua".into(),
     })?;
 

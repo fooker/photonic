@@ -33,7 +33,7 @@ pub use interface::{AttrInfo, InputInfo, NodeInfo};
 pub use node::Node;
 pub use output::Output;
 pub use random::Random;
-pub use scene::{AttrBuilder, RenderContext, Loop, NodeBuilder, NodeHandle, NodeRef, Scene, SceneBuilder};
+pub use scene::{AttrBuilder, Loop, NodeBuilder, NodeHandle, NodeRef, RenderContext, Scene, SceneBuilder};
 
 mod arena;
 pub mod attr;

@@ -2,8 +2,10 @@ use std::time::Duration;
 
 use anyhow::Result;
 
+use crate::config::Anything;
 use photonic::attr::{Bounded, Bounds};
 use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
+use photonic_dynamic_registry::Producible;
 
 pub trait DynFreeAttrDecl<V>
 where V: AttrValue
@@ -24,6 +26,10 @@ where
 }
 
 pub type BoxedFreeAttrDecl<V> = Box<dyn DynFreeAttrDecl<V>>;
+
+impl<V> Producible for BoxedFreeAttrDecl<V> {
+    type Config = Anything;
+}
 
 impl<V> FreeAttrDecl for BoxedFreeAttrDecl<V>
 where V: AttrValue
@@ -55,6 +61,10 @@ where
 }
 
 pub type BoxedBoundAttrDecl<V> = Box<dyn DynBoundAttrDecl<V>>;
+
+impl<V> Producible for BoxedBoundAttrDecl<V> {
+    type Config = Anything;
+}
 
 impl<V> BoundAttrDecl for BoxedBoundAttrDecl<V>
 where V: AttrValue + Bounded

@@ -6,9 +6,12 @@ authors.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[features]
+dynamic = []
+
 [dependencies]
 photonic = { workspace = true }
-photonic-dyn = { path = "../dyn" }
+photonic-dynamic = { path = "../dynamic" }
 
 futures = { workspace = true }
 

@@ -1,14 +1,13 @@
 use std::cell::RefCell;
 use std::path::PathBuf;
-use std::sync::RwLock;
 
 use anyhow::{Context, Result};
 use ezlua::error::ToLuaResult;
-use ezlua::prelude::{LuaError, LuaFunction, LuaState, Lua as VM};
+use ezlua::prelude::{Lua as VM, LuaError, LuaFunction, LuaState};
 use ezlua::userdata::{UserData, UserdataRegistry};
 
-use photonic::{Buffer, Node, NodeBuilder, NodeDecl, RenderContext};
 use photonic::color::palette::rgb::Rgb;
+use photonic::{Buffer, Node, NodeBuilder, NodeDecl, RenderContext};
 
 pub struct Lua {
     pub script: PathBuf,
@@ -21,10 +20,11 @@ pub struct LuaNode {
 impl NodeDecl for Lua {
     type Node = LuaNode;
 
-    async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
+    async fn materialize(self, _builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         let lua = VM::with_open_libs();
 
-        let script = tokio::fs::read(&self.script).await
+        let script = tokio::fs::read(&self.script)
+            .await
             .with_context(|| format!("Failed to read script: {}", self.script.display()))?;
 
         lua.do_string(script, Some("update"))

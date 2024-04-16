@@ -1,5 +1,6 @@
 use anyhow::Result;
 use palette::num::{One, Zero};
+use serde::{Deserialize, Deserializer};
 use std::fmt;
 use std::str::FromStr;
 
@@ -104,5 +105,15 @@ where
         } else {
             Range::point(s.parse()?)
         });
+    }
+}
+
+impl<'de, V> Deserialize<'de> for Range<V>
+where V: Deserialize<'de>
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where D: Deserializer<'de> {
+        let (a, b) = <(V, V)>::deserialize(deserializer)?;
+        return Ok(Range::new(a, b));
     }
 }
