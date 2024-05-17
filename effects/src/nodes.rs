@@ -10,6 +10,7 @@ pub use solid::Solid;
 pub use splice::Splice;
 pub use switch::Switch;
 
+#[cfg(feature = "dynamic")]
 use photonic_dynamic::{BoxedNodeDecl, NodeBuilder, NodeFactory, Registry};
 
 mod alert;
@@ -24,8 +25,10 @@ mod solid;
 mod splice;
 mod switch;
 
+#[cfg(feature = "dynamic")]
 pub struct NodeRegistry;
 
+#[cfg(feature = "dynamic")]
 impl<B> Registry<BoxedNodeDecl, B> for NodeRegistry
 where B: NodeBuilder
 {
