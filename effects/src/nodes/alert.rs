@@ -57,12 +57,9 @@ where
         let speed = self.speed.update(ctx.duration);
 
         self.time += ctx.duration.as_secs_f32() / speed;
+        self.time %= 2.0;
 
-        let value =  // math::remap(
-            math::clamp(f32::sin(self.time * std::f32::consts::PI), (-1.0, 1.0));
-        //(-1.0, 1.0),
-        //(0.0, 1.0),
-        //);
+        let value = math::clamp(f32::sin(self.time * std::f32::consts::PI), (-1.0, 1.0));
 
         out.update(|i, _| {
             let x = (i / block as usize) % 2 == 0;
