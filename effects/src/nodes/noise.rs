@@ -1,13 +1,10 @@
 use anyhow::Result;
 use noise::NoiseFn;
 use palette::Lch;
-use serde::Deserialize;
 
+use photonic::{Buffer, Node, NodeBuilder, RenderContext};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
-use photonic::{Buffer, Node, NodeBuilder, RenderContext};
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
 
 // TODO: Color range and noise lerps between colors
 
@@ -18,10 +15,10 @@ pub struct Noise<Speed, Stretch, F> {
 }
 
 pub struct NoiseNode<Speed, Stretch, F>
-where
-    Speed: Attr<Value = f32>,
-    Stretch: Attr<Value = f32>,
-    F: NoiseFn<f64, 2>,
+    where
+        Speed: Attr<Value=f32>,
+        Stretch: Attr<Value=f32>,
+        F: NoiseFn<f64, 2>,
 {
     speed: Speed,
     stretch: Stretch,
@@ -32,10 +29,10 @@ where
 }
 
 impl<Speed, Stretch, F> NodeDecl for Noise<Speed, Stretch, F>
-where
-    Speed: FreeAttrDecl<Value = f32>,
-    Stretch: FreeAttrDecl<Value = f32>,
-    F: NoiseFn<f64, 2>,
+    where
+        Speed: FreeAttrDecl<Value=f32>,
+        Stretch: FreeAttrDecl<Value=f32>,
+        F: NoiseFn<f64, 2>,
 {
     type Node = NoiseNode<Speed::Attr, Stretch::Attr, F>;
 
@@ -50,10 +47,10 @@ where
 }
 
 impl<Speed, Stretch, F> Node for NoiseNode<Speed, Stretch, F>
-where
-    Speed: Attr<Value = f32>,
-    Stretch: Attr<Value = f32>,
-    F: NoiseFn<f64, 2>,
+    where
+        Speed: Attr<Value=f32>,
+        Stretch: Attr<Value=f32>,
+        F: NoiseFn<f64, 2>,
 {
     const KIND: &'static str = "noise";
 
@@ -75,10 +72,17 @@ where
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use serde::Deserialize;
+
+    use photonic_dynamic::{BoxedFreeAttrDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    enum Noise {
+    #[serde(rename_all(deserialize = "snake_case"))]
+    pub enum Noises {
         Checkerboard,
         Cylinders,
         OpenSimplex,
@@ -90,36 +94,41 @@ where B: photonic_dynamic::NodeBuilder {
         Worley,
     }
 
-    impl Noise {
+    impl Noises {
         fn into(self) -> Box<dyn NoiseFn<f64, 2>> {
             return match self {
-                Noise::Checkerboard => Box::new(noise::Checkerboard::default()),
-                Noise::Cylinders => Box::new(noise::Cylinders::default()),
-                Noise::OpenSimplex => Box::new(noise::OpenSimplex::default()),
-                Noise::Perlin => Box::new(noise::Perlin::default()),
-                Noise::PerlinSurflet => Box::new(noise::PerlinSurflet::default()),
-                Noise::Simplex => Box::new(noise::Simplex::default()),
-                Noise::SuperSimplex => Box::new(noise::SuperSimplex::default()),
-                Noise::Value => Box::new(noise::Value::default()),
-                Noise::Worley => Box::new(noise::Worley::default()),
+                Noises::Checkerboard => Box::new(noise::Checkerboard::default()),
+                Noises::Cylinders => Box::new(noise::Cylinders::default()),
+                Noises::OpenSimplex => Box::new(noise::OpenSimplex::default()),
+                Noises::Perlin => Box::new(noise::Perlin::default()),
+                Noises::PerlinSurflet => Box::new(noise::PerlinSurflet::default()),
+                Noises::Simplex => Box::new(noise::Simplex::default()),
+                Noises::SuperSimplex => Box::new(noise::SuperSimplex::default()),
+                Noises::Value => Box::new(noise::Value::default()),
+                Noises::Worley => Box::new(noise::Worley::default()),
             };
         }
     }
 
     #[derive(Deserialize, Debug)]
-    struct Config {
-        pub speed: config::Attr,
-        pub stretch: config::Attr,
-        pub noise: Noise,
+    pub struct Config {
+        pub speed: config::Attr<f32>,
+        pub stretch: config::Attr<f32>,
+        pub noise: Noises,
     }
 
-    return Box::new(|config: config::Anything, builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for Noise<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>, Box<dyn NoiseFn<f64, 2>>> {
+        type Config = Config;
+    }
 
-        return Ok(Box::new(self::Noise {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Noise<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>, Box<dyn NoiseFn<f64, 2>>>>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
+        return Ok(Noise {
             speed: builder.free_attr("speed", config.speed)?,
             stretch: builder.free_attr("stretch", config.stretch)?,
             noise: config.noise.into(),
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

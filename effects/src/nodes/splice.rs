@@ -1,14 +1,11 @@
 use anyhow::{bail, Result};
-use serde::Deserialize;
 
 use photonic::{Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext};
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
 
 pub struct Splice<N1, N2>
-where
-    N1: NodeDecl,
-    N2: NodeDecl,
+    where
+        N1: NodeDecl,
+        N2: NodeDecl,
 {
     pub n1: NodeHandle<N1>,
     pub n2: NodeHandle<N2>,
@@ -17,9 +14,9 @@ where
 }
 
 pub struct SpliceNode<N1, N2>
-where
-    N1: Node + 'static,
-    N2: Node + 'static,
+    where
+        N1: Node + 'static,
+        N2: Node + 'static,
 {
     n1: NodeRef<N1>,
     n2: NodeRef<N2>,
@@ -41,12 +38,12 @@ fn calculate_split(split: isize, size: usize) -> Result<usize> {
 }
 
 impl<N1, N2, E> NodeDecl for Splice<N1, N2>
-where
-    N1: NodeDecl,
-    N2: NodeDecl,
-    <N1 as NodeDecl>::Node: Node<Element = E> + 'static,
-    <N2 as NodeDecl>::Node: Node<Element = E> + 'static,
-    E: Default + Copy,
+    where
+        N1: NodeDecl,
+        N2: NodeDecl,
+        <N1 as NodeDecl>::Node: Node<Element=E> + 'static,
+        <N2 as NodeDecl>::Node: Node<Element=E> + 'static,
+        E: Default + Copy,
 {
     type Node = SpliceNode<N1::Node, N2::Node>;
 
@@ -63,10 +60,10 @@ where
 }
 
 impl<N1, N2, E> Node for SpliceNode<N1, N2>
-where
-    N1: Node<Element = E> + 'static,
-    N2: Node<Element = E> + 'static,
-    E: Default + Copy,
+    where
+        N1: Node<Element=E> + 'static,
+        N2: Node<Element=E> + 'static,
+        E: Default + Copy,
 {
     const KIND: &'static str = "splice";
 
@@ -89,22 +86,33 @@ where
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use serde::Deserialize;
+
+    use photonic_dynamic::{BoxedNodeDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    struct Config {
+    pub struct Config {
         pub n1: config::Node,
         pub n2: config::Node,
         pub split: isize,
     }
 
-    return Box::new(|config: config::Anything, builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for Splice<BoxedNodeDecl, BoxedNodeDecl> {
+        type Config = Config;
+    }
 
-        return Ok(Box::new(Splice {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Splice<BoxedNodeDecl, BoxedNodeDecl>>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
+        return Ok(Splice {
             n1: builder.node("n1", config.n1)?,
             n2: builder.node("n2", config.n2)?,
             split: config.split,
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

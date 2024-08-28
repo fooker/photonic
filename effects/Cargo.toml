@@ -7,11 +7,11 @@ edition.workspace = true
 license.workspace = true
 
 [features]
-dynamic = []
+dynamic = ["dep:photonic-dynamic"]
 
 [dependencies]
 photonic = { workspace = true }
-photonic-dynamic = { path = "../dynamic" }
+photonic-dynamic = { path = "../dynamic", optional = true }
 
 futures = { workspace = true }
 
@@ -22,4 +22,4 @@ num-traits = { workspace = true }
 noise = { workspace = true }
 
 ezing = "0.2"
-serde = { version = "1.0.196", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }

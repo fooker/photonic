@@ -1,5 +1,5 @@
 [package]
-name = "photonic-dynamic-registry"
+name = "photonic-dynamic-boxed"
 
 version.workspace = true
 authors.workspace = true
@@ -7,4 +7,9 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+palette = { workspace = true }
 anyhow = { workspace = true }
+
+photonic = { path = "../../core" }
+
+async-trait = { workspace = true }

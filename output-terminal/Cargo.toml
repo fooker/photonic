@@ -6,11 +6,16 @@ authors.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[features]
+dynamic = ["dep:photonic-dynamic"]
+
 [dependencies]
 photonic = { workspace = true }
+photonic-dynamic = { path = "../dynamic", optional = true }
 
 palette = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["io-std", "net", "io-util"] }
 
 nix = { version = "0.28", features = ["fs"] }
+serde = { version = "1.0.197", features = ["derive"] }

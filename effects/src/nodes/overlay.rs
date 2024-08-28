@@ -1,21 +1,18 @@
 use anyhow::Result;
 use palette::IntoColor;
-use serde::Deserialize;
 
-use photonic::attr::Bounds;
-use photonic::math::Lerp;
 use photonic::{
     Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
 };
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
+use photonic::attr::Bounds;
+use photonic::math::Lerp;
 
 // TODO: Support blend modes
 
 pub struct Overlay<Base, Pave, Blend>
-where
-    Base: NodeDecl,
-    Pave: NodeDecl,
+    where
+        Base: NodeDecl,
+        Pave: NodeDecl,
 {
     pub base: NodeHandle<Base>,
     pub pave: NodeHandle<Pave>,
@@ -23,9 +20,9 @@ where
 }
 
 pub struct OverlayNode<Base, Pave, Blend>
-where
-    Base: Node + 'static,
-    Pave: Node + 'static,
+    where
+        Base: Node + 'static,
+        Pave: Node + 'static,
 {
     base: NodeRef<Base>,
     pave: NodeRef<Pave>,
@@ -34,12 +31,12 @@ where
 }
 
 impl<Base, Pave, Blend> NodeDecl for Overlay<Base, Pave, Blend>
-where
-    Base: NodeDecl + 'static,
-    Pave: NodeDecl + 'static,
-    Blend: BoundAttrDecl<Value = f32>,
-    <<Base as NodeDecl>::Node as Node>::Element: Lerp,
-    <<Pave as NodeDecl>::Node as Node>::Element: IntoColor<<<Base as NodeDecl>::Node as Node>::Element>,
+    where
+        Base: NodeDecl + 'static,
+        Pave: NodeDecl + 'static,
+        Blend: BoundAttrDecl<Value=f32>,
+        <<Base as NodeDecl>::Node as Node>::Element: Lerp,
+        <<Pave as NodeDecl>::Node as Node>::Element: IntoColor<<<Base as NodeDecl>::Node as Node>::Element>,
 {
     type Node = OverlayNode<Base::Node, Pave::Node, Blend::Attr>;
 
@@ -53,12 +50,12 @@ where
 }
 
 impl<Base, Pave, Blend> Node for OverlayNode<Base, Pave, Blend>
-where
-    Base: Node,
-    Pave: Node,
-    Blend: Attr<Value = f32>,
-    Base::Element: Lerp,
-    Pave::Element: IntoColor<Base::Element>,
+    where
+        Base: Node,
+        Pave: Node,
+        Blend: Attr<Value=f32>,
+        Base::Element: Lerp,
+        Pave::Element: IntoColor<Base::Element>,
 {
     const KIND: &'static str = "overlay";
 
@@ -83,22 +80,33 @@ where
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use serde::Deserialize;
+
+    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedNodeDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    struct Config {
+    pub struct Config {
         pub base: config::Node,
         pub pave: config::Node,
-        pub blend: config::Attr,
+        pub blend: config::Attr<f32>,
     }
 
-    return Box::new(|config: config::Anything, builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for Overlay<BoxedNodeDecl, BoxedNodeDecl, BoxedBoundAttrDecl<f32>> {
+        type Config = Config;
+    }
 
-        return Ok(Box::new(Overlay {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Overlay<BoxedNodeDecl, BoxedNodeDecl, BoxedBoundAttrDecl<f32>>>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
+        return Ok(Overlay {
             base: builder.node("base", config.base)?,
             pave: builder.node("pave", config.pave)?,
             blend: builder.bound_attr("blend", config.blend)?,
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

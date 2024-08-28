@@ -13,9 +13,8 @@ path = "src/main.rs"
 [dependencies]
 photonic = { workspace = true }
 photonic-dynamic = { path = ".." }
-photonic-dynamic-registry = { path = "../registry" }
 photonic-effects = { path = "../../effects", features = ["dynamic"] }
-photonic-output-terminal = { path = "../../output-terminal" }
+photonic-output-terminal = { path = "../../output-terminal", features = ["dynamic"] }
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

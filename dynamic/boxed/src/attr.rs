@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use crate::config::Anything;
-use photonic::attr::{Bounded, Bounds};
 use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
-use photonic_dynamic_registry::Producible;
+use photonic::attr::{Bounded, Bounds};
+
+use crate::Boxed;
 
 pub trait DynFreeAttrDecl<V>
 where V: AttrValue
@@ -25,11 +25,17 @@ where
     }
 }
 
-pub type BoxedFreeAttrDecl<V> = Box<dyn DynFreeAttrDecl<V>>;
-
-impl<V> Producible for BoxedFreeAttrDecl<V> {
-    type Config = Anything;
+impl<T> Boxed<dyn DynFreeAttrDecl<T::Value>> for T
+    where
+        T: FreeAttrDecl + 'static,
+        T::Attr: Sized + 'static,
+{
+    fn boxed(self) -> Box<dyn DynFreeAttrDecl<T::Value>> {
+        return Box::new(self) as Box<dyn DynFreeAttrDecl<T::Value>>;
+    }
 }
+
+pub type BoxedFreeAttrDecl<V> = Box<dyn DynFreeAttrDecl<V>>;
 
 impl<V> FreeAttrDecl for BoxedFreeAttrDecl<V>
 where V: AttrValue
@@ -60,11 +66,17 @@ where
     }
 }
 
-pub type BoxedBoundAttrDecl<V> = Box<dyn DynBoundAttrDecl<V>>;
-
-impl<V> Producible for BoxedBoundAttrDecl<V> {
-    type Config = Anything;
+impl<T> Boxed<dyn DynBoundAttrDecl<T::Value>> for T
+    where
+        T: BoundAttrDecl + 'static,
+        T::Attr: Sized + 'static,
+{
+    fn boxed(self) -> Box<dyn DynBoundAttrDecl<T::Value>> {
+        return Box::new(self) as Box<dyn DynBoundAttrDecl<T::Value>>;
+    }
 }
+
+pub type BoxedBoundAttrDecl<V> = Box<dyn DynBoundAttrDecl<V>>;
 
 impl<V> BoundAttrDecl for BoxedBoundAttrDecl<V>
 where V: AttrValue + Bounded

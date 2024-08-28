@@ -1,10 +1,7 @@
 use anyhow::Result;
 use palette::Hsv;
-use serde::Deserialize;
 
 use photonic::{Buffer, Node, NodeBuilder, NodeDecl, RenderContext};
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
 
 pub struct ColorWheel {
     pub scale: f32,
@@ -64,10 +61,15 @@ impl Node for ColorWheelNode {
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use serde::Deserialize;
+
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    struct Config {
+    pub struct Config {
         pub scale: f32,
         pub speed: f32,
         pub offset: f32,
@@ -76,15 +78,20 @@ where B: photonic_dynamic::NodeBuilder {
         pub intensity: f32,
     }
 
-    return Box::new(|config: config::Anything, _builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for ColorWheel {
+        type Config = Config;
+    }
 
-        return Ok(Box::new(ColorWheel {
+    pub fn node<B>(config: Config, _builder: &mut B) -> Result<ColorWheel>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
+        return Ok(ColorWheel {
             scale: config.scale,
             speed: config.speed,
             offset: config.offset,
             saturation: config.saturation,
             intensity: config.intensity,
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

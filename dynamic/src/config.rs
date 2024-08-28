@@ -1,8 +1,6 @@
 use serde::Deserialize;
 
-pub use anything::Anything;
-
-pub mod anything;
+pub type Anything = serde_value::Value;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Scene {
@@ -39,7 +37,8 @@ pub struct Output {
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
-pub enum Attr {
+// TODO: Life the requirement of V: Deserialize and make fixed values optional by type
+pub enum Attr<V> {
     Attr {
         #[serde(alias = "type")]
         kind: String,
@@ -55,5 +54,5 @@ pub enum Attr {
         initial: Anything,
     },
 
-    Fixed(Anything),
+    Fixed(V),
 }

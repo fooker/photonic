@@ -1,25 +1,22 @@
 use anyhow::Result;
 use palette::rgb::Rgb;
-use serde::Deserialize;
 
+use photonic::{Buffer, Node, NodeBuilder, RenderContext};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
-use photonic::{Buffer, Node, NodeBuilder, RenderContext};
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
 
 pub struct Solid<Color> {
     pub color: Color,
 }
 
 pub struct SolidNode<Color>
-where Color: Attr<Value = Rgb>
+    where Color: Attr<Value=Rgb>
 {
     color: Color,
 }
 
 impl<Color> NodeDecl for Solid<Color>
-where Color: FreeAttrDecl<Value = Rgb>
+    where Color: FreeAttrDecl<Value=Rgb>
 {
     type Node = SolidNode<Color::Attr>;
 
@@ -31,7 +28,7 @@ where Color: FreeAttrDecl<Value = Rgb>
 }
 
 impl<Color> Node for SolidNode<Color>
-where Color: Attr<Value = Rgb>
+    where Color: Attr<Value=Rgb>
 {
     const KIND: &'static str = "solid";
 
@@ -47,18 +44,29 @@ where Color: Attr<Value = Rgb>
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use serde::Deserialize;
+
+    use photonic_dynamic::{BoxedFreeAttrDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    struct Config {
-        pub color: config::Attr,
+    pub struct Config {
+        pub color: config::Attr<Rgb>,
     }
 
-    return Box::new(|config: config::Anything, builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for Solid<BoxedFreeAttrDecl<Rgb>> {
+        type Config = Config;
+    }
 
-        return Ok(Box::new(Solid {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Solid<BoxedFreeAttrDecl<Rgb>>>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
+        return Ok(Solid {
             color: builder.free_attr("color", config.color)?,
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

@@ -45,7 +45,7 @@ impl OutputDecl for Terminal {
     type Output = TerminalOutput;
 
     async fn materialize(self) -> Result<Self::Output>
-    where Self::Output: Sized {
+        where Self::Output: Sized {
         let out: Pin<Box<dyn AsyncWrite>> = if let Some(path) = self.path {
             let _ = nix::unistd::unlink(&path);
             nix::unistd::mkfifo(&path, nix::sys::stat::Mode::S_IRWXU)
@@ -74,7 +74,7 @@ impl Output for TerminalOutput {
 
     type Element = Srgb;
 
-    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> Result<()> {
+    async fn render(&mut self, out: impl BufferReader<Element=Self::Element>) -> Result<()> {
         // TODO: Maybe with inline replacement?
         let mut buf = Vec::with_capacity(out.size() * 20 + 5);
 
@@ -98,3 +98,53 @@ impl Output for TerminalOutput {
         return self.size;
     }
 }
+
+#[cfg(feature = "dynamic")]
+pub mod dynamic {
+    use std::path::PathBuf;
+
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    use photonic_dynamic::factory::{factory, OutputFactory, Producible};
+    use photonic_dynamic::OutputBuilder;
+    use photonic_dynamic::registry;
+
+    use crate::Terminal;
+
+    #[derive(Deserialize)]
+    pub struct Config {
+        size: usize,
+        path: Option<PathBuf>,
+        waterfall: bool,
+    }
+
+    impl Producible for Terminal {
+        type Config = Config;
+    }
+
+    pub fn output_x<B>(config: Config, _builder: &mut B) -> Result<Terminal>
+        where
+            B: OutputBuilder,
+    {
+        return Ok(Terminal {
+            size: config.size,
+            path: config.path,
+            waterfall: config.waterfall,
+        });
+    }
+
+    pub struct Registry;
+
+    impl<B> registry::Registry<B> for Registry
+        where B: OutputBuilder + 'static
+    {
+        fn output(kind: &str) -> Option<OutputFactory<B>> {
+            return match kind {
+                "terminal" => Some(factory(output_x)),
+                _ => return None,
+            };
+        }
+    }
+}
+

@@ -1,22 +1,19 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use serde::Deserialize;
 
-use photonic::math::Lerp;
 use photonic::{
     Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
 };
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
+use photonic::math::Lerp;
 
-use crate::easing::{Easing, Easings};
+use crate::easing::Easing;
 
 pub struct Switch<Source, Value>
-where
-    Source: NodeDecl,
-    Value: BoundAttrDecl<Value = usize>,
-    <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
+    where
+        Source: NodeDecl,
+        Value: BoundAttrDecl<Value=usize>,
+        <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     pub sources: Vec<NodeHandle<Source>>,
     pub value: Value,
@@ -25,10 +22,10 @@ where
 }
 
 pub struct SwitchNode<Source, Value>
-where
-    Source: Node + 'static,
-    Value: Attr<Value = usize>,
-    Source::Element: Lerp,
+    where
+        Source: Node + 'static,
+        Value: Attr<Value=usize>,
+        Source::Element: Lerp,
 {
     sources: Vec<NodeRef<Source>>,
     value: Value,
@@ -42,10 +39,10 @@ where
 }
 
 impl<Source, Value> NodeDecl for Switch<Source, Value>
-where
-    Source: NodeDecl + 'static,
-    Value: BoundAttrDecl<Value = usize>,
-    <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
+    where
+        Source: NodeDecl + 'static,
+        Value: BoundAttrDecl<Value=usize>,
+        <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     type Node = SwitchNode<Source::Node, Value::Attr>;
 
@@ -71,10 +68,10 @@ where
 }
 
 impl<Source, Value> Node for SwitchNode<Source, Value>
-where
-    Source: Node,
-    Value: Attr<Value = usize>,
-    Source::Element: Lerp,
+    where
+        Source: Node,
+        Value: Attr<Value=usize>,
+        Source::Element: Lerp,
 {
     const KIND: &'static str = "switch";
 
@@ -114,19 +111,32 @@ where
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use serde::Deserialize;
+
+    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedNodeDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use crate::easing::Easings;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    struct Config {
+    pub struct Config {
         pub sources: Vec<config::Node>,
-        pub value: config::Attr,
+        pub value: config::Attr<i64>,
         pub easing_func: Easings,
         pub easing_speed: Duration,
     }
 
-    return Box::new(|config: config::Anything, builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for Switch<BoxedNodeDecl, BoxedBoundAttrDecl<usize>> {
+        type Config = Config;
+    }
 
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Switch<BoxedNodeDecl, BoxedBoundAttrDecl<usize>>>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
         let sources = config
             .sources
             .into_iter()
@@ -134,10 +144,10 @@ where B: photonic_dynamic::NodeBuilder {
             .map(|(i, source)| builder.node(&format!("sources.{}", i), source))
             .collect::<Result<_>>()?;
 
-        return Ok(Box::new(Switch {
+        return Ok(Switch {
             sources,
-            value: builder.bound_attr("value", config.value)?,
+            value: todo!(), // builder.bound_attr("value", config.value)?,
             easing: config.easing_func.with_speed(config.easing_speed),
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

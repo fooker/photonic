@@ -1,18 +1,15 @@
-use anyhow::Result;
-use palette::rgb::Rgb;
-use serde::Deserialize;
 use std::ops::Range;
+
+use anyhow::Result;
 
 use photonic::{
     Attr, Buffer, BufferReader, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
 };
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
 
 pub struct Blackout<Source, Active>
-where
-    Source: NodeDecl + 'static,
-    Active: FreeAttrDecl<Value = bool>,
+    where
+        Source: NodeDecl + 'static,
+        Active: FreeAttrDecl<Value=bool>,
 {
     pub source: NodeHandle<Source>,
     pub active: Active,
@@ -22,9 +19,9 @@ where
 }
 
 pub struct BlackoutNode<Source, Active>
-where
-    Source: Node + 'static,
-    Active: Attr<Value = bool>,
+    where
+        Source: Node + 'static,
+        Active: Attr<Value=bool>,
 {
     source: NodeRef<Source>,
     active: Active,
@@ -34,9 +31,9 @@ where
 }
 
 impl<Source, Active> NodeDecl for Blackout<Source, Active>
-where
-    Source: NodeDecl + 'static,
-    Active: FreeAttrDecl<Value = bool>,
+    where
+        Source: NodeDecl + 'static,
+        Active: FreeAttrDecl<Value=bool>,
 {
     type Node = BlackoutNode<Source::Node, Active::Attr>;
 
@@ -51,9 +48,9 @@ where
 }
 
 impl<Source, Active> Node for BlackoutNode<Source, Active>
-where
-    Source: Node,
-    Active: Attr<Value = bool>,
+    where
+        Source: Node,
+        Active: Attr<Value=bool>,
 {
     const KIND: &'static str = "blackout";
 
@@ -75,25 +72,37 @@ where
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use palette::rgb::Rgb;
+    use serde::Deserialize;
+
+    use photonic_dynamic::{BoxedFreeAttrDecl, BoxedNodeDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    struct Config {
+    pub struct Config {
         pub source: config::Node,
-        pub active: config::Attr,
+        pub active: config::Attr<bool>,
 
         pub value: Rgb,
         pub range: Option<Range<usize>>,
     }
 
-    return Box::new(|config: config::Anything, builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for Blackout<BoxedNodeDecl, BoxedFreeAttrDecl<bool>> {
+        type Config = Config;
+    }
 
-        return Ok(Box::new(Blackout {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Blackout<BoxedNodeDecl, BoxedFreeAttrDecl<bool>>>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
+        return Ok(Blackout {
             source: builder.node("source", config.source)?,
             active: builder.free_attr("active", config.active)?,
             value: config.value,
             range: config.range,
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

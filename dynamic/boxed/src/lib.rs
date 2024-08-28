@@ -9,3 +9,7 @@ mod output;
 pub use self::attr::{DynBoundAttrDecl, DynFreeAttrDecl};
 pub use self::node::DynNodeDecl;
 pub use self::output::DynOutputDecl;
+
+pub trait Boxed<T: ?Sized> {
+    fn boxed(self) -> Box<T>;
+}

@@ -30,7 +30,8 @@ let noise = {
     type = "noise",
     name = "noise",
     speed = 0.005,
-    stretch = 5.0
+    stretch = 5.0,
+    noise = "simplex"
 }
 
 let base = noise
@@ -39,17 +40,18 @@ let brightness = {
     type = "brightness",
     name = "brightness",
     source = base,
-    value = {
-        type = "fader",
-        easing = {
-            func = "linear",
-            speed = "3s"
-        },
-        input = {
-            input = "brightness",
-            initial = 1.0
-        }
-    }
+    value = 1
+--    value = {
+--        type = "fader",
+--        easing = {
+--            func = "linear",
+--            speed = "3s"
+--        },
+--        input = {
+--            input = "brightness",
+--            initial = 1.0
+--        }
+--    }
 }
 
 let alert = {
@@ -65,22 +67,23 @@ let alert = {
         speed = 1.0
     },
 
-    blend = {
-        type = "fader",
-        input = {
-            type = "button",
-            value_release = 0.0,
-            value_pressed = 1.0,
-            hold_time = "10s",
-            trigger = {
-                input = "alert"
-            }
-        },
-        easing = {
-            func = "quartic_in_out",
-            speed = "2d"
-        }
-    }
+    --blend = {
+    --    type = "fader",
+    --    input = {
+    --        type = "button",
+    --        value_release = 0.0,
+    --        value_pressed = 1.0,
+    --        hold_time = "10s",
+    --        trigger = {
+    --            input = "alert"
+    --        }
+    --    },
+    --    easing = {
+    --        func = "quartic_in_out",
+    --        speed = "2d"
+    --    }
+    --}
+    blend = 0.5
 }
 
 let kitchen = {
@@ -104,6 +107,7 @@ in {
 
     output = {
         type = "terminal",
+        size = 100,
         waterfall = True
     }
 }

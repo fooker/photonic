@@ -1,12 +1,9 @@
 use anyhow::Result;
 use palette::Hsv;
-use serde::Deserialize;
 
+use photonic::{BoundAttrDecl, Buffer, Node, NodeBuilder, RenderContext};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
-use photonic::{BoundAttrDecl, Buffer, Node, NodeBuilder, RenderContext};
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
 
 enum Direction {
     Positive,
@@ -29,10 +26,10 @@ pub struct LarsonNode<Hue, Width, Speed> {
 }
 
 impl<Hue, Width, Speed> NodeDecl for Larson<Hue, Width, Speed>
-where
-    Hue: BoundAttrDecl<Value = f32>,
-    Width: BoundAttrDecl<Value = f32>,
-    Speed: FreeAttrDecl<Value = f32>,
+    where
+        Hue: BoundAttrDecl<Value=f32>,
+        Width: BoundAttrDecl<Value=f32>,
+        Speed: FreeAttrDecl<Value=f32>,
 {
     type Node = LarsonNode<Hue::Attr, Width::Attr, Speed::Attr>;
 
@@ -48,10 +45,10 @@ where
 }
 
 impl<Hue, Width, Speed> Node for LarsonNode<Hue, Width, Speed>
-where
-    Hue: Attr<Value = f32>,
-    Width: Attr<Value = f32>,
-    Speed: Attr<Value = f32>,
+    where
+        Hue: Attr<Value=f32>,
+        Width: Attr<Value=f32>,
+        Speed: Attr<Value=f32>,
 {
     const KIND: &'static str = "solid";
 
@@ -96,22 +93,33 @@ where
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use serde::Deserialize;
+
+    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    struct Config {
-        pub hue: config::Attr,
-        pub width: config::Attr,
-        pub speed: config::Attr,
+    pub struct Config {
+        pub hue: config::Attr<f32>,
+        pub width: config::Attr<f32>,
+        pub speed: config::Attr<f32>,
     }
 
-    return Box::new(|config: config::Anything, builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for Larson<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<f32>> {
+        type Config = Config;
+    }
 
-        return Ok(Box::new(Larson {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Larson<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<f32>>>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
+        return Ok(Larson {
             hue: builder.bound_attr("hue", config.hue)?,
             width: builder.bound_attr("width", config.width)?,
             speed: builder.free_attr("speed", config.speed)?,
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

@@ -2,11 +2,8 @@ use std::ops::Neg;
 
 use anyhow::Result;
 use palette::Hsv;
-use serde::Deserialize;
 
-use photonic::{math, Attr, BoundAttrDecl, Buffer, FreeAttrDecl, Node, NodeBuilder, NodeDecl, RenderContext};
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
+use photonic::{Attr, BoundAttrDecl, Buffer, FreeAttrDecl, math, Node, NodeBuilder, NodeDecl, RenderContext};
 
 pub struct Alert<Hue, Block, Speed> {
     pub hue: Hue,
@@ -23,10 +20,10 @@ pub struct AlertNode<Hue, Block, Speed> {
 }
 
 impl<Hue, Block, Speed> NodeDecl for Alert<Hue, Block, Speed>
-where
-    Hue: BoundAttrDecl<Value = f32>,
-    Block: BoundAttrDecl<Value = i64>,
-    Speed: FreeAttrDecl<Value = f32>, // TODO: Make speed an attr of duration
+    where
+        Hue: BoundAttrDecl<Value=f32>,
+        Block: BoundAttrDecl<Value=i64>,
+        Speed: FreeAttrDecl<Value=f32>, // TODO: Make speed an attr of duration
 {
     type Node = AlertNode<Hue::Attr, Block::Attr, Speed::Attr>;
 
@@ -42,10 +39,10 @@ where
 }
 
 impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
-where
-    Hue: Attr<Value = f32>,
-    Block: Attr<Value = i64>,
-    Speed: Attr<Value = f32>,
+    where
+        Hue: Attr<Value=f32>,
+        Block: Attr<Value=i64>,
+        Speed: Attr<Value=f32>,
 {
     const KIND: &'static str = "alert";
 
@@ -72,22 +69,33 @@ where
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use serde::Deserialize;
+
+    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    struct Config {
-        pub hue: config::Attr,
-        pub block: config::Attr,
-        pub speed: config::Attr,
+    pub struct Config {
+        pub hue: config::Attr<f32>,
+        pub block: config::Attr<i64>,
+        pub speed: config::Attr<f32>,
     }
 
-    return Box::new(|config: config::Anything, builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for Alert<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<i64>, BoxedFreeAttrDecl<f32>> {
+        type Config = Config;
+    }
 
-        return Ok(Box::new(Alert {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Alert<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<i64>, BoxedFreeAttrDecl<f32>>>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
+        return Ok(Alert {
             hue: builder.bound_attr("hue", config.hue)?,
             block: builder.bound_attr("block", config.block)?,
             speed: builder.free_attr("speed", config.speed)?,
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

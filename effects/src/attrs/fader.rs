@@ -2,18 +2,16 @@ use std::time::Duration;
 
 use anyhow::Result;
 
+use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::math::Lerp;
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 use crate::easing::Easing;
 
-// TODO: make input an attribute
-
 pub struct FaderAttr<V, Input>
-where
-    V: AttrValue + PartialEq + Lerp,
-    Input: Attr<Value = V>,
+    where
+        V: AttrValue + PartialEq + Lerp,
+        Input: Attr<Value=V>,
 {
     input: Input,
 
@@ -26,9 +24,9 @@ where
 }
 
 impl<V, Input> Attr for FaderAttr<V, Input>
-where
-    V: AttrValue + PartialEq + Lerp,
-    Input: Attr<Value = V>,
+    where
+        V: AttrValue + PartialEq + Lerp,
+        Input: Attr<Value=V>,
 {
     type Value = V;
 
@@ -60,9 +58,9 @@ pub struct Fader<Input> {
 }
 
 impl<Input, V> BoundAttrDecl for Fader<Input>
-where
-    V: AttrValue + PartialEq + Lerp + Bounded,
-    Input: BoundAttrDecl<Value = V>,
+    where
+        V: AttrValue + PartialEq + Lerp + Bounded,
+        Input: BoundAttrDecl<Value=V>,
 {
     type Value = V;
     type Attr = FaderAttr<V, Input::Attr>;
@@ -83,9 +81,9 @@ where
 }
 
 impl<Input, V> FreeAttrDecl for Fader<Input>
-where
-    V: AttrValue + PartialEq + Lerp,
-    Input: FreeAttrDecl<Value = V>,
+    where
+        V: AttrValue + PartialEq + Lerp,
+        Input: FreeAttrDecl<Value=V>,
 {
     type Value = V;
     type Attr = FaderAttr<V, Input::Attr>;
@@ -101,6 +99,59 @@ where
             next: current,
             fade: 1.0,
             easing: self.easing,
+        });
+    }
+}
+
+#[cfg(feature = "dynamic")]
+pub mod dynamic {
+    use serde::de::DeserializeOwned;
+    use serde::Deserialize;
+
+    use photonic::input::InputValue;
+    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use crate::easing::Easings;
+
+    use super::*;
+
+    #[derive(Deserialize, Debug)]
+    pub struct Config<V> {
+        pub input: config::Attr<V>,
+        pub easing_function: Easings,
+        pub easing_duration: Duration,
+    }
+
+    impl<V> Producible for Fader<BoxedFreeAttrDecl<V>>
+        where V: AttrValue + DeserializeOwned {
+        type Config = Config<V>;
+    }
+
+    impl<V> Producible for Fader<BoxedBoundAttrDecl<V>>
+        where V: AttrValue + DeserializeOwned + Bounded {
+        type Config = Config<V>;
+    }
+
+    pub fn free_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Fader<BoxedFreeAttrDecl<V>>>
+        where
+            B: photonic_dynamic::AttrBuilder,
+            V: AttrValue + DeserializeOwned + InputValue,
+    {
+        return Ok(Fader {
+            input: builder.free_attr("input", config.input)?,
+            easing: config.easing_function.with_speed(config.easing_duration),
+        });
+    }
+
+    pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Fader<BoxedBoundAttrDecl<V>>>
+        where
+            B: photonic_dynamic::AttrBuilder,
+            V: AttrValue + DeserializeOwned + InputValue + Bounded,
+    {
+        return Ok(Fader {
+            input: builder.bound_attr("input", config.input)?,
+            easing: config.easing_function.with_speed(config.easing_duration),
         });
     }
 }

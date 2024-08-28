@@ -1,17 +1,15 @@
-use anyhow::Result;
-use serde::Deserialize;
 use std::ops::Range;
 
-use photonic::attr::Bounds;
-use photonic::math::Lerp;
+use anyhow::Result;
+
 use photonic::{
     Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
 };
-use photonic_dynamic::boxed::DynNodeDecl;
-use photonic_dynamic::{config, NodeFactory};
+use photonic::attr::Bounds;
+use photonic::math::Lerp;
 
 pub struct Brightness<Source, Value>
-where Source: NodeDecl
+    where Source: NodeDecl
 {
     pub source: NodeHandle<Source>,
     pub value: Value,
@@ -20,10 +18,10 @@ where Source: NodeDecl
 }
 
 pub struct BrightnessNode<Source, Value>
-where
-    Source: Node + 'static,
-    Value: Attr<Value = f32>,
-    Source::Element: Lerp,
+    where
+        Source: Node + 'static,
+        Value: Attr<Value=f32>,
+        Source::Element: Lerp,
 {
     source: NodeRef<Source>,
 
@@ -32,10 +30,10 @@ where
 }
 
 impl<Source, Value> NodeDecl for Brightness<Source, Value>
-where
-    Source: NodeDecl + 'static,
-    Value: BoundAttrDecl<Value = f32>,
-    <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
+    where
+        Source: NodeDecl + 'static,
+        Value: BoundAttrDecl<Value=f32>,
+        <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     type Node = BrightnessNode<Source::Node, Value::Attr>;
 
@@ -49,10 +47,10 @@ where
 }
 
 impl<Source, Value> Node for BrightnessNode<Source, Value>
-where
-    Source: Node,
-    Value: Attr<Value = f32>,
-    Source::Element: Lerp,
+    where
+        Source: Node,
+        Value: Attr<Value=f32>,
+        Source::Element: Lerp,
 {
     const KIND: &'static str = "brightness";
 
@@ -70,23 +68,34 @@ where
 }
 
 #[cfg(feature = "dynamic")]
-pub fn factory<B>() -> Box<NodeFactory<B>>
-where B: photonic_dynamic::NodeBuilder {
+pub mod dynamic {
+    use serde::Deserialize;
+
+    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedNodeDecl, config};
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
     #[derive(Deserialize, Debug)]
-    struct Config {
+    pub struct Config {
         pub source: config::Node,
-        pub value: config::Attr,
+        pub value: config::Attr<f32>,
 
         pub range: Option<Range<usize>>,
     }
 
-    return Box::new(|config: config::Anything, builder: &mut B| {
-        let config: Config = Deserialize::deserialize(config)?;
+    impl Producible for Brightness<BoxedNodeDecl, BoxedBoundAttrDecl<f32>> {
+        type Config = Config;
+    }
 
-        return Ok(Box::new(Brightness {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Brightness<BoxedNodeDecl, BoxedBoundAttrDecl<f32>>>
+        where
+            B: photonic_dynamic::NodeBuilder,
+    {
+        return Ok(Brightness {
             source: builder.node("source", config.source)?,
             value: builder.bound_attr("value", config.value)?,
             range: config.range,
-        }) as Box<dyn DynNodeDecl>);
-    });
+        });
+    }
 }

@@ -1,19 +1,19 @@
 use std::marker::PhantomData;
 use std::time::Duration;
 
-use anyhow::Error;
-use rand::distributions::uniform::SampleUniform;
+use anyhow::Result;
 use rand::distributions::{Distribution, Uniform};
+use rand::distributions::uniform::SampleUniform;
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
+use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 
 pub struct RandomAttr<V>
-where V: AttrValue + SampleUniform + Bounded
+    where V: AttrValue + SampleUniform + Bounded
 {
     uniform: Uniform<V>,
     random: SmallRng,
@@ -24,7 +24,7 @@ where V: AttrValue + SampleUniform + Bounded
 }
 
 impl<V> Attr for RandomAttr<V>
-where V: AttrValue + SampleUniform + Bounded
+    where V: AttrValue + SampleUniform + Bounded
 {
     type Value = V;
     const KIND: &'static str = "random";
@@ -45,12 +45,12 @@ pub struct Random<V> {
 }
 
 impl<V> BoundAttrDecl for Random<V>
-where V: AttrValue + SampleUniform + Bounded
+    where V: AttrValue + SampleUniform + Bounded
 {
     type Value = V;
     type Attr = RandomAttr<V>;
 
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr, Error> {
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let mut random = SmallRng::from_entropy();
         let uniform = Uniform::new_inclusive(bounds.min, bounds.max);
 
@@ -64,6 +64,39 @@ where V: AttrValue + SampleUniform + Bounded
             random,
             current,
             trigger,
+        });
+    }
+}
+
+#[cfg(feature = "dynamic")]
+pub mod dynamic {
+    use serde::de::DeserializeOwned;
+    use serde::Deserialize;
+
+    use photonic_dynamic::config;
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
+    #[derive(Deserialize, Debug)]
+    pub struct Config {
+        pub trigger: config::Input,
+    }
+
+    impl<V> Producible for Random<V>
+        where V: AttrValue + DeserializeOwned
+    {
+        type Config = Config;
+    }
+
+    pub fn bound_attr<V, B>(config: Config, builder: &mut B) -> Result<Random<V>>
+        where
+            B: photonic_dynamic::AttrBuilder,
+            V: AttrValue + DeserializeOwned + Bounded,
+    {
+        return Ok(Random {
+            trigger: builder.input(config.trigger)?,
+            phantom: Default::default(),
         });
     }
 }

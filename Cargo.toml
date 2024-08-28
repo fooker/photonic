@@ -15,8 +15,8 @@ members = [
     "interface-restore",
     "lua",
     "dynamic",
-    "dynamic/registry",
     "dynamic/runner",
+    "dynamic/boxed",
     "examples",
 ]
 
@@ -48,3 +48,5 @@ num-traits = { version = "0.2" }
 noise = { version = "0.9" }
 
 serde = { version = "1" }
+
+async-trait = { version = "0.1" }

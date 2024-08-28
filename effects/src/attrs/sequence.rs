@@ -1,14 +1,14 @@
 use std::time::Duration;
 
-use anyhow::Error;
+use anyhow::Result;
 
+use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 pub struct SequenceAttr<V>
-where V: AttrValue
+    where V: AttrValue
 {
     values: Vec<V>,
 
@@ -19,7 +19,7 @@ where V: AttrValue
 }
 
 impl<V> Attr for SequenceAttr<V>
-where V: AttrValue
+    where V: AttrValue
 {
     type Value = V;
     const KIND: &'static str = "sequence";
@@ -43,7 +43,7 @@ where V: AttrValue
 }
 
 pub struct Sequence<V>
-where V: AttrValue
+    where V: AttrValue
 {
     pub values: Vec<V>,
 
@@ -53,13 +53,13 @@ where V: AttrValue
 }
 
 impl<V> BoundAttrDecl for Sequence<V>
-where V: AttrValue + Bounded
+    where V: AttrValue + Bounded
 {
     type Value = V;
     type Attr = SequenceAttr<V>;
 
-    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr, Error> {
-        let values = self.values.into_iter().map(|v| bounds.ensure(v)).collect::<Result<Vec<_>, Error>>()?;
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
+        let values = self.values.into_iter().map(|v| bounds.ensure(v)).collect::<Result<Vec<_>>>()?;
 
         let next = self.next.map(|input| builder.input("next", input)).transpose()?;
         let prev = self.prev.map(|input| builder.input("prev", input)).transpose()?;
@@ -74,12 +74,12 @@ where V: AttrValue + Bounded
 }
 
 impl<V> FreeAttrDecl for Sequence<V>
-where V: AttrValue
+    where V: AttrValue
 {
     type Value = V;
     type Attr = SequenceAttr<V>;
 
-    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr, Error> {
+    fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let next = self.next.map(|input| builder.input("next", input)).transpose()?;
         let prev = self.prev.map(|input| builder.input("prev", input)).transpose()?;
 
@@ -88,6 +88,53 @@ where V: AttrValue
             position: 0,
             next,
             prev,
+        });
+    }
+}
+
+#[cfg(feature = "dynamic")]
+pub mod dynamic {
+    use serde::de::DeserializeOwned;
+    use serde::Deserialize;
+
+    use photonic_dynamic::config;
+    use photonic_dynamic::factory::Producible;
+
+    use super::*;
+
+    #[derive(Deserialize, Debug)]
+    pub struct Config<V> {
+        pub values: Vec<V>,
+        pub next: Option<config::Input>,
+        pub prev: Option<config::Input>,
+    }
+
+    impl<V> Producible for Sequence<V>
+        where V: AttrValue + DeserializeOwned {
+        type Config = Config<V>;
+    }
+
+    pub fn free_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Sequence<V>>
+        where
+            B: photonic_dynamic::AttrBuilder,
+            V: AttrValue + DeserializeOwned,
+    {
+        return Ok(Sequence {
+            values: config.values,
+            next: config.next.map(|config| builder.input(config)).transpose()?,
+            prev: config.prev.map(|config| builder.input(config)).transpose()?,
+        });
+    }
+
+    pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Sequence<V>>
+        where
+            B: photonic_dynamic::AttrBuilder,
+            V: AttrValue + DeserializeOwned + Bounded,
+    {
+        return Ok(Sequence {
+            values: config.values,
+            next: config.next.map(|config| builder.input(config)).transpose()?,
+            prev: config.prev.map(|config| builder.input(config)).transpose()?,
         });
     }
 }

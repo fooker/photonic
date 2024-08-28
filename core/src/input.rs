@@ -37,7 +37,11 @@ impl std::fmt::Display for InputValueType {
     }
 }
 
-pub trait InputValue: Send + Copy + 'static {
+mod private {
+    pub trait Sealed {}
+}
+
+pub trait InputValue: private::Sealed + Send + Copy + 'static {
     const TYPE: InputValueType;
     fn sink(sink: Sink<Self>) -> InputSink;
 }

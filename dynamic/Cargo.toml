@@ -8,18 +8,16 @@ license.workspace = true
 
 [dependencies]
 photonic = { workspace = true }
-photonic-output-terminal = { path = "../output-terminal" }
-
-photonic-dynamic-registry = { path = "./registry" }
+photonic-dynamic-boxed = { path = "./boxed" }
 
 palette = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 futures = { workspace = true }
+async-trait = { workspace = true }
 
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
+serde-value = "0.7"
 
 inventory = { version = "0.3" }
-
-async-trait = "0.1"

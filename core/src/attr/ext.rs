@@ -4,44 +4,77 @@ use anyhow::Result;
 
 use crate::{Attr, AttrBuilder, AttrValue, FreeAttrDecl};
 
-pub trait FreeAttrDeclExt: FreeAttrDecl {
-    fn map<F, R>(self, f: F) -> impl FreeAttrDecl<Value = R>
-    where
-        F: Fn(Self::Value) -> R,
-        R: AttrValue;
+pub trait FreeAttrDeclExt: FreeAttrDecl + Sized {
+    fn map<F, R>(self, f: F) -> FreeMapAttrDecl<Self, F, R>
+        where
+            F: Fn(Self::Value) -> R,
+            R: AttrValue;
 }
 
+// pub trait BoundAttrDeclExt: BoundAttrDecl + Sized {
+//     fn map<F, R>(self, f: F) -> BoundMapAttrDecl<Self, F, R>
+//         where
+//             F: Fn(Self::Value) -> R,
+//             R: AttrValue;
+// }
+
 impl<Decl> FreeAttrDeclExt for Decl
-where Decl: FreeAttrDecl
+    where Decl: FreeAttrDecl
 {
-    fn map<F, R>(self, f: F) -> impl FreeAttrDecl<Value = R>
-    where
-        F: Fn(Decl::Value) -> R,
-        R: AttrValue,
+    fn map<F, R>(self, f: F) -> FreeMapAttrDecl<Self, F, R>
+        where
+            F: Fn(Decl::Value) -> R,
+            R: AttrValue,
     {
-        return FreeMapDecl {
+        return FreeMapAttrDecl {
             inner: self,
             f,
         };
     }
 }
 
+// impl<Decl> BoundAttrDeclExt for Decl
+//     where Decl: BoundAttrDecl
+// {
+//     fn map<F, R>(self, f: F) -> BoundMapAttrDecl<Self, F, R>
+//         where
+//             F: Fn(Decl::Value) -> R,
+//             R: AttrValue,
+//     {
+//         return BoundMapAttrDecl {
+//             inner: self,
+//             f,
+//         };
+//     }
+// }
+
 #[derive(Debug)]
-pub struct FreeMapDecl<Inner, F, R>
-where
-    Inner: FreeAttrDecl,
-    F: Fn(Inner::Value) -> R,
-    R: AttrValue,
+pub struct FreeMapAttrDecl<Inner, F, R>
+    where
+        Inner: FreeAttrDecl,
+        F: Fn(Inner::Value) -> R,
+        R: AttrValue,
 {
     inner: Inner,
     f: F,
 }
 
-impl<Inner, F, R> FreeAttrDecl for FreeMapDecl<Inner, F, R>
-where
-    Inner: FreeAttrDecl,
-    F: Fn(Inner::Value) -> R,
-    R: AttrValue,
+// #[derive(Debug)]
+// pub struct BoundMapAttrDecl<Inner, F, R>
+//     where
+//         Inner: BoundAttrDecl,
+//         F: Fn(Inner::Value) -> R,
+//         R: AttrValue,
+// {
+//     inner: Inner,
+//     f: F,
+// }
+
+impl<Inner, F, R> FreeAttrDecl for FreeMapAttrDecl<Inner, F, R>
+    where
+        Inner: FreeAttrDecl,
+        F: Fn(Inner::Value) -> R,
+        R: AttrValue,
 {
     type Value = R;
     type Attr = MapAttr<Inner::Attr, F, R>;
@@ -56,22 +89,46 @@ where
     }
 }
 
+// impl<Inner, F, R> BoundAttrDecl for BoundMapAttrDecl<Inner, F, R>
+//     where
+//         Inner: BoundAttrDecl,
+//         F: Fn(Inner::Value) -> R,
+//         R: AttrValue + Bounded,
+// {
+//     type Value = R;
+//     type Attr = MapAttr<Inner::Attr, F, R>;
+//
+//     fn materialize(self, bounds: Bounds<R>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
+//         // let bounds = Bounds::from((
+//         //     (self.f)(bounds.min),
+//         //     (self.f)(bounds.max),
+//         // ));
+//
+//         let inner = builder.bound_attr("inner", self.inner, todo!())?;
+//
+//         return Ok(Self::Attr {
+//             inner,
+//             f: self.f,
+//         });
+//     }
+// }
+
 #[derive(Debug)]
 pub struct MapAttr<Inner, F, R>
-where
-    Inner: Attr,
-    F: Fn(Inner::Value) -> R,
-    R: AttrValue,
+    where
+        Inner: Attr,
+        F: Fn(Inner::Value) -> R,
+        R: AttrValue,
 {
     inner: Inner,
     f: F,
 }
 
 impl<Inner, F, R> Attr for MapAttr<Inner, F, R>
-where
-    Inner: Attr,
-    F: Fn(Inner::Value) -> R,
-    R: AttrValue,
+    where
+        Inner: Attr,
+        F: Fn(Inner::Value) -> R,
+        R: AttrValue,
 {
     const KIND: &'static str = "map";
 
