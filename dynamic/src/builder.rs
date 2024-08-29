@@ -5,9 +5,9 @@ use serde::de::DeserializeOwned;
 
 use photonic::{AttrValue, NodeHandle, Scene};
 use photonic::attr::{AsFixedAttr, Bounded};
-use photonic::input::InputValue;
+use photonic::input::{Input, InputValue};
 use photonic::scene::InputHandle;
-use photonic_dynamic_boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
+use photonic_dynamic_boxed::{Boxed, BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
 
 use crate::config;
 use crate::registry::Registry;
@@ -106,8 +106,12 @@ where Registry: self::Registry<Self> + ?Sized
                 input,
                 initial,
             } => {
-                // return V::free_attr_input(self, input, initial);
-                todo!()
+                let input: InputHandle<V> = self.input(input)
+                    .with_context(|| format!("Failed to build input: @{}", name))?;
+                let initial: V = V::deserialize(initial)
+                    .with_context(|| format!("Failed to serialize initial value: @{}", name))?
+                    .try_into()?;
+                return Ok(input.attr(initial).boxed());
             }
 
             config::Attr::Fixed(value) => {
@@ -138,8 +142,12 @@ where Registry: self::Registry<Self> + ?Sized
                 input,
                 initial,
             } => {
-                // return V::bound_attr_input(self, input, initial);
-                todo!()
+                let input: InputHandle<V> = self.input(input)
+                    .with_context(|| format!("Failed to build input: @{}", name))?;
+                let initial: V = V::deserialize(initial)
+                    .with_context(|| format!("Failed to serialize initial value: @{}", name))?
+                    .try_into()?;
+                return Ok(input.attr(initial).boxed());
             }
 
             config::Attr::Fixed(value) => {
