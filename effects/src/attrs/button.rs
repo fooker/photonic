@@ -2,10 +2,10 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
+use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 #[derive(Clone, Copy, Debug)]
 enum State {
@@ -35,7 +35,7 @@ impl State {
 }
 
 pub struct ButtonAttr<V>
-    where V: AttrValue
+where V: AttrValue
 {
     value_released: V,
     value_pressed: V,
@@ -48,17 +48,17 @@ pub struct ButtonAttr<V>
 }
 
 impl<V> Attr for ButtonAttr<V>
-    where V: AttrValue
+where V: AttrValue
 {
     type Value = V;
     const KIND: &'static str = "button";
 
-    fn update(&mut self, duration: Duration) -> V {
+    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value {
         if let Poll::Update(()) = self.trigger.poll() {
             self.state = State::Pressed(self.hold_time)
         };
 
-        self.state = self.state.update(duration);
+        self.state = self.state.update(ctx.duration);
 
         return match self.state.pressed() {
             true => self.value_pressed,
@@ -68,7 +68,7 @@ impl<V> Attr for ButtonAttr<V>
 }
 
 pub struct Button<V>
-    where V: AttrValue
+where V: AttrValue
 {
     pub value_release: V,
     pub value_pressed: V,
@@ -79,7 +79,7 @@ pub struct Button<V>
 }
 
 impl<V> BoundAttrDecl for Button<V>
-    where V: AttrValue + Bounded
+where V: AttrValue + Bounded
 {
     type Value = V;
     type Attr = ButtonAttr<V>;
@@ -96,7 +96,7 @@ impl<V> BoundAttrDecl for Button<V>
 }
 
 impl<V> FreeAttrDecl for Button<V>
-    where V: AttrValue
+where V: AttrValue
 {
     type Value = V;
     type Attr = ButtonAttr<V>;
@@ -133,34 +133,34 @@ pub mod dynamic {
     }
 
     impl<V> Producible for Button<V>
-        where V: AttrValue + DeserializeOwned,
+    where V: AttrValue + DeserializeOwned
     {
         type Config = Config<V>;
     }
 
     pub fn free_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Button<V>>
-        where
-            B: photonic_dynamic::AttrBuilder,
-            V: AttrValue + DeserializeOwned,
+    where
+        B: photonic_dynamic::AttrBuilder,
+        V: AttrValue + DeserializeOwned,
     {
-            return Ok(Button {
-                value_release: config.value_release,
-                value_pressed: config.value_pressed,
-                hold_time: config.hold_time,
-                trigger: builder.input(config.trigger)?,
+        return Ok(Button {
+            value_release: config.value_release,
+            value_pressed: config.value_pressed,
+            hold_time: config.hold_time,
+            trigger: builder.input(config.trigger)?,
         });
     }
 
     pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Button<V>>
-        where
-            B: photonic_dynamic::AttrBuilder,
-            V: AttrValue + DeserializeOwned + Bounded,
+    where
+        B: photonic_dynamic::AttrBuilder,
+        V: AttrValue + DeserializeOwned + Bounded,
     {
-            return Ok(Button {
-                value_release: config.value_release,
-                value_pressed: config.value_pressed,
-                hold_time: config.hold_time,
-                trigger: builder.input(config.trigger)?,
+        return Ok(Button {
+            value_release: config.value_release,
+            value_pressed: config.value_pressed,
+            hold_time: config.hold_time,
+            trigger: builder.input(config.trigger)?,
         });
     }
 }

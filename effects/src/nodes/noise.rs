@@ -2,9 +2,9 @@ use anyhow::Result;
 use noise::NoiseFn;
 use palette::Lch;
 
-use photonic::{Buffer, Node, NodeBuilder, RenderContext};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
+use photonic::{Buffer, Node, NodeBuilder, RenderContext};
 
 // TODO: Color range and noise lerps between colors
 
@@ -15,10 +15,10 @@ pub struct Noise<Speed, Stretch, F> {
 }
 
 pub struct NoiseNode<Speed, Stretch, F>
-    where
-        Speed: Attr<Value=f32>,
-        Stretch: Attr<Value=f32>,
-        F: NoiseFn<f64, 2>,
+where
+    Speed: Attr<Value = f32>,
+    Stretch: Attr<Value = f32>,
+    F: NoiseFn<f64, 2>,
 {
     speed: Speed,
     stretch: Stretch,
@@ -29,10 +29,10 @@ pub struct NoiseNode<Speed, Stretch, F>
 }
 
 impl<Speed, Stretch, F> NodeDecl for Noise<Speed, Stretch, F>
-    where
-        Speed: FreeAttrDecl<Value=f32>,
-        Stretch: FreeAttrDecl<Value=f32>,
-        F: NoiseFn<f64, 2>,
+where
+    Speed: FreeAttrDecl<Value = f32>,
+    Stretch: FreeAttrDecl<Value = f32>,
+    F: NoiseFn<f64, 2>,
 {
     type Node = NoiseNode<Speed::Attr, Stretch::Attr, F>;
 
@@ -47,18 +47,18 @@ impl<Speed, Stretch, F> NodeDecl for Noise<Speed, Stretch, F>
 }
 
 impl<Speed, Stretch, F> Node for NoiseNode<Speed, Stretch, F>
-    where
-        Speed: Attr<Value=f32>,
-        Stretch: Attr<Value=f32>,
-        F: NoiseFn<f64, 2>,
+where
+    Speed: Attr<Value = f32>,
+    Stretch: Attr<Value = f32>,
+    F: NoiseFn<f64, 2>,
 {
     const KIND: &'static str = "noise";
 
     type Element = Lch;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
-        let speed = self.speed.update(ctx.duration);
-        let stretch = self.stretch.update(ctx.duration);
+        let speed = self.speed.update(ctx);
+        let stretch = self.stretch.update(ctx);
 
         self.position += ctx.duration.as_secs_f64() * speed as f64;
 
@@ -75,8 +75,8 @@ impl<Speed, Stretch, F> Node for NoiseNode<Speed, Stretch, F>
 pub mod dynamic {
     use serde::Deserialize;
 
-    use photonic_dynamic::{BoxedFreeAttrDecl, config};
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::{config, BoxedFreeAttrDecl};
 
     use super::*;
 
@@ -121,9 +121,12 @@ pub mod dynamic {
         type Config = Config;
     }
 
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<Noise<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>, Box<dyn NoiseFn<f64, 2>>>>
-        where
-            B: photonic_dynamic::NodeBuilder,
+    pub fn node<B>(
+        config: Config,
+        builder: &mut B,
+    ) -> Result<Noise<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>, Box<dyn NoiseFn<f64, 2>>>>
+    where
+        B: photonic_dynamic::NodeBuilder,
     {
         return Ok(Noise {
             speed: builder.free_attr("speed", config.speed)?,

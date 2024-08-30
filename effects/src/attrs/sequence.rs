@@ -1,14 +1,12 @@
-use std::time::Duration;
-
 use anyhow::Result;
 
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
+use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 pub struct SequenceAttr<V>
-    where V: AttrValue
+where V: AttrValue
 {
     values: Vec<V>,
 
@@ -19,12 +17,12 @@ pub struct SequenceAttr<V>
 }
 
 impl<V> Attr for SequenceAttr<V>
-    where V: AttrValue
+where V: AttrValue
 {
     type Value = V;
     const KIND: &'static str = "sequence";
 
-    fn update(&mut self, _duration: Duration) -> V {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
         let next = self.next.as_mut().map_or(Poll::Pending, Input::poll);
         let prev = self.prev.as_mut().map_or(Poll::Pending, Input::poll);
 
@@ -43,7 +41,7 @@ impl<V> Attr for SequenceAttr<V>
 }
 
 pub struct Sequence<V>
-    where V: AttrValue
+where V: AttrValue
 {
     pub values: Vec<V>,
 
@@ -53,7 +51,7 @@ pub struct Sequence<V>
 }
 
 impl<V> BoundAttrDecl for Sequence<V>
-    where V: AttrValue + Bounded
+where V: AttrValue + Bounded
 {
     type Value = V;
     type Attr = SequenceAttr<V>;
@@ -74,7 +72,7 @@ impl<V> BoundAttrDecl for Sequence<V>
 }
 
 impl<V> FreeAttrDecl for Sequence<V>
-    where V: AttrValue
+where V: AttrValue
 {
     type Value = V;
     type Attr = SequenceAttr<V>;
@@ -110,14 +108,15 @@ pub mod dynamic {
     }
 
     impl<V> Producible for Sequence<V>
-        where V: AttrValue + DeserializeOwned {
+    where V: AttrValue + DeserializeOwned
+    {
         type Config = Config<V>;
     }
 
     pub fn free_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Sequence<V>>
-        where
-            B: photonic_dynamic::AttrBuilder,
-            V: AttrValue + DeserializeOwned,
+    where
+        B: photonic_dynamic::AttrBuilder,
+        V: AttrValue + DeserializeOwned,
     {
         return Ok(Sequence {
             values: config.values,
@@ -127,9 +126,9 @@ pub mod dynamic {
     }
 
     pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Sequence<V>>
-        where
-            B: photonic_dynamic::AttrBuilder,
-            V: AttrValue + DeserializeOwned + Bounded,
+    where
+        B: photonic_dynamic::AttrBuilder,
+        V: AttrValue + DeserializeOwned + Bounded,
     {
         return Ok(Sequence {
             values: config.values,

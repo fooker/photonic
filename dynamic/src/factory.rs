@@ -5,8 +5,7 @@ use serde::Deserialize;
 use photonic_dynamic_boxed::{Boxed, BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
 
 pub trait Factory<T, B>
-    where
-        B: ?Sized,
+where B: ?Sized
 {
     fn produce(self: Box<Self>, config: serde_value::Value, builder: &mut B) -> Result<T>;
 }
@@ -16,10 +15,10 @@ pub trait Producible {
 }
 
 pub fn factory<P, T, F, B>(f: F) -> Box<dyn Factory<Box<T>, B>>
-    where
-        T: ?Sized,
-        P: Producible + Boxed<T> + Sized,
-        F: for<'b> FnOnce(P::Config, &'b mut B) -> Result<P> + 'static,
+where
+    T: ?Sized,
+    P: Producible + Boxed<T> + Sized,
+    F: for<'b> FnOnce(P::Config, &'b mut B) -> Result<P> + 'static,
 {
     return Box::new(move |config, builder: &mut B| -> Result<Box<T>> {
         let config: P::Config = Deserialize::deserialize(config)?;
@@ -29,8 +28,7 @@ pub fn factory<P, T, F, B>(f: F) -> Box<dyn Factory<Box<T>, B>>
 }
 
 impl<F, T, B> Factory<T, B> for F
-    where
-        F: for<'b> FnOnce(serde_value::Value, &'b mut B) -> Result<T> + 'static,
+where F: for<'b> FnOnce(serde_value::Value, &'b mut B) -> Result<T> + 'static
 {
     fn produce(self: Box<Self>, config: serde_value::Value, builder: &mut B) -> Result<T> {
         return self(config, builder);

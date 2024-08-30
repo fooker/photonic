@@ -1,10 +1,9 @@
-use std::time::Duration;
-
 use anyhow::Result;
 
 use crate::attr::{Attr, AttrValue, Bounded, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl};
 use crate::input::{Input, InputValue, Poll};
+use crate::scene;
 use crate::scene::{AttrBuilder, InputHandle};
 
 #[derive(Debug)]
@@ -76,7 +75,7 @@ where
     type Value = A;
     const KIND: &'static str = "input";
 
-    fn update(&mut self, _duration: Duration) -> Self::Value {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
         if let Poll::Update(update) = self.input.poll() {
             // TODO: This needs error handling - best idea for now is to couple inputs and attrs more tightly to allow
             // InputAttrs to report errors to the input they are feeding from by moving the atomic value latch to the
@@ -111,7 +110,7 @@ where
 
     const KIND: &'static str = "input";
 
-    fn update(&mut self, _duration: Duration) -> Self::Value {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
         if let Poll::Update(update) = self.input.poll() {
             if let Ok(update) = update.try_into() {
                 self.current = update;

@@ -1,19 +1,18 @@
 use std::marker::PhantomData;
-use std::time::Duration;
 
 use anyhow::Result;
-use rand::distributions::{Distribution, Uniform};
 use rand::distributions::uniform::SampleUniform;
+use rand::distributions::{Distribution, Uniform};
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::input::{Input, Poll};
 use photonic::scene::InputHandle;
+use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 
 pub struct RandomAttr<V>
-    where V: AttrValue + SampleUniform + Bounded
+where V: AttrValue + SampleUniform + Bounded
 {
     uniform: Uniform<V>,
     random: SmallRng,
@@ -24,12 +23,12 @@ pub struct RandomAttr<V>
 }
 
 impl<V> Attr for RandomAttr<V>
-    where V: AttrValue + SampleUniform + Bounded
+where V: AttrValue + SampleUniform + Bounded
 {
     type Value = V;
     const KIND: &'static str = "random";
 
-    fn update(&mut self, _duration: Duration) -> V {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
         if let Poll::Update(()) = self.trigger.poll() {
             self.current = self.uniform.sample(&mut self.random);
         }
@@ -45,7 +44,7 @@ pub struct Random<V> {
 }
 
 impl<V> BoundAttrDecl for Random<V>
-    where V: AttrValue + SampleUniform + Bounded
+where V: AttrValue + SampleUniform + Bounded
 {
     type Value = V;
     type Attr = RandomAttr<V>;
@@ -84,15 +83,15 @@ pub mod dynamic {
     }
 
     impl<V> Producible for Random<V>
-        where V: AttrValue + DeserializeOwned
+    where V: AttrValue + DeserializeOwned
     {
         type Config = Config;
     }
 
     pub fn bound_attr<V, B>(config: Config, builder: &mut B) -> Result<Random<V>>
-        where
-            B: photonic_dynamic::AttrBuilder,
-            V: AttrValue + DeserializeOwned + Bounded,
+    where
+        B: photonic_dynamic::AttrBuilder,
+        V: AttrValue + DeserializeOwned + Bounded,
     {
         return Ok(Random {
             trigger: builder.input(config.trigger)?,

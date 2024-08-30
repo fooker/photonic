@@ -3,15 +3,14 @@ use std::path::PathBuf;
 
 use anyhow::{bail, Context, Result};
 use clap::Parser;
-use serde::de::DeserializeOwned;
 use photonic::attr::Bounded;
-use photonic::AttrValue;
 use photonic::input::InputValue;
+use photonic::AttrValue;
+use serde::de::DeserializeOwned;
 
-use photonic_dynamic::{Builder, combine};
-use photonic_dynamic::config;
 use photonic_dynamic::factory::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory};
 use photonic_dynamic::registry::Registry;
+use photonic_dynamic::{combine, config, Builder};
 
 #[derive(Parser)]
 struct Opt {
@@ -20,7 +19,6 @@ struct Opt {
 
     #[arg(short, long, default_value = "30")]
     fps: usize,
-
     // #[arg(short, long)]
     // interface: Vec<Interface>,
 }
@@ -65,27 +63,24 @@ struct RunnerRegistries {}
 
 impl Registry<Builder<Self>> for RunnerRegistries {
     fn node(kind: &str) -> Option<NodeFactory<Builder<Self>>> {
-        return combine!(node, kind, (
-            photonic_effects::dynamic::Registry
-        ));
+        return combine!(node, kind, (photonic_effects::dynamic::Registry));
     }
 
-    fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<Builder<Self>, V>> where V: AttrValue + DeserializeOwned + InputValue {
-        return combine!(free_attr, kind, (
-            photonic_effects::dynamic::Registry
-        ));
+    fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<Builder<Self>, V>>
+    where V: AttrValue + DeserializeOwned + InputValue {
+        return combine!(free_attr, kind, (photonic_effects::dynamic::Registry));
     }
 
-    fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<Builder<Self>, V>> where V: AttrValue + DeserializeOwned + InputValue + Bounded {
-        return combine!(bound_attr, kind, (
-            photonic_effects::dynamic::Registry
-        ));
+    fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<Builder<Self>, V>>
+    where V: AttrValue + DeserializeOwned + InputValue + Bounded {
+        return combine!(bound_attr, kind, (photonic_effects::dynamic::Registry));
     }
 
     fn output(kind: &str) -> Option<OutputFactory<Builder<Self>>> {
-        return combine!(output, kind, (
-            photonic_effects::dynamic::Registry,
-            photonic_output_terminal::dynamic::Registry
-        ));
+        return combine!(
+            output,
+            kind,
+            (photonic_effects::dynamic::Registry, photonic_output_terminal::dynamic::Registry)
+        );
     }
 }

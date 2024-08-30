@@ -1,9 +1,7 @@
-use std::time::Duration;
-
 use anyhow::Result;
 
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
+use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 use crate::Boxed;
 
@@ -26,9 +24,9 @@ where
 }
 
 impl<T> Boxed<dyn DynFreeAttrDecl<T::Value>> for T
-    where
-        T: FreeAttrDecl + 'static,
-        T::Attr: Sized + 'static,
+where
+    T: FreeAttrDecl + 'static,
+    T::Attr: Sized + 'static,
 {
     fn boxed(self) -> Box<dyn DynFreeAttrDecl<T::Value>> {
         return Box::new(self) as Box<dyn DynFreeAttrDecl<T::Value>>;
@@ -67,9 +65,9 @@ where
 }
 
 impl<T> Boxed<dyn DynBoundAttrDecl<T::Value>> for T
-    where
-        T: BoundAttrDecl + 'static,
-        T::Attr: Sized + 'static,
+where
+    T: BoundAttrDecl + 'static,
+    T::Attr: Sized + 'static,
 {
     fn boxed(self) -> Box<dyn DynBoundAttrDecl<T::Value>> {
         return Box::new(self) as Box<dyn DynBoundAttrDecl<T::Value>>;
@@ -92,7 +90,7 @@ where V: AttrValue + Bounded
 pub trait DynAttr<V>
 where V: AttrValue
 {
-    fn update(&mut self, duration: Duration) -> V;
+    fn update(&mut self, ctx: &scene::RenderContext) -> V;
 }
 
 impl<T, V> DynAttr<V> for T
@@ -100,8 +98,8 @@ where
     T: Attr<Value = V>,
     V: AttrValue,
 {
-    fn update(&mut self, duration: Duration) -> V {
-        return <T as Attr>::update(self, duration);
+    fn update(&mut self, ctx: &scene::RenderContext) -> V {
+        return <T as Attr>::update(self, ctx);
     }
 }
 
@@ -114,7 +112,7 @@ where V: AttrValue
 
     type Value = V;
 
-    fn update(&mut self, duration: Duration) -> Self::Value {
-        return DynAttr::update(self.as_mut(), duration);
+    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value {
+        return DynAttr::update(self.as_mut(), ctx);
     }
 }

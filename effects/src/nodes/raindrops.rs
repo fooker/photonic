@@ -1,11 +1,10 @@
 use anyhow::Result;
-use palette::FromColor;
-use palette::Hsl;
+use palette::{FromColor, Hsl};
 
-use photonic::{Buffer, Node, NodeBuilder, Random, RenderContext};
-use photonic::attr::{Attr, Bounds};
 use photonic::attr::range::Range;
+use photonic::attr::{Attr, Bounds};
 use photonic::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl};
+use photonic::{Buffer, Node, NodeBuilder, Random, RenderContext};
 
 #[derive(Default)]
 struct Raindrop {
@@ -20,10 +19,10 @@ pub struct Raindrops<Rate, Color, Decay> {
 }
 
 pub struct RaindropsNode<Rate, Color, Decay>
-    where
-        Rate: Attr<Value=f32>,
-        Color: Attr<Value=Range<Hsl>>,
-        Decay: Attr<Value=Range<f32>>,
+where
+    Rate: Attr<Value = f32>,
+    Color: Attr<Value = Range<Hsl>>,
+    Decay: Attr<Value = Range<f32>>,
 {
     rate: Rate,
     color: Color,
@@ -35,10 +34,10 @@ pub struct RaindropsNode<Rate, Color, Decay>
 }
 
 impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
-    where
-        Rate: BoundAttrDecl<Value=f32>,
-        Color: FreeAttrDecl<Value=Range<Hsl>>,
-        Decay: BoundAttrDecl<Value=Range<f32>>,
+where
+    Rate: BoundAttrDecl<Value = f32>,
+    Color: FreeAttrDecl<Value = Range<Hsl>>,
+    Decay: BoundAttrDecl<Value = Range<f32>>,
 {
     type Node = RaindropsNode<Rate::Attr, Color::Attr, Decay::Attr>;
 
@@ -54,19 +53,19 @@ impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
 }
 
 impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
-    where
-        Rate: Attr<Value=f32>,
-        Color: Attr<Value=Range<Hsl>>,
-        Decay: Attr<Value=Range<f32>>,
+where
+    Rate: Attr<Value = f32>,
+    Color: Attr<Value = Range<Hsl>>,
+    Decay: Attr<Value = Range<f32>>,
 {
     const KIND: &'static str = "raindrops";
 
     type Element = Hsl;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
-        let rate = self.rate.update(ctx.duration);
-        let color = self.color.update(ctx.duration);
-        let decay = self.decay.update(ctx.duration);
+        let rate = self.rate.update(ctx);
+        let color = self.color.update(ctx);
+        let decay = self.decay.update(ctx);
 
         for (out, drop) in Iterator::zip(out.iter_mut(), self.drops.iter_mut()) {
             if self.random.rate(rate.into(), ctx.duration) {
@@ -93,8 +92,8 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic::attr::FreeAttrDeclExt;
-    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, config};
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedFreeAttrDecl};
 
     use super::*;
 
@@ -109,13 +108,18 @@ pub mod dynamic {
         type Config = Config;
     }
 
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<Raindrops<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<Hsl>>, BoxedBoundAttrDecl<Range<f32>>>>
-        where
-            B: photonic_dynamic::NodeBuilder,
+    pub fn node<B>(
+        config: Config,
+        builder: &mut B,
+    ) -> Result<Raindrops<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<Hsl>>, BoxedBoundAttrDecl<Range<f32>>>>
+    where
+        B: photonic_dynamic::NodeBuilder,
     {
         return Ok(Raindrops {
             rate: builder.bound_attr("rate", config.rate)?,
-            color: Box::new(builder.free_attr::<Range<Rgb>>("color", config.color)?.map(|range| range.map(Hsl::from_color))), // TODO: Remove box?
+            color: Box::new(
+                builder.free_attr::<Range<Rgb>>("color", config.color)?.map(|range| range.map(Hsl::from_color)),
+            ), // TODO: Remove box?
             decay: builder.bound_attr("decay", config.decay)?,
         });
     }

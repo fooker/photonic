@@ -3,10 +3,10 @@ use std::marker::PhantomData;
 use anyhow::{anyhow, Context, Result};
 use serde::de::DeserializeOwned;
 
-use photonic::{AttrValue, NodeHandle, Scene};
 use photonic::attr::{AsFixedAttr, Bounded};
-use photonic::input::{Input, InputValue};
+use photonic::input::InputValue;
 use photonic::scene::InputHandle;
+use photonic::{AttrValue, NodeHandle, Scene};
 use photonic_dynamic_boxed::{Boxed, BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
 
 use crate::config;
@@ -106,8 +106,8 @@ where Registry: self::Registry<Self> + ?Sized
                 input,
                 initial,
             } => {
-                let input: InputHandle<V> = self.input(input)
-                    .with_context(|| format!("Failed to build input: @{}", name))?;
+                let input: InputHandle<V> =
+                    self.input(input).with_context(|| format!("Failed to build input: @{}", name))?;
                 let initial: V = V::deserialize(initial)
                     .with_context(|| format!("Failed to serialize initial value: @{}", name))?
                     .try_into()?;
@@ -128,8 +128,7 @@ where Registry: self::Registry<Self> + ?Sized
                 kind,
                 config,
             } => {
-                let factory =
-                    Registry::bound_attr(&kind).ok_or_else(|| anyhow!("Unknown attribute type: {}", kind))?;
+                let factory = Registry::bound_attr(&kind).ok_or_else(|| anyhow!("Unknown attribute type: {}", kind))?;
 
                 let decl = factory
                     .produce(config, self)
@@ -142,8 +141,8 @@ where Registry: self::Registry<Self> + ?Sized
                 input,
                 initial,
             } => {
-                let input: InputHandle<V> = self.input(input)
-                    .with_context(|| format!("Failed to build input: @{}", name))?;
+                let input: InputHandle<V> =
+                    self.input(input).with_context(|| format!("Failed to build input: @{}", name))?;
                 let initial: V = V::deserialize(initial)
                     .with_context(|| format!("Failed to serialize initial value: @{}", name))?
                     .try_into()?;
@@ -162,8 +161,7 @@ impl<Registry> NodeBuilder for Builder<Registry>
 where Registry: self::Registry<Self> + ?Sized
 {
     fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl>> {
-        let factory =
-            Registry::node(&config.kind).ok_or_else(|| anyhow!("Unknown node type: {}", config.kind))?;
+        let factory = Registry::node(&config.kind).ok_or_else(|| anyhow!("Unknown node type: {}", config.kind))?;
 
         let decl = factory
             .produce(config.config, self)

@@ -1,22 +1,22 @@
 use anyhow::Result;
 use palette::rgb::Rgb;
 
-use photonic::{Buffer, Node, NodeBuilder, RenderContext};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
+use photonic::{Buffer, Node, NodeBuilder, RenderContext};
 
 pub struct Solid<Color> {
     pub color: Color,
 }
 
 pub struct SolidNode<Color>
-    where Color: Attr<Value=Rgb>
+where Color: Attr<Value = Rgb>
 {
     color: Color,
 }
 
 impl<Color> NodeDecl for Solid<Color>
-    where Color: FreeAttrDecl<Value=Rgb>
+where Color: FreeAttrDecl<Value = Rgb>
 {
     type Node = SolidNode<Color::Attr>;
 
@@ -28,14 +28,14 @@ impl<Color> NodeDecl for Solid<Color>
 }
 
 impl<Color> Node for SolidNode<Color>
-    where Color: Attr<Value=Rgb>
+where Color: Attr<Value = Rgb>
 {
     const KIND: &'static str = "solid";
 
     type Element = Rgb;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
-        let color = self.color.update(ctx.duration);
+        let color = self.color.update(ctx);
 
         out.fill(color);
 
@@ -47,8 +47,8 @@ impl<Color> Node for SolidNode<Color>
 pub mod dynamic {
     use serde::Deserialize;
 
-    use photonic_dynamic::{BoxedFreeAttrDecl, config};
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::{config, BoxedFreeAttrDecl};
 
     use super::*;
 
@@ -62,9 +62,7 @@ pub mod dynamic {
     }
 
     pub fn node<B>(config: Config, builder: &mut B) -> Result<Solid<BoxedFreeAttrDecl<Rgb>>>
-        where
-            B: photonic_dynamic::NodeBuilder,
-    {
+    where B: photonic_dynamic::NodeBuilder {
         return Ok(Solid {
             color: builder.free_attr("color", config.color)?,
         });

@@ -83,9 +83,7 @@ pub mod dynamic {
     }
 
     pub fn node<B>(config: Config, _builder: &mut B) -> Result<ColorWheel>
-        where
-            B: photonic_dynamic::NodeBuilder,
-    {
+    where B: photonic_dynamic::NodeBuilder {
         return Ok(ColorWheel {
             scale: config.scale,
             speed: config.speed,

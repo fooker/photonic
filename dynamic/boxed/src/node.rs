@@ -3,8 +3,8 @@ use async_trait::async_trait;
 use palette::rgb::Rgb;
 use palette::{FromColor, IntoColor};
 
-use photonic::{Buffer, BufferReader, Node, NodeBuilder, NodeDecl, RenderContext};
 use crate::Boxed;
+use photonic::{Buffer, BufferReader, Node, NodeBuilder, NodeDecl, RenderContext};
 
 #[async_trait(? Send)]
 pub trait DynNodeDecl {
@@ -13,10 +13,10 @@ pub trait DynNodeDecl {
 
 #[async_trait(? Send)]
 impl<T> DynNodeDecl for T
-    where
-        T: NodeDecl + 'static,
-        <T as NodeDecl>::Node: Sized + 'static,
-        Rgb: FromColor<<<T as NodeDecl>::Node as Node>::Element>,
+where
+    T: NodeDecl + 'static,
+    <T as NodeDecl>::Node: Sized + 'static,
+    Rgb: FromColor<<<T as NodeDecl>::Node as Node>::Element>,
 {
     async fn materialize(self: Box<Self>, builder: &mut NodeBuilder<'_>) -> Result<BoxedNode> {
         let node = <T as NodeDecl>::materialize(*self, builder).await?;
@@ -30,10 +30,10 @@ impl<T> DynNodeDecl for T
 }
 
 impl<T> Boxed<dyn DynNodeDecl> for T
-    where
-        T: NodeDecl + 'static,
-        <T as NodeDecl>::Node: Sized + 'static,
-        Rgb: FromColor<<<T as NodeDecl>::Node as Node>::Element>,
+where
+    T: NodeDecl + 'static,
+    <T as NodeDecl>::Node: Sized + 'static,
+    Rgb: FromColor<<<T as NodeDecl>::Node as Node>::Element>,
 {
     fn boxed(self) -> Box<dyn DynNodeDecl> {
         return Box::new(self) as Box<dyn DynNodeDecl>;
@@ -51,16 +51,16 @@ impl NodeDecl for BoxedNodeDecl {
 }
 
 struct WrappedNode<N>
-    where N: Node
+where N: Node
 {
     node: N,
     buffer: Buffer<N::Element>,
 }
 
 impl<N> Node for WrappedNode<N>
-    where
-        N: Node,
-        Rgb: FromColor<<N as Node>::Element>,
+where
+    N: Node,
+    Rgb: FromColor<<N as Node>::Element>,
 {
     const KIND: &'static str = "boxed";
     type Element = Rgb;
@@ -78,9 +78,9 @@ pub trait DynNode {
 }
 
 impl<N> DynNode for WrappedNode<N>
-    where
-        N: Node,
-        Rgb: FromColor<<N as Node>::Element>,
+where
+    N: Node,
+    Rgb: FromColor<<N as Node>::Element>,
 {
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Rgb>) -> Result<()> {
         return Node::update(self, ctx, out);

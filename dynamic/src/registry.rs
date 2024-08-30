@@ -1,26 +1,24 @@
 use serde::de::DeserializeOwned;
 
 use photonic::attr::Bounded;
-use photonic::AttrValue;
 use photonic::input::InputValue;
+use photonic::AttrValue;
 
 use crate::factory::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory};
 
 #[allow(unused_variables)]
 pub trait Registry<B>
-    where B: ?Sized
+where B: ?Sized
 {
     fn node(kind: &str) -> Option<NodeFactory<B>> {
         None
     }
     fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<B, V>>
-        where V: AttrValue + DeserializeOwned + InputValue
-    {
+    where V: AttrValue + DeserializeOwned + InputValue {
         None
     }
     fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<B, V>>
-        where V: AttrValue + DeserializeOwned + InputValue + Bounded,
-    {
+    where V: AttrValue + DeserializeOwned + InputValue + Bounded {
         None
     }
     fn output(kind: &str) -> Option<OutputFactory<B>> {

@@ -1,5 +1,4 @@
-use std::time::Duration;
-
+use crate::scene;
 pub use bounds::{Bounded, Bounds};
 pub use fixed::{AsFixedAttr, FixedAttr, FixedAttrDecl};
 pub use range::Range;
@@ -34,7 +33,7 @@ pub trait Attr {
     type Value: AttrValue;
 
     // TODO: Take in scene::Context instead of duration
-    fn update(&mut self, duration: Duration) -> Self::Value;
+    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value;
 }
 
 pub mod bounds;

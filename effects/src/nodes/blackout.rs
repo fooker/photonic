@@ -7,9 +7,9 @@ use photonic::{
 };
 
 pub struct Blackout<Source, Active>
-    where
-        Source: NodeDecl + 'static,
-        Active: FreeAttrDecl<Value=bool>,
+where
+    Source: NodeDecl + 'static,
+    Active: FreeAttrDecl<Value = bool>,
 {
     pub source: NodeHandle<Source>,
     pub active: Active,
@@ -19,9 +19,9 @@ pub struct Blackout<Source, Active>
 }
 
 pub struct BlackoutNode<Source, Active>
-    where
-        Source: Node + 'static,
-        Active: Attr<Value=bool>,
+where
+    Source: Node + 'static,
+    Active: Attr<Value = bool>,
 {
     source: NodeRef<Source>,
     active: Active,
@@ -31,9 +31,9 @@ pub struct BlackoutNode<Source, Active>
 }
 
 impl<Source, Active> NodeDecl for Blackout<Source, Active>
-    where
-        Source: NodeDecl + 'static,
-        Active: FreeAttrDecl<Value=bool>,
+where
+    Source: NodeDecl + 'static,
+    Active: FreeAttrDecl<Value = bool>,
 {
     type Node = BlackoutNode<Source::Node, Active::Attr>;
 
@@ -48,9 +48,9 @@ impl<Source, Active> NodeDecl for Blackout<Source, Active>
 }
 
 impl<Source, Active> Node for BlackoutNode<Source, Active>
-    where
-        Source: Node,
-        Active: Attr<Value=bool>,
+where
+    Source: Node,
+    Active: Attr<Value = bool>,
 {
     const KIND: &'static str = "blackout";
 
@@ -59,7 +59,7 @@ impl<Source, Active> Node for BlackoutNode<Source, Active>
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let source = &ctx[self.source];
 
-        let active = self.active.update(ctx.duration);
+        let active = self.active.update(ctx);
 
         if active {
             out.blit_from(source.map_range(&self.range, |_| self.value.clone()));
@@ -76,8 +76,8 @@ pub mod dynamic {
     use palette::rgb::Rgb;
     use serde::Deserialize;
 
-    use photonic_dynamic::{BoxedFreeAttrDecl, BoxedNodeDecl, config};
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::{config, BoxedFreeAttrDecl, BoxedNodeDecl};
 
     use super::*;
 
@@ -95,9 +95,7 @@ pub mod dynamic {
     }
 
     pub fn node<B>(config: Config, builder: &mut B) -> Result<Blackout<BoxedNodeDecl, BoxedFreeAttrDecl<bool>>>
-        where
-            B: photonic_dynamic::NodeBuilder,
-    {
+    where B: photonic_dynamic::NodeBuilder {
         return Ok(Blackout {
             source: builder.node("source", config.source)?,
             active: builder.free_attr("active", config.active)?,

@@ -1,14 +1,12 @@
-use std::time::Duration;
-
 use anyhow::Result;
 
-use crate::{Attr, AttrBuilder, AttrValue, FreeAttrDecl};
+use crate::{scene, Attr, AttrBuilder, AttrValue, FreeAttrDecl};
 
 pub trait FreeAttrDeclExt: FreeAttrDecl + Sized {
     fn map<F, R>(self, f: F) -> FreeMapAttrDecl<Self, F, R>
-        where
-            F: Fn(Self::Value) -> R,
-            R: AttrValue;
+    where
+        F: Fn(Self::Value) -> R,
+        R: AttrValue;
 }
 
 // pub trait BoundAttrDeclExt: BoundAttrDecl + Sized {
@@ -19,12 +17,12 @@ pub trait FreeAttrDeclExt: FreeAttrDecl + Sized {
 // }
 
 impl<Decl> FreeAttrDeclExt for Decl
-    where Decl: FreeAttrDecl
+where Decl: FreeAttrDecl
 {
     fn map<F, R>(self, f: F) -> FreeMapAttrDecl<Self, F, R>
-        where
-            F: Fn(Decl::Value) -> R,
-            R: AttrValue,
+    where
+        F: Fn(Decl::Value) -> R,
+        R: AttrValue,
     {
         return FreeMapAttrDecl {
             inner: self,
@@ -50,10 +48,10 @@ impl<Decl> FreeAttrDeclExt for Decl
 
 #[derive(Debug)]
 pub struct FreeMapAttrDecl<Inner, F, R>
-    where
-        Inner: FreeAttrDecl,
-        F: Fn(Inner::Value) -> R,
-        R: AttrValue,
+where
+    Inner: FreeAttrDecl,
+    F: Fn(Inner::Value) -> R,
+    R: AttrValue,
 {
     inner: Inner,
     f: F,
@@ -71,10 +69,10 @@ pub struct FreeMapAttrDecl<Inner, F, R>
 // }
 
 impl<Inner, F, R> FreeAttrDecl for FreeMapAttrDecl<Inner, F, R>
-    where
-        Inner: FreeAttrDecl,
-        F: Fn(Inner::Value) -> R,
-        R: AttrValue,
+where
+    Inner: FreeAttrDecl,
+    F: Fn(Inner::Value) -> R,
+    R: AttrValue,
 {
     type Value = R;
     type Attr = MapAttr<Inner::Attr, F, R>;
@@ -115,27 +113,27 @@ impl<Inner, F, R> FreeAttrDecl for FreeMapAttrDecl<Inner, F, R>
 
 #[derive(Debug)]
 pub struct MapAttr<Inner, F, R>
-    where
-        Inner: Attr,
-        F: Fn(Inner::Value) -> R,
-        R: AttrValue,
+where
+    Inner: Attr,
+    F: Fn(Inner::Value) -> R,
+    R: AttrValue,
 {
     inner: Inner,
     f: F,
 }
 
 impl<Inner, F, R> Attr for MapAttr<Inner, F, R>
-    where
-        Inner: Attr,
-        F: Fn(Inner::Value) -> R,
-        R: AttrValue,
+where
+    Inner: Attr,
+    F: Fn(Inner::Value) -> R,
+    R: AttrValue,
 {
     const KIND: &'static str = "map";
 
     type Value = R;
 
-    fn update(&mut self, duration: Duration) -> Self::Value {
-        let value = self.inner.update(duration);
+    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value {
+        let value = self.inner.update(ctx);
         return (self.f)(value);
     }
 }

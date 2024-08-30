@@ -1,9 +1,9 @@
 use anyhow::Result;
 use palette::Hsv;
 
-use photonic::{BoundAttrDecl, Buffer, Node, NodeBuilder, RenderContext};
 use photonic::attr::Attr;
 use photonic::decl::{FreeAttrDecl, NodeDecl};
+use photonic::{BoundAttrDecl, Buffer, Node, NodeBuilder, RenderContext};
 
 enum Direction {
     Positive,
@@ -26,10 +26,10 @@ pub struct LarsonNode<Hue, Width, Speed> {
 }
 
 impl<Hue, Width, Speed> NodeDecl for Larson<Hue, Width, Speed>
-    where
-        Hue: BoundAttrDecl<Value=f32>,
-        Width: BoundAttrDecl<Value=f32>,
-        Speed: FreeAttrDecl<Value=f32>,
+where
+    Hue: BoundAttrDecl<Value = f32>,
+    Width: BoundAttrDecl<Value = f32>,
+    Speed: FreeAttrDecl<Value = f32>,
 {
     type Node = LarsonNode<Hue::Attr, Width::Attr, Speed::Attr>;
 
@@ -45,19 +45,19 @@ impl<Hue, Width, Speed> NodeDecl for Larson<Hue, Width, Speed>
 }
 
 impl<Hue, Width, Speed> Node for LarsonNode<Hue, Width, Speed>
-    where
-        Hue: Attr<Value=f32>,
-        Width: Attr<Value=f32>,
-        Speed: Attr<Value=f32>,
+where
+    Hue: Attr<Value = f32>,
+    Width: Attr<Value = f32>,
+    Speed: Attr<Value = f32>,
 {
     const KIND: &'static str = "solid";
 
     type Element = Hsv;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
-        let hue = self.hue.update(ctx.duration);
-        let width = self.width.update(ctx.duration);
-        let speed = self.speed.update(ctx.duration);
+        let hue = self.hue.update(ctx);
+        let width = self.width.update(ctx);
+        let speed = self.speed.update(ctx);
 
         let size = (out.size() - 1) as f32;
         let delta = ctx.duration.as_secs_f32() * speed;
@@ -96,8 +96,8 @@ impl<Hue, Width, Speed> Node for LarsonNode<Hue, Width, Speed>
 pub mod dynamic {
     use serde::Deserialize;
 
-    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, config};
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedFreeAttrDecl};
 
     use super::*;
 
@@ -112,9 +112,12 @@ pub mod dynamic {
         type Config = Config;
     }
 
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<Larson<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<f32>>>
-        where
-            B: photonic_dynamic::NodeBuilder,
+    pub fn node<B>(
+        config: Config,
+        builder: &mut B,
+    ) -> Result<Larson<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<f32>>>
+    where
+        B: photonic_dynamic::NodeBuilder,
     {
         return Ok(Larson {
             hue: builder.bound_attr("hue", config.hue)?,

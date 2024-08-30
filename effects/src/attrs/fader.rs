@@ -2,21 +2,21 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 use photonic::attr::{Bounded, Bounds};
 use photonic::math::Lerp;
+use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 use crate::easing::Easing;
 
 pub struct FaderAttr<V, Input>
-    where
-        V: AttrValue + PartialEq + Lerp,
-        Input: Attr<Value=V>,
+where
+    V: AttrValue + PartialEq + Lerp,
+    Input: Attr<Value = V>,
 {
     input: Input,
 
-    last: V,
-    next: V,
+    last: Option<V>,
+    next: Option<V>,
 
     fade: f32,
 
@@ -24,30 +24,45 @@ pub struct FaderAttr<V, Input>
 }
 
 impl<V, Input> Attr for FaderAttr<V, Input>
-    where
-        V: AttrValue + PartialEq + Lerp,
-        Input: Attr<Value=V>,
+where
+    V: AttrValue + PartialEq + Lerp,
+    Input: Attr<Value = V>,
 {
     type Value = V;
 
     const KIND: &'static str = "fader";
 
-    fn update(&mut self, duration: Duration) -> Self::Value {
-        let next = self.input.update(duration);
-        if next != self.next {
-            // Calculate current value and use as previous to accommodate for
-            // value changes while a transition is still in progress
-            self.last = Lerp::lerp(self.last, self.next, (self.easing.func)(self.fade));
-            self.next = next;
+    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value {
+        let curr = self.input.update(ctx);
+
+        let Some(last) = self.last else {
+            // First cycle - set initial current value
+            self.last = Some(curr);
+            return curr;
+        };
+
+        if let Some(next) = self.next {
+            // In transition
+            self.fade += ctx.duration.as_secs_f32() / self.easing.speed.as_secs_f32();
+
+            if self.fade >= 1.0 {
+                // Transition finished
+                self.last = Some(next);
+                self.next = None;
+
+                return next;
+            }
+
+            return Lerp::lerp(last, next, (self.easing.func)(self.fade));
+        }
+
+        if curr != last {
+            // Start transition
+            self.next = Some(curr);
             self.fade = 0.0;
         }
 
-        if self.fade < 1.0 {
-            self.fade += duration.as_secs_f32() / self.easing.speed.as_secs_f32();
-            self.fade = self.fade.min(1.0);
-        }
-
-        return Lerp::lerp(self.last, self.next, (self.easing.func)(self.fade));
+        return last;
     }
 }
 
@@ -58,22 +73,20 @@ pub struct Fader<Input> {
 }
 
 impl<Input, V> BoundAttrDecl for Fader<Input>
-    where
-        V: AttrValue + PartialEq + Lerp + Bounded,
-        Input: BoundAttrDecl<Value=V>,
+where
+    V: AttrValue + PartialEq + Lerp + Bounded,
+    Input: BoundAttrDecl<Value = V>,
 {
     type Value = V;
     type Attr = FaderAttr<V, Input::Attr>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
-        let mut input = builder.bound_attr("input", self.input, bounds)?;
-
-        let current = input.update(Duration::ZERO);
+        let input = builder.bound_attr("input", self.input, bounds)?;
 
         return Ok(FaderAttr {
             input,
-            last: current,
-            next: current,
+            last: None,
+            next: None,
             fade: 1.0,
             easing: self.easing,
         });
@@ -81,22 +94,20 @@ impl<Input, V> BoundAttrDecl for Fader<Input>
 }
 
 impl<Input, V> FreeAttrDecl for Fader<Input>
-    where
-        V: AttrValue + PartialEq + Lerp,
-        Input: FreeAttrDecl<Value=V>,
+where
+    V: AttrValue + PartialEq + Lerp,
+    Input: FreeAttrDecl<Value = V>,
 {
     type Value = V;
     type Attr = FaderAttr<V, Input::Attr>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
-        let mut input = builder.unbound_attr("input", self.input)?;
-
-        let current = input.update(Duration::ZERO);
+        let input = builder.unbound_attr("input", self.input)?;
 
         return Ok(FaderAttr {
             input,
-            last: current,
-            next: current,
+            last: None,
+            next: None,
             fade: 1.0,
             easing: self.easing,
         });
@@ -109,8 +120,8 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic::input::InputValue;
-    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, config};
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedFreeAttrDecl};
 
     use crate::easing::Easings;
 
@@ -124,19 +135,21 @@ pub mod dynamic {
     }
 
     impl<V> Producible for Fader<BoxedFreeAttrDecl<V>>
-        where V: AttrValue + DeserializeOwned {
+    where V: AttrValue + DeserializeOwned
+    {
         type Config = Config<V>;
     }
 
     impl<V> Producible for Fader<BoxedBoundAttrDecl<V>>
-        where V: AttrValue + DeserializeOwned + Bounded {
+    where V: AttrValue + DeserializeOwned + Bounded
+    {
         type Config = Config<V>;
     }
 
     pub fn free_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Fader<BoxedFreeAttrDecl<V>>>
-        where
-            B: photonic_dynamic::AttrBuilder,
-            V: AttrValue + DeserializeOwned + InputValue,
+    where
+        B: photonic_dynamic::AttrBuilder,
+        V: AttrValue + DeserializeOwned + InputValue,
     {
         return Ok(Fader {
             input: builder.free_attr("input", config.input)?,
@@ -145,9 +158,9 @@ pub mod dynamic {
     }
 
     pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Fader<BoxedBoundAttrDecl<V>>>
-        where
-            B: photonic_dynamic::AttrBuilder,
-            V: AttrValue + DeserializeOwned + InputValue + Bounded,
+    where
+        B: photonic_dynamic::AttrBuilder,
+        V: AttrValue + DeserializeOwned + InputValue + Bounded,
     {
         return Ok(Fader {
             input: builder.bound_attr("input", config.input)?,

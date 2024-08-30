@@ -1,11 +1,10 @@
 use std::ops::Deref;
-use std::time::Duration;
 
 use anyhow::Result;
 
 use crate::attr::{Attr, AttrValue, Bounded, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl};
-use crate::AttrBuilder;
+use crate::{scene, AttrBuilder};
 
 #[derive(Debug)]
 pub struct FixedAttr<V>(V)
@@ -18,7 +17,7 @@ where V: AttrValue
 
     const KIND: &'static str = "fixed";
 
-    fn update(&mut self, _duration: Duration) -> Self::Value {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
         return self.0;
     }
 }
