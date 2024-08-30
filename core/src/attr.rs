@@ -32,7 +32,6 @@ pub trait Attr {
 
     type Value: AttrValue;
 
-    // TODO: Take in scene::Context instead of duration
     fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value;
 }
 
