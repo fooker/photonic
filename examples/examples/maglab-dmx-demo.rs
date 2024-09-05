@@ -126,12 +126,22 @@ async fn main() -> Result<()> {
     let output = NetDmxSender::with_address("127.0.0.1:34254".parse()?)
         .add_fixture(Fixture {
             dmx_address: 500,
-            dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue, Channel::White],
+            dmx_channels: vec![
+                Channel::Red,
+                Channel::Green,
+                Channel::Blue,
+                Channel::White.calibrated(0.6),
+            ],
             white_mode: WhiteMode::Accurate,
         })
         .add_fixture(Fixture {
             dmx_address: 508,
-            dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue, Channel::White],
+            dmx_channels: vec![
+                Channel::Red,
+                Channel::Green,
+                Channel::Blue,
+                Channel::White.calibrated(0.6),
+            ],
             white_mode: WhiteMode::Accurate,
         })
         .add_fixtures(20, |n| Fixture {

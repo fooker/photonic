@@ -2,8 +2,9 @@ use std::net::SocketAddr;
 
 use anyhow::{bail, Result};
 use palette::rgb::Rgb;
+use palette::encoding::Srgb;
 
-use photonic::{BufferReader, Output, OutputDecl, WhiteMode};
+use photonic::{BufferReader, Output, OutputDecl, WhiteMode, Rgbw, math::clamp};
 
 pub enum Channel {
     Red,
@@ -11,6 +12,24 @@ pub enum Channel {
     Blue,
     White,
     Fixed(u8),
+    Calibrated(Box<Channel>, f32),
+}
+
+impl Channel {
+    pub fn calibrated(self, scale: f32) -> Self {
+        return Self::Calibrated(Box::new(self), scale);
+    }
+
+    pub fn extract(&self, pixel: Rgbw<Srgb, u8>) -> u8 {
+        return match self {
+            Channel::Red => pixel.red,
+            Channel::Green => pixel.green,
+            Channel::Blue => pixel.blue,
+            Channel::White => pixel.white,
+            Channel::Fixed(value) => *value,
+            Channel::Calibrated(channel, scale) => clamp(channel.extract(pixel) as f32 * *scale, (u8::MIN as f32, u8::MAX as f32)) as u8,
+        };
+    }
 }
 
 pub struct Fixture {
@@ -92,14 +111,8 @@ impl Output for NetDmxSenderOutput {
             let pixel = fixture.white_mode.apply(pixel);
             let pixel = pixel.into_format::<u8>();
 
-            for (i, config) in fixture.dmx_channels.iter().enumerate() {
-                self.buffer[fixture.dmx_address - 1 + i] = match config {
-                    Channel::Red => pixel.red,
-                    Channel::Green => pixel.green,
-                    Channel::Blue => pixel.blue,
-                    Channel::White => pixel.white,
-                    Channel::Fixed(value) => *value,
-                };
+            for (i, channel) in fixture.dmx_channels.iter().enumerate() {
+                self.buffer[fixture.dmx_address - 1 + i] = channel.extract(pixel);
             }
         }
 
