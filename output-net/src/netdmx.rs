@@ -1,10 +1,11 @@
 use std::net::SocketAddr;
 
 use anyhow::{bail, Result};
-use palette::rgb::Rgb;
 use palette::encoding::Srgb;
+use palette::rgb::Rgb;
 
-use photonic::{BufferReader, Output, OutputDecl, WhiteMode, Rgbw, math::clamp};
+use photonic::math::clamp;
+use photonic::{BufferReader, Output, OutputDecl, Rgbw, WhiteMode};
 
 pub enum Channel {
     Red,
@@ -27,7 +28,9 @@ impl Channel {
             Channel::Blue => pixel.blue,
             Channel::White => pixel.white,
             Channel::Fixed(value) => *value,
-            Channel::Calibrated(channel, scale) => clamp(channel.extract(pixel) as f32 * *scale, (u8::MIN as f32, u8::MAX as f32)) as u8,
+            Channel::Calibrated(channel, scale) => {
+                clamp(channel.extract(pixel) as f32 * *scale, (u8::MIN as f32, u8::MAX as f32)) as u8
+            }
         };
     }
 }

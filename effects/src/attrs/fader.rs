@@ -123,7 +123,7 @@ pub mod dynamic {
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedFreeAttrDecl};
 
-    use crate::easing::Easings;
+    use crate::easing::dynamic::Easings;
 
     use super::*;
 
