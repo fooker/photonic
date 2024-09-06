@@ -1,10 +1,8 @@
-use std::time::Duration;
-
 use anyhow::Result;
 
+use photonic::{Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl, scene};
 use photonic::attr::{Bounded, Bounds};
 use photonic::math::Lerp;
-use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
 use crate::easing::Easing;
 
@@ -116,14 +114,16 @@ where
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
-    use photonic::input;
+    use std::time::Duration;
+
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
+    use photonic::input;
+    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, config};
     use photonic_dynamic::factory::Producible;
-    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedFreeAttrDecl};
 
-    use crate::easing::dynamic::Easings;
+    use crate::easing::Easings;
 
     use super::*;
 
