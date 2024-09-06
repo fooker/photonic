@@ -6,7 +6,6 @@ use std::str::FromStr;
 
 use crate::attr::bounds::Bounded;
 use crate::math::Lerp;
-use crate::AttrValue;
 
 #[derive(Debug, Clone)]
 pub struct Range<V>(pub V, pub V);
@@ -34,10 +33,10 @@ impl<V> From<(V, V)> for Range<V> {
     }
 }
 
-impl<V> Copy for Range<V> where V: AttrValue {}
+impl<V> Copy for Range<V> where V: Copy {}
 
 impl<V> Bounded for Range<V>
-where V: AttrValue + Bounded
+where V: Bounded
 {
     fn checked(self, min: &Self, max: &Self) -> Result<Self> {
         return Ok(Self(self.0.checked(&min.0, &max.0)?, self.1.checked(&min.1, &max.1)?));
@@ -45,7 +44,7 @@ where V: AttrValue + Bounded
 }
 
 impl<V> Range<V>
-where V: AttrValue + Lerp
+where V: Lerp + Copy
 {
     pub fn at(&self, i: f32) -> V {
         return V::lerp(self.0, self.0, i);

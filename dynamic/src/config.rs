@@ -1,5 +1,7 @@
 use serde::Deserialize;
 
+use photonic::AttrValue;
+
 pub type Anything = serde_value::Value;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -38,7 +40,9 @@ pub struct Output {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 // TODO: Life the requirement of V: Deserialize and make fixed values optional by type
-pub enum Attr<V> {
+pub enum Attr<V>
+where V: AttrValue
+{
     Attr {
         #[serde(alias = "type")]
         kind: String,
@@ -51,7 +55,7 @@ pub enum Attr<V> {
         #[serde(flatten)]
         input: Input,
 
-        initial: Anything,
+        initial: V,
     },
 
     Fixed(V),

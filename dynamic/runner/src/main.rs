@@ -4,7 +4,6 @@ use std::path::PathBuf;
 use anyhow::{bail, Context, Result};
 use clap::Parser;
 use photonic::attr::Bounded;
-use photonic::input::InputValue;
 use photonic::AttrValue;
 use serde::de::DeserializeOwned;
 
@@ -67,12 +66,12 @@ impl Registry<Builder<Self>> for RunnerRegistries {
     }
 
     fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<Builder<Self>, V>>
-    where V: AttrValue + DeserializeOwned + InputValue {
+    where V: AttrValue + DeserializeOwned {
         return combine!(free_attr, kind, (photonic_effects::dynamic::Registry));
     }
 
     fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<Builder<Self>, V>>
-    where V: AttrValue + DeserializeOwned + InputValue + Bounded {
+    where V: AttrValue + DeserializeOwned + Bounded {
         return combine!(bound_attr, kind, (photonic_effects::dynamic::Registry));
     }
 

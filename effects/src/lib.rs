@@ -8,7 +8,6 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
 
     use photonic::attr::Bounded;
-    use photonic::input::InputValue;
     use photonic::AttrValue;
     use photonic_dynamic::factory::{factory, BoundAttrFactory, FreeAttrFactory, NodeFactory};
     use photonic_dynamic::{registry, NodeBuilder};
@@ -36,7 +35,7 @@ pub mod dynamic {
         }
 
         fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<B, V>>
-        where V: AttrValue + DeserializeOwned + InputValue {
+        where V: AttrValue + DeserializeOwned {
             return Some(match kind {
                 "button" => factory(crate::attrs::button::dynamic::free_attr),
                 // "fader" => factory(crate::attrs::fader::dynamic::free_attr),
@@ -46,7 +45,7 @@ pub mod dynamic {
         }
 
         fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<B, V>>
-        where V: AttrValue + DeserializeOwned + InputValue + Bounded {
+        where V: AttrValue + DeserializeOwned + Bounded {
             return Some(match kind {
                 "button" => factory(crate::attrs::button::dynamic::bound_attr),
                 // "fader" => factory(crate::attrs::fader::dynamic::bound_attr),

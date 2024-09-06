@@ -116,10 +116,10 @@ where
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
+    use photonic::input;
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
-    use photonic::input::InputValue;
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedFreeAttrDecl};
 
@@ -128,7 +128,9 @@ pub mod dynamic {
     use super::*;
 
     #[derive(Deserialize, Debug)]
-    pub struct Config<V> {
+    pub struct Config<V>
+    where V: AttrValue
+    {
         pub input: config::Attr<V>,
         pub easing_function: Easings,
         pub easing_duration: Duration,
@@ -146,10 +148,11 @@ pub mod dynamic {
         type Config = Config<V>;
     }
 
+    #[allow(dead_code)]
     pub fn free_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Fader<BoxedFreeAttrDecl<V>>>
     where
         B: photonic_dynamic::AttrBuilder,
-        V: AttrValue + DeserializeOwned + InputValue,
+        V: AttrValue + input::Coerced + DeserializeOwned,
     {
         return Ok(Fader {
             input: builder.free_attr("input", config.input)?,
@@ -157,10 +160,11 @@ pub mod dynamic {
         });
     }
 
+    #[allow(dead_code)]
     pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Fader<BoxedBoundAttrDecl<V>>>
     where
         B: photonic_dynamic::AttrBuilder,
-        V: AttrValue + DeserializeOwned + InputValue + Bounded,
+        V: AttrValue + input::Coerced + DeserializeOwned + Bounded,
     {
         return Ok(Fader {
             input: builder.bound_attr("input", config.input)?,

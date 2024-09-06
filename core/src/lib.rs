@@ -2,6 +2,7 @@
 #![feature(coerce_unsized)]
 #![feature(impl_trait_in_assoc_type)]
 #![feature(map_try_insert)]
+#![feature(trivial_bounds)]
 #![deny(
     bad_style,
     dead_code,

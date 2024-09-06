@@ -131,7 +131,7 @@ pub mod dynamic {
     #[derive(Deserialize, Debug)]
     pub struct Config {
         pub sources: Vec<config::Node>,
-        pub value: config::Attr<i64>,
+        pub value: config::Attr<usize>,
         pub easing_func: Easings,
         pub easing_speed: Duration,
     }
@@ -151,7 +151,7 @@ pub mod dynamic {
 
         return Ok(Switch {
             sources,
-            value: todo!(), // builder.bound_attr("value", config.value)?,
+            value: builder.bound_attr("value", config.value)?,
             easing: config.easing_func.with_speed(config.easing_speed),
         });
     }

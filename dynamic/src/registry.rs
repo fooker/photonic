@@ -1,7 +1,6 @@
 use serde::de::DeserializeOwned;
 
 use photonic::attr::Bounded;
-use photonic::input::InputValue;
 use photonic::AttrValue;
 
 use crate::factory::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory};
@@ -14,11 +13,11 @@ where B: ?Sized
         None
     }
     fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<B, V>>
-    where V: AttrValue + DeserializeOwned + InputValue {
+    where V: AttrValue + DeserializeOwned {
         None
     }
     fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<B, V>>
-    where V: AttrValue + DeserializeOwned + InputValue + Bounded {
+    where V: AttrValue + DeserializeOwned + Bounded {
         None
     }
     fn output(kind: &str) -> Option<OutputFactory<B>> {

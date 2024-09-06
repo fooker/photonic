@@ -88,6 +88,7 @@ pub mod dynamic {
         type Config = Config;
     }
 
+    #[allow(dead_code)]
     pub fn bound_attr<V, B>(config: Config, builder: &mut B) -> Result<Random<V>>
     where
         B: photonic_dynamic::AttrBuilder,

@@ -88,6 +88,7 @@ pub mod dynamic {
         type Config = Config<V>;
     }
 
+    #[allow(dead_code)]
     pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Looper<V>>
     where
         B: photonic_dynamic::AttrBuilder,

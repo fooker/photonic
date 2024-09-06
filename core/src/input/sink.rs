@@ -1,6 +1,7 @@
+use std::pin::Pin;
+
 use futures::{Stream, StreamExt};
 use palette::rgb::Rgb;
-use std::pin::Pin;
 use tokio::sync::broadcast;
 use tokio_stream::wrappers::BroadcastStream;
 

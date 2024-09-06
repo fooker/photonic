@@ -5,6 +5,7 @@ use futures::Future;
 use tokio::sync::broadcast;
 
 pub use sink::{AnyInputValue, InputSink, Sink};
+pub use values::Coerced;
 
 mod attr;
 mod sink;
