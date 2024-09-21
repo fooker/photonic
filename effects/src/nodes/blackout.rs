@@ -2,9 +2,12 @@ use std::ops::{Bound, Range};
 
 use anyhow::Result;
 
-use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext};
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
+use photonic::{
+    Attr, BoundAttrDecl, Buffer, BufferReader, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef,
+    RenderContext,
+};
 
 pub struct Blackout<Source, Active>
 where
@@ -64,7 +67,7 @@ where
         let active = self.active.update(ctx);
 
         if active > 0.0 {
-            let source = source.map_range(&self.range,|e| Lerp::lerp(e, self.value.clone(), active));
+            let source = source.map_range(&self.range, |e| Lerp::lerp(e, self.value.clone(), active));
             out.blit_from(source);
         } else {
             out.blit_from(source);

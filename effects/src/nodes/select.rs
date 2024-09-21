@@ -1,9 +1,9 @@
 use anyhow::Result;
 
+use photonic::math::Lerp;
 use photonic::{
     Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
 };
-use photonic::math::Lerp;
 
 use crate::easing::Easing;
 
@@ -121,8 +121,8 @@ pub mod dynamic {
 
     use serde::Deserialize;
 
-    use photonic_dynamic::{BoxedBoundAttrDecl, BoxedNodeDecl, config};
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedNodeDecl};
 
     use crate::easing::Easings;
 

@@ -1,6 +1,8 @@
 use std::ops::{BitAnd, Deref, DerefMut};
 
+use crate::math::Lerp;
 use palette::bool_mask::HasBoolMask;
+use palette::convert::FromColorUnclamped;
 use palette::encoding::Srgb;
 use palette::num::{PartialCmp, Zero};
 use palette::rgb::Rgb;
@@ -144,6 +146,27 @@ where T: Stimulus
         return Rgbw {
             color: Rgb::default(),
             white: Self::max_white(),
+        };
+    }
+}
+
+impl FromColorUnclamped<Rgbw> for Rgbw {
+    fn from_color_unclamped(val: Rgbw) -> Self {
+        return val;
+    }
+}
+
+impl FromColorUnclamped<Rgb> for Rgbw {
+    fn from_color_unclamped(val: Rgb) -> Self {
+        return val.black();
+    }
+}
+
+impl Lerp for Rgbw {
+    fn lerp(a: Self, b: Self, i: f32) -> Self {
+        return Self {
+            color: Lerp::lerp(a.color, b.color, i),
+            white: Lerp::lerp(a.white, b.white, i),
         };
     }
 }

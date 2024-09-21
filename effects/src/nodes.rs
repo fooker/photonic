@@ -6,9 +6,9 @@ pub use larson::Larson;
 pub use noise::Noise;
 pub use overlay::Overlay;
 pub use raindrops::Raindrops;
+pub use select::Select;
 pub use solid::Solid;
 pub use splice::Splice;
-pub use select::Select;
 
 pub mod alert;
 pub mod blackout;
@@ -18,6 +18,6 @@ pub mod larson;
 pub mod noise;
 pub mod overlay;
 pub mod raindrops;
+pub mod select;
 pub mod solid;
 pub mod splice;
-pub mod select;

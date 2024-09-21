@@ -2,8 +2,8 @@ use crate::{Buffer, RenderContext};
 
 use anyhow::Result;
 
-pub mod map;
 pub mod convert;
+pub mod map;
 
 pub trait Node: Sized {
     const KIND: &'static str;

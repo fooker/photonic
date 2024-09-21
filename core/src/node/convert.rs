@@ -5,22 +5,22 @@ use anyhow::Result;
 use crate::{Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext};
 
 pub struct Convert<N, T, R>
-    where
-        N: NodeDecl,
-        N::Node: Node<Element=T> + 'static,
-        T: Default,
-        R: Default + Copy + From<T>,
+where
+    N: NodeDecl,
+    N::Node: Node<Element = T> + 'static,
+    T: Default,
+    R: Default + Copy + From<T>,
 {
     source: NodeHandle<N>,
     phantom: PhantomData<R>,
 }
 
 impl<N, T, R> NodeDecl for Convert<N, T, R>
-    where
-        N: NodeDecl,
-        N::Node: Node<Element=T> + 'static,
-        T: Default,
-        R: Default + Copy + From<T>,
+where
+    N: NodeDecl,
+    N::Node: Node<Element = T> + 'static,
+    T: Default,
+    R: Default + Copy + From<T>,
 {
     type Node = ConvertNode<N::Node, T, R>;
 
@@ -33,18 +33,18 @@ impl<N, T, R> NodeDecl for Convert<N, T, R>
 }
 
 pub struct ConvertNode<N, T, R>
-    where
-        N: Node<Element=T> + 'static,
-        R: Default + Copy + From<T>,
+where
+    N: Node<Element = T> + 'static,
+    R: Default + Copy + From<T>,
 {
     source: NodeRef<N>,
     phantom: PhantomData<R>,
 }
 
 impl<N, T, R> Node for ConvertNode<N, T, R>
-    where
-        N: Node<Element=T> + 'static,
-        R: Default + Copy + From<T>,
+where
+    N: Node<Element = T> + 'static,
+    R: Default + Copy + From<T>,
 {
     const KIND: &'static str = "convert";
     type Element = R;
