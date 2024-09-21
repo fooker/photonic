@@ -7,7 +7,7 @@ use photonic::math::Lerp;
 
 use crate::easing::Easing;
 
-pub struct Switch<Source, Value>
+pub struct Select<Source, Value>
 where
     Source: NodeDecl,
     Value: BoundAttrDecl<Value = usize>,
@@ -19,7 +19,7 @@ where
     pub easing: Easing<f32>,
 }
 
-pub struct SwitchNode<Source, Value>
+pub struct SelectNode<Source, Value>
 where
     Source: Node + 'static,
     Value: Attr<Value = usize>,
@@ -36,13 +36,13 @@ where
     easing: Easing<f32>,
 }
 
-impl<Source, Value> NodeDecl for Switch<Source, Value>
+impl<Source, Value> NodeDecl for Select<Source, Value>
 where
     Source: NodeDecl + 'static,
     Value: BoundAttrDecl<Value = usize>,
     <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
-    type Node = SwitchNode<Source::Node, Value::Attr>;
+    type Node = SelectNode<Source::Node, Value::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         let mut sources = Vec::new();
@@ -63,13 +63,13 @@ where
     }
 }
 
-impl<Source, Value> Node for SwitchNode<Source, Value>
+impl<Source, Value> Node for SelectNode<Source, Value>
 where
     Source: Node,
     Value: Attr<Value = usize>,
     Source::Element: Lerp,
 {
-    const KIND: &'static str = "switch";
+    const KIND: &'static str = "select";
 
     type Element = Source::Element;
 
@@ -136,11 +136,11 @@ pub mod dynamic {
         pub easing_speed: Duration,
     }
 
-    impl Producible for Switch<BoxedNodeDecl, BoxedBoundAttrDecl<usize>> {
+    impl Producible for Select<BoxedNodeDecl, BoxedBoundAttrDecl<usize>> {
         type Config = Config;
     }
 
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<Switch<BoxedNodeDecl, BoxedBoundAttrDecl<usize>>>
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<Select<BoxedNodeDecl, BoxedBoundAttrDecl<usize>>>
     where B: photonic_dynamic::NodeBuilder {
         let sources = config
             .sources
@@ -149,7 +149,7 @@ pub mod dynamic {
             .map(|(i, source)| builder.node(&format!("sources.{}", i), source))
             .collect::<Result<_>>()?;
 
-        return Ok(Switch {
+        return Ok(Select {
             sources,
             value: builder.bound_attr("value", config.value)?,
             easing: config.easing_func.with_speed(config.easing_speed),

@@ -8,7 +8,7 @@ pub use overlay::Overlay;
 pub use raindrops::Raindrops;
 pub use solid::Solid;
 pub use splice::Splice;
-pub use switch::Switch;
+pub use select::Select;
 
 pub mod alert;
 pub mod blackout;
@@ -20,4 +20,4 @@ pub mod overlay;
 pub mod raindrops;
 pub mod solid;
 pub mod splice;
-pub mod switch;
+pub mod select;

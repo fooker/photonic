@@ -27,9 +27,9 @@ pub mod dynamic {
                 "noise" => factory(crate::nodes::noise::dynamic::node),
                 "overlay" => factory(crate::nodes::overlay::dynamic::node),
                 "raindrops" => factory(crate::nodes::raindrops::dynamic::node),
+                "select" => factory(crate::nodes::select::dynamic::node),
                 "solid" => factory(crate::nodes::solid::dynamic::node),
                 "splice" => factory(crate::nodes::splice::dynamic::node),
-                "switch" => factory(crate::nodes::switch::dynamic::node),
                 _ => return None,
             });
         }
