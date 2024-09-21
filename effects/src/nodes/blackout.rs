@@ -1,15 +1,15 @@
-use std::ops::Range;
+use std::ops::{Bound, Range};
 
 use anyhow::Result;
 
-use photonic::{
-    Attr, Buffer, BufferReader, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
-};
+use photonic::{Attr, BoundAttrDecl, Buffer, BufferReader, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext};
+use photonic::attr::Bounds;
+use photonic::math::Lerp;
 
 pub struct Blackout<Source, Active>
 where
     Source: NodeDecl + 'static,
-    Active: FreeAttrDecl<Value = bool>,
+    Active: BoundAttrDecl<Value = f32>,
 {
     pub source: NodeHandle<Source>,
     pub active: Active,
@@ -21,7 +21,7 @@ where
 pub struct BlackoutNode<Source, Active>
 where
     Source: Node + 'static,
-    Active: Attr<Value = bool>,
+    Active: Attr<Value = f32>,
 {
     source: NodeRef<Source>,
     active: Active,
@@ -33,14 +33,15 @@ where
 impl<Source, Active> NodeDecl for Blackout<Source, Active>
 where
     Source: NodeDecl + 'static,
-    Active: FreeAttrDecl<Value = bool>,
+    <<Source as NodeDecl>::Node as Node>::Element: Lerp,
+    Active: BoundAttrDecl<Value = f32>,
 {
     type Node = BlackoutNode<Source::Node, Active::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         return Ok(Self::Node {
             source: builder.node("source", self.source).await?,
-            active: builder.unbound_attr("active", self.active)?,
+            active: builder.bound_attr("active", self.active, Bounds::normal())?,
             value: self.value,
             range: self.range.unwrap_or(0..builder.size),
         });
@@ -50,7 +51,8 @@ where
 impl<Source, Active> Node for BlackoutNode<Source, Active>
 where
     Source: Node,
-    Active: Attr<Value = bool>,
+    <Source as Node>::Element: Lerp,
+    Active: Attr<Value = f32>,
 {
     const KIND: &'static str = "blackout";
 
@@ -61,8 +63,9 @@ where
 
         let active = self.active.update(ctx);
 
-        if active {
-            out.blit_from(source.map_range(&self.range, |_| self.value.clone()));
+        if active > 0.0 {
+            let source = source.map_range(&self.range,|e| Lerp::lerp(e, self.value.clone(), active));
+            out.blit_from(source);
         } else {
             out.blit_from(source);
         }
@@ -84,7 +87,7 @@ pub mod dynamic {
     #[derive(Deserialize, Debug)]
     pub struct Config {
         pub source: config::Node,
-        pub active: config::Attr<bool>,
+        pub active: config::Attr<f32>,
 
         pub value: Rgb,
         pub range: Option<Range<usize>>,
