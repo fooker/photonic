@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use anyhow::Result;
 
 use photonic::attr::{Bounded, Bounds};
@@ -24,7 +22,7 @@ where V: AttrValue
     const KIND: &'static str = "button";
     type Value = V;
 
-    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
         if let Poll::Update(pressed) = self.input.poll() {
             self.pressed = pressed;
         };

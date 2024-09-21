@@ -1,12 +1,11 @@
-use std::ops::{Bound, Range};
+use std::ops::Range;
 
 use anyhow::Result;
 
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
 use photonic::{
-    Attr, BoundAttrDecl, Buffer, BufferReader, FreeAttrDecl, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef,
-    RenderContext,
+    Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
 };
 
 pub struct Blackout<Source, Active>
