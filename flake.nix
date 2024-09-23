@@ -18,9 +18,17 @@
         flake-utils.follows = "flake-utils";
       };
     };
+
+    pre-commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-stable.follows = "nixpkgs";
+      };
+    };
   };
 
-  outputs = { self, nixpkgs, crane, flake-utils, rust-overlay, ... }:
+  outputs = { self, nixpkgs, crane, flake-utils, rust-overlay, pre-commit-hooks, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -51,6 +59,28 @@
       {
         checks = {
           inherit photonic;
+
+          pre-commit-check = pre-commit-hooks.lib.${system}.run {
+            src = ./.;
+
+            hooks = {
+              nixpkgs-fmt.enable = true;
+
+              clippy = {
+                enable = true;
+                settings.allFeatures = true;
+                packageOverrides.cargo = pkgs.cargo;
+                packageOverrides.clippy = pkgs.clippy;
+              };
+
+              cargo-check.enable = true;
+
+              rustfmt = {
+                enable = true;
+                packageOverrides.cargo = pkgs.cargo;
+              };
+            };
+          };
         };
 
         packages = rec {
@@ -70,13 +100,16 @@
         devShells.default = craneLib.devShell {
           checks = self.checks.${system};
 
-          inputsFrom = [ photonic ];
+          inputsFrom = [ photonic ]
+            ++ self.checks.${system}.pre-commit-check.enabledPackages;
 
           packages = with pkgs; [
             cargo-deny
             cargo-outdated
             codespell
           ];
+
+          inherit (self.checks.${system}.pre-commit-check) shellHook;
 
           RUST_BACKTRACE = 1;
           RUST_SRC_PATH = "${rust}/lib.rs/rustlib/src/rust/library";
