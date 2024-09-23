@@ -1,17 +1,15 @@
 use std::time::Duration;
 
-use anyhow::{bail, Result};
-use palette::{Hsl, IntoColor, Srgb};
+use anyhow::Result;
+use palette::{FromColor, Hsl, Srgb};
 
 use photonic::attr::{AsFixedAttr, Range};
-use photonic::scene::InputHandle;
-use photonic::{Scene, WhiteMode};
-use photonic_effects::attrs::{Button, Fader, Sequence};
+use photonic::node::map::Map;
+use photonic::{Rgbw, Scene, WithWhite};
+use photonic_effects::attrs::{Button, Fader, Sequence, Switch};
 use photonic_effects::easing::{EasingDirection, Easings};
-use photonic_effects::nodes::{
-    Alert, Blackout, Brightness, ColorWheel, Larson, Noise, Overlay, Raindrops, Splice, Select,
-};
-use photonic_output_net::netdmx::{Channel, Fixture, NetDmxSender};
+use photonic_effects::nodes::{Alert, Blackout, Brightness, ColorWheel, Noise, Overlay, Raindrops, Select};
+use photonic_output_net::netdmx::{Channel, Channels, Fixture, NetDmxSender};
 use photonic_output_terminal::Terminal;
 
 #[tokio::main]
@@ -40,7 +38,7 @@ async fn main() -> Result<()> {
 
     let noise = scene.node("noise", Noise {
         speed: 0.05.fixed(),
-        stretch: 1.0.fixed(),
+        stretch: 0.01.fixed(),
         noise: noise::OpenSimplex::default(),
     })?;
 
@@ -91,55 +89,66 @@ async fn main() -> Result<()> {
         },
     })?;
 
+    // let uv_larson = scene.node("uv_larson", Larson {
+    //     hue: 0.0.fixed(),
+    //     width: 4.0.fixed(),
+    //     speed: 1.0.fixed(),
+    // })?;
+    //
+    // let uv_larson = scene.node("uv_larson:splice", Splice {
+    //    n1: alert,
+    //    n2: uv_larson,
+    //    split: -8,
+    // })?;
+
+    let output = alert;
+
+    let output = scene.node("output:rgbw", Map {
+        source: output,
+        mapper: |e| Srgb::from_color(e).black(),
+    })?;
+
     let input_kitchen = scene.input::<bool>("kitchen")?;
     let kitchen = scene.node("kitchen", Blackout {
-        source: alert,
-        active: input_kitchen.attr(false),
-        value: Srgb::new(1.0, 1.0, 1.0).into_color(),
+        source: output,
+        active: Fader {
+            input: Switch {
+                value_release: 0.0,
+                value_pressed: 1.0,
+                input: input_kitchen,
+            },
+            easing: Easings::Linear.with_speed(Duration::from_secs(1)),
+        },
+        value: Srgb::new(0.0, 0.0, 0.0).full(),
         range: Some(0..2),
     })?;
 
-    let larson1 = scene.node("larson1", Larson {
-        hue: 0.0.fixed(),
-        width: 4.0.fixed(),
-        speed: 1.0.fixed(),
-    })?;
-
-    let larson2 = scene.node("larson2", Larson {
-        hue: 0.0.fixed(),
-        width: 4.0.fixed(),
-        speed: 1.0.fixed(),
-    })?;
-
-    let larson = scene.node("larson", Splice {
-        n1: larson1,
-        n2: larson2,
-        split: 8,
-    })?;
-
-    // let splice = scene.node("larson_splice", Splice {
-    //    n1: kitchen,
-    //    n2: larson.,
-    //    split: -16,
-    // })?;
-
-    let output = NetDmxSender::with_address("127.0.0.1:34254".parse()?)
-        .add_fixture(Fixture {
-            dmx_address: 500,
-            dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue, Channel::White.calibrated(0.6)],
-            white_mode: WhiteMode::Accurate,
-        })
-        .add_fixture(Fixture {
-            dmx_address: 508,
-            dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue, Channel::White.calibrated(0.6)],
-            white_mode: WhiteMode::Accurate,
-        })
-        .add_fixtures(20, |n| Fixture {
-            dmx_address: 1 + n * 3,
-            dmx_channels: vec![Channel::Red, Channel::Green, Channel::Blue],
-            white_mode: WhiteMode::None,
+    let output = NetDmxSender::<Rgbw>::with_address("127.0.0.1:34254".parse()?)
+        .add_fixture(
+            Fixture::with_address(500)
+                .with_channel(Channels::<Rgbw>::red())
+                .with_channel(Channels::<Rgbw>::green())
+                .with_channel(Channels::<Rgbw>::blue())
+                .with_channel(Channels::<Rgbw>::white().calibrate(0.7)),
+        )
+        .add_fixture(
+            Fixture::with_address(508)
+                .with_channel(Channels::<Rgbw>::red())
+                .with_channel(Channels::<Rgbw>::green())
+                .with_channel(Channels::<Rgbw>::blue())
+                .with_channel(Channels::<Rgbw>::white().calibrate(0.7)),
+        )
+        .add_fixtures(20, |n| {
+            Fixture::with_address(1 + n * 3)
+                .with_channel(Channels::<Rgbw>::red())
+                .with_channel(Channels::<Rgbw>::green())
+                .with_channel(Channels::<Rgbw>::blue())
         });
 
+    let kitchen = scene.node("output:rgb", Map {
+        source: kitchen,
+        mapper: |e| e.color,
+    })?;
     let output = Terminal::new(100).with_path("/tmp/photonic").with_waterfall(true);
 
     let mut scene = scene.run(kitchen, output).await?;
