@@ -38,6 +38,7 @@ pub mod dynamic {
         where V: AttrValue + DeserializeOwned {
             return Some(match kind {
                 "button" => factory(crate::attrs::button::dynamic::free_attr),
+                "switch" => factory(crate::attrs::switch::dynamic::free_attr),
                 // "fader" => factory(crate::attrs::fader::dynamic::free_attr),
                 "sequence" => factory(crate::attrs::sequence::dynamic::free_attr),
                 _ => return None,
@@ -48,6 +49,7 @@ pub mod dynamic {
         where V: AttrValue + DeserializeOwned + Bounded {
             return Some(match kind {
                 "button" => factory(crate::attrs::button::dynamic::bound_attr),
+                "switch" => factory(crate::attrs::switch::dynamic::bound_attr),
                 // "fader" => factory(crate::attrs::fader::dynamic::bound_attr),
                 // "looper" => factory(crate::attrs::looper::dynamic::bound_attr),
                 // "random" => factory(crate::attrs::random::dynamic::bound_attr),
