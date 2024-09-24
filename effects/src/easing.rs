@@ -98,9 +98,9 @@ impl<F: Float> From<Easings> for Easing<F> {
 }
 
 #[cfg(feature = "dynamic")]
-impl<'de, F: Float> photonic_dynamic::serde::Deserialize<'de> for Easing<F> {
+impl<'de, F: Float> serde::Deserialize<'de> for Easing<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where D: photonic_dynamic::serde::Deserializer<'de> {
+    where D: serde::Deserializer<'de> {
         #[derive(Debug, photonic_dynamic::serde::Deserialize)]
         struct S {
             func: Easings,

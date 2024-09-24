@@ -12,6 +12,12 @@ use crate::math::Lerp;
 #[derive(Debug)]
 pub struct Random(SmallRng);
 
+impl Default for Random {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Random {
     pub fn new() -> Self {
         Self(SmallRng::from_entropy())

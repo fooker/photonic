@@ -23,3 +23,6 @@ photonic-interface-grpc = { path = "../interface-grpc" }
 photonic-output-net = { path = "../output-net" }
 photonic-output-null = { path = "../output-null" }
 photonic-output-terminal = { path = "../output-terminal" }
+
+[lints]
+workspace = true

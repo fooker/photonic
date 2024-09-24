@@ -38,6 +38,12 @@ where Registry: ?Sized
     registry: PhantomData<Registry>,
 }
 
+impl<Registry> Default for Builder<Registry> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<Registry> Builder<Registry> {
     pub fn new() -> Self {
         let scene = Scene::new();
@@ -76,10 +82,7 @@ where Registry: self::Registry<Self> + ?Sized
 {
     fn input<I>(&mut self, config: config::Input) -> Result<InputHandle<I>>
     where I: InputValue {
-        return Ok(self
-            .scene
-            .input(&config.input)
-            .with_context(|| format!("Failed to build input: {}", config.input))?);
+        return self.scene.input(&config.input).with_context(|| format!("Failed to build input: {}", config.input));
     }
 }
 

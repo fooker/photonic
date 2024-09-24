@@ -23,7 +23,6 @@
       url = "github:cachix/git-hooks.nix";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        nixpkgs-stable.follows = "nixpkgs";
       };
     };
   };
@@ -41,6 +40,8 @@
         craneLib = (crane.mkLib pkgs).overrideToolchain rust;
 
         photonic = craneLib.buildPackage {
+          pname = "photonic";
+
           src = craneLib.cleanCargoSource (craneLib.path ./.);
           strictDeps = true;
 
@@ -69,15 +70,17 @@
               clippy = {
                 enable = true;
                 settings.allFeatures = true;
-                packageOverrides.cargo = pkgs.cargo;
-                packageOverrides.clippy = pkgs.clippy;
+                package = rust;
               };
 
-              cargo-check.enable = true;
+              cargo-check = {
+                enable = true;
+                package = rust;
+              };
 
               rustfmt = {
                 enable = true;
-                packageOverrides.cargo = pkgs.cargo;
+                package = rust;
               };
             };
           };

@@ -18,7 +18,7 @@ impl<E> Null<E> {
     pub fn with_size(size: usize) -> Self {
         return Self {
             size,
-            phantom: PhantomData::default(),
+            phantom: PhantomData,
         };
     }
 }

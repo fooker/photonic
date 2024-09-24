@@ -24,12 +24,12 @@ impl FromStr for ColorValue {
     }
 }
 
-impl Into<Rgb> for ColorValue {
-    fn into(self) -> Rgb {
+impl From<ColorValue> for Rgb {
+    fn from(val: ColorValue) -> Self {
         return Rgb {
-            r: self.r,
-            g: self.g,
-            b: self.b,
+            r: val.r,
+            g: val.g,
+            b: val.b,
         };
     }
 }
@@ -62,29 +62,29 @@ where
     }
 }
 
-impl Into<IntegerRange> for RangeValue<i64> {
-    fn into(self) -> IntegerRange {
+impl From<RangeValue<i64>> for IntegerRange {
+    fn from(val: RangeValue<i64>) -> Self {
         return IntegerRange {
-            a: self.a,
-            b: self.b,
+            a: val.a,
+            b: val.b,
         };
     }
 }
 
-impl Into<DecimalRange> for RangeValue<f32> {
-    fn into(self) -> DecimalRange {
+impl From<RangeValue<f32>> for DecimalRange {
+    fn from(val: RangeValue<f32>) -> Self {
         return DecimalRange {
-            a: self.a.into(),
-            b: self.b.into(),
+            a: val.a,
+            b: val.b,
         };
     }
 }
 
-impl Into<ColorRange> for RangeValue<ColorValue> {
-    fn into(self) -> ColorRange {
+impl From<RangeValue<ColorValue>> for ColorRange {
+    fn from(val: RangeValue<ColorValue>) -> Self {
         return ColorRange {
-            a: Some(self.a.into()),
-            b: Some(self.b.into()),
+            a: Some(val.a.into()),
+            b: Some(val.b.into()),
         };
     }
 }

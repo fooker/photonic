@@ -19,7 +19,7 @@ where
 {
     fn materialize(self: Box<Self>, builder: &mut AttrBuilder) -> Result<BoxedAttr<V>> {
         let attr = <T as FreeAttrDecl>::materialize(*self, builder)?;
-        return Ok(Box::new(attr) as Box<dyn DynAttr<V>>);
+        return Ok(Box::new(attr));
     }
 }
 
@@ -29,7 +29,7 @@ where
     T::Attr: Sized + 'static,
 {
     fn boxed(self) -> Box<dyn DynFreeAttrDecl<T::Value>> {
-        return Box::new(self) as Box<dyn DynFreeAttrDecl<T::Value>>;
+        return Box::new(self);
     }
 }
 
@@ -60,7 +60,7 @@ where
 {
     fn materialize(self: Box<Self>, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<BoxedAttr<V>> {
         let attr = <T as BoundAttrDecl>::materialize(*self, bounds, builder)?;
-        return Ok(Box::new(attr) as Box<dyn DynAttr<V>>);
+        return Ok(Box::new(attr));
     }
 }
 
@@ -70,7 +70,7 @@ where
     T::Attr: Sized + 'static,
 {
     fn boxed(self) -> Box<dyn DynBoundAttrDecl<T::Value>> {
-        return Box::new(self) as Box<dyn DynBoundAttrDecl<T::Value>>;
+        return Box::new(self);
     }
 }
 

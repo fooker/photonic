@@ -25,7 +25,7 @@ where
             buffer: Buffer::with_default(builder.size),
         };
 
-        return Ok(Box::new(node) as Box<dyn DynNode>);
+        return Ok(Box::new(node));
     }
 }
 
@@ -36,7 +36,7 @@ where
     Rgb: FromColor<<<T as NodeDecl>::Node as Node>::Element>,
 {
     fn boxed(self) -> Box<dyn DynNodeDecl> {
-        return Box::new(self) as Box<dyn DynNodeDecl>;
+        return Box::new(self);
     }
 }
 

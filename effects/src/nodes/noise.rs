@@ -117,17 +117,14 @@ pub mod dynamic {
         pub noise: Noises,
     }
 
-    impl Producible for Noise<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>, Box<dyn NoiseFn<f64, 2>>> {
+    type BoxedNoise = Noise<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>, Box<dyn NoiseFn<f64, 2>>>;
+
+    impl Producible for BoxedNoise {
         type Config = Config;
     }
 
-    pub fn node<B>(
-        config: Config,
-        builder: &mut B,
-    ) -> Result<Noise<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>, Box<dyn NoiseFn<f64, 2>>>>
-    where
-        B: photonic_dynamic::NodeBuilder,
-    {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<BoxedNoise>
+    where B: photonic_dynamic::NodeBuilder {
         return Ok(Noise {
             speed: builder.free_attr("speed", config.speed)?,
             stretch: builder.free_attr("stretch", config.stretch)?,

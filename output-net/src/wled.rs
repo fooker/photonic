@@ -60,7 +60,7 @@ impl Output for WledSenderOutput {
 
     type Element = Rgb;
 
-    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> anyhow::Result<()> {
+    async fn render(&mut self, out: impl BufferReader<Element = Self::Element>) -> Result<()> {
         let mut buffer = Vec::<u8>::with_capacity(2 + out.size() * self.mode.element_size()); // TODO: Allocate only once and reuse
         buffer.write_u8(match self.mode {
             Mode::DRGB => 2,

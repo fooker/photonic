@@ -21,3 +21,6 @@ serde_json = { version = "1" }
 serde-value = "0.7"
 
 inventory = { version = "0.3" }
+
+[lints]
+workspace = true

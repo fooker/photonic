@@ -33,8 +33,8 @@ impl FrameStats {
 
             self.cycles = 0;
             self.sum_time = Duration::new(0, 0);
-            self.min_time = Duration::new(std::u64::MAX, 0);
-            self.max_time = Duration::new(std::u64::MIN, 0);
+            self.min_time = Duration::new(u64::MAX, 0);
+            self.max_time = Duration::new(u64::MIN, 0);
 
             return Some(old);
         } else {
@@ -72,8 +72,8 @@ impl Default for FrameStats {
         return Self {
             cycles: 0,
             sum_time: Duration::new(0, 0),
-            min_time: Duration::new(std::u64::MAX, 0),
-            max_time: Duration::new(std::u64::MIN, 0),
+            min_time: Duration::new(u64::MAX, 0),
+            max_time: Duration::new(u64::MIN, 0),
         };
     }
 }

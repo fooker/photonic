@@ -17,3 +17,6 @@ ezlua = { version = "0.5", features = ["async", "vendored"] }
 [dev-dependencies]
 photonic-output-terminal = { path = "../output-terminal" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[lints]
+workspace = true

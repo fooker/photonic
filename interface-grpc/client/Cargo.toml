@@ -21,3 +21,6 @@ askama = "0.12"
 
 reedline-repl-rs = { version = "1.1.1", features = ["derive", "async"] }
 clap = { version = "4.5.4", features = ["derive", "cargo"] }
+
+[lints]
+workspace = true

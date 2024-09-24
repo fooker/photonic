@@ -11,3 +11,6 @@ photonic = { workspace = true }
 
 palette = { workspace = true }
 anyhow = { workspace = true }
+
+[lints]
+workspace = true

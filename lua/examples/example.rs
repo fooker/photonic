@@ -16,5 +16,5 @@ async fn main() -> Result<()> {
 
     let scene = scene.run(lua, output).await?;
 
-    return Ok(scene.run(60).await?);
+    return scene.run(60).await;
 }

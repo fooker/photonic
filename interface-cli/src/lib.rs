@@ -11,11 +11,7 @@ use photonic::interface::Introspection;
 pub mod stdio;
 pub mod telnet;
 
-pub(self) async fn run(
-    i: impl AsyncRead + Unpin,
-    o: impl AsyncWrite + Unpin,
-    introspection: Arc<Introspection>,
-) -> Result<()> {
+async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspection: Arc<Introspection>) -> Result<()> {
     let i = BufReader::new(i);
     let mut o = BufWriter::new(o);
 
@@ -39,7 +35,7 @@ pub(self) async fn run(
             }
         };
 
-        match line.get(0).map(String::as_str) {
+        match line.first().map(String::as_str) {
             Some("exit") => {
                 break;
             }

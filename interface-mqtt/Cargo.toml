@@ -17,3 +17,6 @@ futures = { workspace = true }
 
 rumqttc = { version = "0.24.0", features = ["url"] }
 bytes = "1.5"
+
+[lints]
+workspace = true

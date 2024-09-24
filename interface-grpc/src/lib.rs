@@ -170,8 +170,8 @@ impl interface_server::Interface for InterfaceImpl {
 
         match &input.sink {
             InputSink::Trigger(sink) => {
-                let value = match_value!(Trigger);
-                sink.send(*value);
+                match_value!(Trigger);
+                sink.send(());
             }
 
             InputSink::Boolean(sink) => {
@@ -234,12 +234,12 @@ impl interface_server::Interface for InterfaceImpl {
             .get(&request.name)
             .ok_or_else(|| Status::not_found(format!("No such input: {}", request.name)))?;
 
-        let stream = match &input.sink {
+        let stream: Pin<Box<dyn Stream<Item = Result<_, _>> + Send + 'static>> = match &input.sink {
             InputSink::Trigger(sink) => Box::pin(sink.subscribe().map(|value| {
                 Ok(InputValue {
                     value: Some(input_value::Value::Trigger(value)),
                 })
-            })) as Pin<Box<dyn Stream<Item = Result<_, _>> + Send + 'static>>,
+            })),
 
             InputSink::Boolean(sink) => Box::pin(sink.subscribe().map(|value| {
                 Ok(InputValue {

@@ -104,17 +104,15 @@ pub mod dynamic {
         pub decay: config::Attr<Range<f32>>,
     }
 
-    impl Producible for Raindrops<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<Hsl>>, BoxedBoundAttrDecl<Range<f32>>> {
+    type BoxedRaindrops =
+        Raindrops<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<Hsl>>, BoxedBoundAttrDecl<Range<f32>>>;
+
+    impl Producible for BoxedRaindrops {
         type Config = Config;
     }
 
-    pub fn node<B>(
-        config: Config,
-        builder: &mut B,
-    ) -> Result<Raindrops<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<Hsl>>, BoxedBoundAttrDecl<Range<f32>>>>
-    where
-        B: photonic_dynamic::NodeBuilder,
-    {
+    pub fn node<B>(config: Config, builder: &mut B) -> Result<BoxedRaindrops>
+    where B: photonic_dynamic::NodeBuilder {
         return Ok(Raindrops {
             rate: builder.bound_attr("rate", config.rate)?,
             color: Box::new(

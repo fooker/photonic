@@ -23,7 +23,7 @@ where
 {
     async fn materialize(self: Box<Self>) -> Result<BoxedOutput> {
         let output = <T as OutputDecl>::materialize(*self).await?;
-        return Ok(Box::new(output) as Box<dyn DynOutput>);
+        return Ok(Box::new(output));
     }
 }
 
@@ -34,7 +34,7 @@ where
     <<T as OutputDecl>::Output as Output>::Element: Copy + FromColor<Rgb>,
 {
     fn boxed(self) -> Box<dyn DynOutputDecl> {
-        return Box::new(self) as Box<dyn DynOutputDecl>;
+        return Box::new(self);
     }
 }
 
@@ -95,7 +95,7 @@ impl<'a, E> OutputBuffer<'a, E> {
     pub fn wrap(buffer: &'a dyn BufferReader<Element = Rgb>) -> Self {
         return Self {
             buffer,
-            phantom: PhantomData::default(),
+            phantom: PhantomData,
         };
     }
 }

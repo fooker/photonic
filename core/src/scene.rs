@@ -95,7 +95,7 @@ where Node: self::Node
     type Element = Node::Element;
 
     fn get(&self, index: usize) -> Self::Element {
-        return Self::Element::from(*self.buffer.get(index));
+        return *self.buffer.get(index);
     }
 
     fn size(&self) -> usize {
@@ -109,7 +109,7 @@ where Node: self::Node
     type Element = Node::Element;
 
     fn get(&self, index: usize) -> Self::Element {
-        return Self::Element::from(*self.buffer.get(index));
+        return *self.buffer.get(index);
     }
 
     fn size(&self) -> usize {
@@ -140,9 +140,7 @@ impl<Node> Clone for NodeRef<Node>
 where Node: self::Node
 {
     fn clone(&self) -> Self {
-        return Self {
-            node: self.node,
-        };
+        *self
     }
 }
 
@@ -175,6 +173,12 @@ where V: InputValue
 ///
 /// This is used to declare nodes, attributes and inputs.
 pub struct Scene {}
+
+impl Default for Scene {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Scene {
     /// Create a new scene with a given size.
@@ -359,7 +363,7 @@ pub struct NodeBuilder<'b> {
 
 impl<'b> NodeBuilder<'b> {
     pub fn kind(&self) -> &'static str {
-        return &self.info.kind;
+        return self.info.kind;
     }
 
     pub fn name(&self) -> &str {
@@ -448,7 +452,7 @@ impl NodeBuilder<'_> {
         let mut builder = NodeBuilder {
             size,
 
-            nodes: &mut self.nodes,
+            nodes: self.nodes,
 
             info: NodeInfo {
                 kind: Node::Node::KIND,

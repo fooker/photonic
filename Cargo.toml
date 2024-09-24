@@ -21,7 +21,6 @@ members = [
 ]
 
 [workspace.package]
-name = "photonic"
 version = "0.1.0"
 edition = "2021"
 authors = [
@@ -51,3 +50,27 @@ noise = { version = "0.9" }
 serde = { version = "1" }
 
 async-trait = { version = "0.1" }
+
+[workspace.lints.rust]
+bad_style = "deny"
+dead_code = "deny"
+improper_ctypes = "deny"
+non_shorthand_field_patterns = "deny"
+no_mangle_generic_items = "deny"
+overflowing_literals = "deny"
+path_statements = "deny"
+patterns_in_fns_without_body = "deny"
+trivial_casts = "deny"
+trivial_numeric_casts = "deny"
+unconditional_recursion = "deny"
+unused = "deny"
+unused_allocation = "deny"
+unused_comparisons = "deny"
+unused_extern_crates = "deny"
+unused_import_braces = "deny"
+unused_parens = "deny"
+unused_qualifications = "deny"
+while_true = "deny"
+
+[workspace.lints.clippy]
+needless_return = "allow"

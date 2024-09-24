@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+
 use std::time::Duration;
 
 use anyhow::Result;
@@ -169,5 +171,5 @@ async fn main() -> Result<()> {
     let grpc = photonic_interface_grpc::GRPC::new()?;
     scene.serve("GRPC", grpc);
 
-    return Ok(scene.run(20).await?);
+    return scene.run(20).await;
 }

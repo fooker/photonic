@@ -19,3 +19,6 @@ tokio = { workspace = true, features = ["io-std", "net", "io-util"] }
 
 nix = { version = "0.28", features = ["fs"] }
 serde = { version = "1.0.197", features = ["derive"] }
+
+[lints]
+workspace = true

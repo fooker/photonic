@@ -1,22 +1,16 @@
+#![allow(unused_variables)]
+
 use anyhow::Result;
 use palette::{Hsl, Srgb};
 
 use photonic::attr::AsFixedAttr;
 use photonic::Scene;
-use photonic_effects::nodes::{Brightness, ColorWheel, Raindrops};
+use photonic_effects::nodes::{Brightness, Raindrops};
 use photonic_output_null::Null;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut scene = Scene::new();
-
-    let base = scene.node("color_wheel", ColorWheel {
-        scale: 1.0,
-        speed: 0.3,
-        offset: 0.0,
-        saturation: 1.0,
-        intensity: 1.0,
-    })?;
 
     let base = scene.node("raindrops", Raindrops {
         rate: 0.3.fixed(),
@@ -36,5 +30,5 @@ async fn main() -> Result<()> {
 
     let scene = scene.run(brightness, Null::<Srgb>::default()).await?;
 
-    return Ok(scene.run(60).await?);
+    return scene.run(60).await;
 }

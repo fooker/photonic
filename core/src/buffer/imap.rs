@@ -1,5 +1,4 @@
 use super::BufferReader;
-use std::usize;
 
 pub struct IMap<'a, B, F> {
     buffer: &'a B,

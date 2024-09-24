@@ -6,7 +6,6 @@ pub struct Arena<T>
 where T: ?Sized
 {
     elements: Vec<Box<T>>,
-    //phantom: PhantomData<&'arena ()>,
 }
 
 #[allow(dead_code)]
@@ -31,7 +30,7 @@ where T: ?Sized
 
         return Ref {
             index: idx,
-            phantom: PhantomData::default(),
+            phantom: PhantomData,
         };
     }
 
@@ -52,11 +51,11 @@ where T: ?Sized
         return Ok(());
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &T> + DoubleEndedIterator {
+    pub fn iter(&self) -> impl DoubleEndedIterator<Item = &T> {
         return self.elements.iter().map(|e| e.as_ref());
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> + DoubleEndedIterator {
+    pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut T> {
         return self.elements.iter_mut().map(|e| e.as_mut());
     }
 
@@ -113,10 +112,7 @@ where
     T: ?Sized,
 {
     fn clone(&self) -> Self {
-        return Self {
-            index: self.index,
-            phantom: PhantomData::default(),
-        };
+        *self
     }
 }
 

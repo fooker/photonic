@@ -83,7 +83,8 @@ impl LuaBuffer<'_> {
 
     fn set(_state: &LuaState, buf: &mut Self, (index, r, g, b): (usize, f32, f32, f32)) -> Result<(), LuaError> {
         let value = Rgb::from_components((r, g, b));
-        return Ok(buf.0.set(index, value));
+        buf.0.set(index, value);
+        return Ok(());
     }
 
     fn update(_state: &LuaState, buf: &mut Self, f: LuaFunction) -> Result<(), LuaError> {

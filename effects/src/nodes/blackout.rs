@@ -66,7 +66,7 @@ where
         let active = self.active.update(ctx);
 
         if active > 0.0 {
-            let source = source.map_range(&self.range, |e| Lerp::lerp(e, self.value.clone(), active));
+            let source = source.map_range(&self.range, |e| Lerp::lerp(e, self.value, active));
             out.blit_from(source);
         } else {
             out.blit_from(source);
