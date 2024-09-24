@@ -42,7 +42,8 @@
         photonic = craneLib.buildPackage {
           pname = "photonic";
 
-          src = craneLib.cleanCargoSource (craneLib.path ./.);
+          src = craneLib.path ./.;
+
           strictDeps = true;
 
           nativeBuildInputs = with pkgs; [

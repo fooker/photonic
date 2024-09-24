@@ -7,14 +7,14 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-photonic-interface-grpc-proto = { path = "../proto" }
+photonic-interface-grpc-proto = { path = "../proto", features = ["client"] }
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 futures = { workspace = true }
 palette = { workspace = true }
 
-tonic = "0.11"
+tonic = "0.12.2"
 
 yansi = "1.0"
 askama = "0.12"

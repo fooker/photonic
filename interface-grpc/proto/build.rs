@@ -1,4 +1,9 @@
-fn main() {
-    // TODO: Add feature gates for client and server
-    tonic_build::compile_protos("proto/photonic.proto").expect("Failed to compile GRPC proto");
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tonic_build::configure()
+        .build_transport(true)
+        .build_client(cfg!(feature = "client"))
+        .build_server(cfg!(feature = "server"))
+        .compile(&["proto/photonic.proto"], &["proto/"])?;
+
+    return Ok(());
 }

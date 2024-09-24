@@ -84,19 +84,25 @@ struct Context {
 async fn nodes(_args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
     let nodes = context.client.nodes(()).await?;
 
-    return Ok(Some(ListOutput::from(nodes.into_inner()).render().expect("Template error")));
+    let output = ListOutput::from(nodes.into_inner());
+    let output = Template::render(&output).expect("Template error");
+    return Ok(Some(output));
 }
 
 async fn inputs(_args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
     let inputs = context.client.inputs(()).await?;
 
-    return Ok(Some(ListOutput::from(inputs.into_inner()).render().expect("Template error")));
+    let output = ListOutput::from(inputs.into_inner());
+    let output = Template::render(&output).expect("Template error");
+    return Ok(Some(output));
 }
 
 async fn root(_args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
     let node = context.client.root_info(()).await?;
 
-    return Ok(Some(NodeOutput::from(node.into_inner()).render().expect("Template error")));
+    let output = NodeOutput::from(node.into_inner());
+    let output = Template::render(&output).expect("Template error");
+    return Ok(Some(output));
 }
 
 async fn node(args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
@@ -107,7 +113,9 @@ async fn node(args: ArgMatches, context: &mut Context) -> Result<Option<String>>
         })
         .await?;
 
-    return Ok(Some(NodeOutput::from(node.into_inner()).render().expect("Template error")));
+    let output = NodeOutput::from(node.into_inner());
+    let output = Template::render(&output).expect("Template error");
+    return Ok(Some(output));
 }
 
 async fn attr(args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
@@ -121,7 +129,9 @@ async fn attr(args: ArgMatches, context: &mut Context) -> Result<Option<String>>
         })
         .await?;
 
-    return Ok(Some(AttributeOutput::from(attr.into_inner()).render().expect("Template error")));
+    let output = AttributeOutput::from(attr.into_inner());
+    let output = Template::render(&output).expect("Template error");
+    return Ok(Some(output));
 }
 
 async fn input(args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
@@ -132,7 +142,9 @@ async fn input(args: ArgMatches, context: &mut Context) -> Result<Option<String>
         })
         .await?;
 
-    return Ok(Some(InputOutput::from(input.into_inner()).render().expect("Template error")));
+    let output = InputOutput::from(input.into_inner());
+    let output = Template::render(&output).expect("Template error");
+    return Ok(Some(output));
 }
 
 async fn set(args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
