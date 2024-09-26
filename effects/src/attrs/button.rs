@@ -126,6 +126,7 @@ pub mod dynamic {
         pub value_release: V,
         #[serde(bound(deserialize = "V: Deserialize<'de>"))]
         pub value_pressed: V,
+        #[serde(with = "humantime_serde")]
         pub hold_time: Duration,
         pub trigger: config::Input,
     }

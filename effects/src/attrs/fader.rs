@@ -111,7 +111,6 @@ where
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
     use anyhow::bail;
-    use std::time::Duration;
 
     use photonic::input;
     use serde::de::DeserializeOwned;
@@ -121,8 +120,6 @@ pub mod dynamic {
     use photonic_dynamic::registry::Registry;
     use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynBoundAttrDecl, DynFreeAttrDecl};
 
-    use crate::easing::Easings;
-
     use super::*;
 
     #[derive(Deserialize, Debug)]
@@ -130,8 +127,7 @@ pub mod dynamic {
     where V: AttrValue
     {
         pub input: config::Attr<V>,
-        pub easing_function: Easings,
-        pub easing_duration: Duration,
+        pub easing: Easing<f32>,
     }
 
     impl<V> Producible<dyn DynFreeAttrDecl<V>> for Config<V>
@@ -155,7 +151,7 @@ pub mod dynamic {
         fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
             return Ok(Fader {
                 input: builder.free_attr("input", config.input)?,
-                easing: config.easing_function.with_speed(config.easing_duration),
+                easing: config.easing,
             });
         }
     }
@@ -181,7 +177,7 @@ pub mod dynamic {
         fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
             return Ok(Fader {
                 input: builder.bound_attr("input", config.input)?,
-                easing: config.easing_function.with_speed(config.easing_duration),
+                easing: config.easing,
             });
         }
     }

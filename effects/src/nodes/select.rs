@@ -117,15 +117,11 @@ where
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
-    use std::time::Duration;
-
     use serde::Deserialize;
 
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
     use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
-
-    use crate::easing::Easings;
 
     use super::*;
 
@@ -133,8 +129,7 @@ pub mod dynamic {
     pub struct Config {
         pub sources: Vec<config::Node>,
         pub value: config::Attr<usize>,
-        pub easing_func: Easings,
-        pub easing_speed: Duration,
+        pub easing: Easing<f32>,
     }
 
     impl Producible<dyn DynNodeDecl> for Config {
@@ -150,7 +145,7 @@ pub mod dynamic {
             return Ok(Select {
                 sources,
                 value: builder.bound_attr("value", config.value)?,
-                easing: config.easing_func.with_speed(config.easing_speed),
+                easing: config.easing,
             });
         }
     }

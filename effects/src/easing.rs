@@ -1,7 +1,9 @@
+use std::fmt::Debug;
 use std::time::Duration;
 
 use num_traits::Float;
 
+#[derive(Debug)]
 pub struct Easing<F: Float> {
     pub func: fn(F) -> F,
     pub speed: Duration,
@@ -29,6 +31,7 @@ impl<F: Float> From<fn(F) -> F> for Easing<F> {
 
 #[derive(Debug)]
 #[cfg_attr(feature = "dynamic", derive(photonic_dynamic::serde::Deserialize))]
+#[cfg_attr(feature = "dynamic", serde(rename_all = "snake_case"))]
 pub enum EasingDirection {
     In,
     Out,
@@ -37,6 +40,7 @@ pub enum EasingDirection {
 
 #[derive(Debug)]
 #[cfg_attr(feature = "dynamic", derive(photonic_dynamic::serde::Deserialize))]
+#[cfg_attr(feature = "dynamic", serde(rename_all = "snake_case"))]
 pub enum Easings {
     Linear,
     Quadratic(EasingDirection),
@@ -101,9 +105,11 @@ impl<F: Float> From<Easings> for Easing<F> {
 impl<'de, F: Float> serde::Deserialize<'de> for Easing<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where D: serde::Deserializer<'de> {
-        #[derive(Debug, photonic_dynamic::serde::Deserialize)]
+        #[derive(Debug, serde::Deserialize)]
         struct S {
             func: Easings,
+
+            #[serde(with = "humantime_serde")]
             speed: Duration,
         }
 

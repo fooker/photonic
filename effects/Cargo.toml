@@ -7,7 +7,10 @@ edition.workspace = true
 license.workspace = true
 
 [features]
-dynamic = ["dep:photonic-dynamic"]
+dynamic = [
+    "dep:photonic-dynamic",
+    "dep:humantime-serde",
+]
 
 [dependencies]
 photonic = { workspace = true }
@@ -23,6 +26,7 @@ noise = { workspace = true }
 
 ezing = "0.2"
 serde = { version = "1.0", features = ["derive"] }
+humantime-serde = { version = "1.1.1", optional = true }
 
 [lints]
 workspace = true
