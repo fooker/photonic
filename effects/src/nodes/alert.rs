@@ -21,9 +21,9 @@ pub struct AlertNode<Hue, Block, Speed> {
 
 impl<Hue, Block, Speed> NodeDecl for Alert<Hue, Block, Speed>
 where
-    Hue: BoundAttrDecl<Value = f32>,
-    Block: BoundAttrDecl<Value = i64>,
-    Speed: FreeAttrDecl<Value = f32>, // TODO: Make speed an attr of duration
+    Hue: BoundAttrDecl<f32>,
+    Block: BoundAttrDecl<i64>,
+    Speed: FreeAttrDecl<f32>, // TODO: Make speed an attr of duration
 {
     type Node = AlertNode<Hue::Attr, Block::Attr, Speed::Attr>;
 
@@ -40,9 +40,9 @@ where
 
 impl<Hue, Block, Speed> Node for AlertNode<Hue, Block, Speed>
 where
-    Hue: Attr<Value = f32>,
-    Block: Attr<Value = i64>,
-    Speed: Attr<Value = f32>,
+    Hue: Attr<f32>,
+    Block: Attr<i64>,
+    Speed: Attr<f32>,
 {
     const KIND: &'static str = "alert";
 

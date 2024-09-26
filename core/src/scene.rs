@@ -12,7 +12,7 @@ use futures::FutureExt;
 use palette::FromColor;
 
 use crate::arena::{Arena, Ref, Slice};
-use crate::attr::{Attr, AttrValue, Bounds};
+use crate::attr::{Attr, AttrValue, Bounded, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl, OutputDecl};
 use crate::input::{Input, InputSink, InputValue};
 use crate::interface::{Interface, Introspection};
@@ -486,14 +486,15 @@ impl NodeBuilder<'_> {
     /// Create a bound attribute.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn bound_attr<Attr>(
+    pub fn bound_attr<V, Attr>(
         &mut self,
         name: impl Into<String>,
         decl: Attr,
-        bounds: impl Into<Bounds<Attr::Value>>,
+        bounds: impl Into<Bounds<V>>,
     ) -> Result<Attr::Attr>
     where
-        Attr: BoundAttrDecl,
+        V: AttrValue + Bounded,
+        Attr: BoundAttrDecl<V>,
     {
         let bounds = bounds.into();
 
@@ -502,7 +503,7 @@ impl NodeBuilder<'_> {
             size: self.size,
             info: AttrInfo {
                 kind: Attr::Attr::KIND,
-                value_type: Attr::Value::TYPE,
+                value_type: V::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },
@@ -521,14 +522,17 @@ impl NodeBuilder<'_> {
     ///
     /// The created attribute is registered as an attribute to the currently built node.
     // TODO: Rename to `free_attr`
-    pub fn unbound_attr<Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
-    where Attr: FreeAttrDecl {
+    pub fn unbound_attr<V, Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
+    where
+        V: AttrValue,
+        Attr: FreeAttrDecl<V>,
+    {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
                 kind: Attr::Attr::KIND,
-                value_type: Attr::Value::TYPE,
+                value_type: V::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },
@@ -548,14 +552,15 @@ impl<'b> AttrBuilder<'b> {
     /// Create a bound child-attribute from its handle.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn bound_attr<Attr>(
+    pub fn bound_attr<V, Attr>(
         &mut self,
         name: impl Into<String>,
         decl: Attr,
-        bounds: impl Into<Bounds<Attr::Value>>,
+        bounds: impl Into<Bounds<V>>,
     ) -> Result<Attr::Attr>
     where
-        Attr: BoundAttrDecl,
+        V: AttrValue + Bounded,
+        Attr: BoundAttrDecl<V>,
     {
         let bounds = bounds.into();
 
@@ -564,7 +569,7 @@ impl<'b> AttrBuilder<'b> {
             size: self.size,
             info: AttrInfo {
                 kind: Attr::Attr::KIND,
-                value_type: Attr::Value::TYPE,
+                value_type: V::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },
@@ -582,14 +587,17 @@ impl<'b> AttrBuilder<'b> {
     /// Create a unbound child-attribute from its handle.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn unbound_attr<Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
-    where Attr: FreeAttrDecl {
+    pub fn unbound_attr<V, Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
+    where
+        V: AttrValue,
+        Attr: FreeAttrDecl<V>,
+    {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
                 kind: Attr::Attr::KIND,
-                value_type: Attr::Value::TYPE,
+                value_type: V::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
             },

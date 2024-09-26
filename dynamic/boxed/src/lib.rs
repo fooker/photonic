@@ -1,3 +1,5 @@
+#![feature(never_type)]
+
 pub use attr::{BoxedBoundAttrDecl, BoxedFreeAttrDecl};
 pub use node::BoxedNodeDecl;
 pub use output::BoxedOutputDecl;

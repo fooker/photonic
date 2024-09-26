@@ -16,8 +16,8 @@ pub struct Noise<Speed, Stretch, F> {
 
 pub struct NoiseNode<Speed, Stretch, F>
 where
-    Speed: Attr<Value = f32>,
-    Stretch: Attr<Value = f32>,
+    Speed: Attr<f32>,
+    Stretch: Attr<f32>,
     F: NoiseFn<f64, 2>,
 {
     speed: Speed,
@@ -30,8 +30,8 @@ where
 
 impl<Speed, Stretch, F> NodeDecl for Noise<Speed, Stretch, F>
 where
-    Speed: FreeAttrDecl<Value = f32>,
-    Stretch: FreeAttrDecl<Value = f32>,
+    Speed: FreeAttrDecl<f32>,
+    Stretch: FreeAttrDecl<f32>,
     F: NoiseFn<f64, 2>,
 {
     type Node = NoiseNode<Speed::Attr, Stretch::Attr, F>;
@@ -48,8 +48,8 @@ where
 
 impl<Speed, Stretch, F> Node for NoiseNode<Speed, Stretch, F>
 where
-    Speed: Attr<Value = f32>,
-    Stretch: Attr<Value = f32>,
+    Speed: Attr<f32>,
+    Stretch: Attr<f32>,
     F: NoiseFn<f64, 2>,
 {
     const KIND: &'static str = "noise";

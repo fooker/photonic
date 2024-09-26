@@ -18,13 +18,12 @@ where V: AttrValue + Num
     trigger: Input<()>,
 }
 
-impl<V> Attr for LooperAttr<V>
+impl<V> Attr<V> for LooperAttr<V>
 where V: AttrValue + Num
 {
-    type Value = V;
     const KIND: &'static str = "looper";
 
-    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         if let Poll::Update(()) = self.trigger.poll() {
             self.current = self.min + (self.current + self.step - self.min) % (self.max - self.min);
         }
@@ -41,10 +40,9 @@ where V: AttrValue
     pub trigger: InputHandle<()>,
 }
 
-impl<V> BoundAttrDecl for Looper<V>
+impl<V> BoundAttrDecl<V> for Looper<V>
 where V: AttrValue + Bounded + Num + PartialOrd
 {
-    type Value = V;
     type Attr = LooperAttr<V>;
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let step = if self.step >= V::zero() {
@@ -68,6 +66,7 @@ where V: AttrValue + Bounded + Num + PartialOrd
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
+    use anyhow::bail;
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
@@ -81,6 +80,19 @@ pub mod dynamic {
     pub struct Config<V> {
         pub step: V,
         pub trigger: config::Input,
+    }
+
+    impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config<V>
+    where V: AttrValue + DeserializeOwned + Bounded
+    {
+        default type Product = !;
+
+        default fn produce<Reg: Registry>(
+            _config: Self,
+            _builder: builder::AttrBuilder<'_, Reg>,
+        ) -> Result<Self::Product> {
+            bail!("Attribute 'looper' no available for value type {}", std::any::type_name::<V>());
+        }
     }
 
     impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config<V>

@@ -10,14 +10,12 @@ use crate::{scene, AttrBuilder};
 pub struct FixedAttr<V>(V)
 where V: AttrValue;
 
-impl<V> Attr for FixedAttr<V>
+impl<V> Attr<V> for FixedAttr<V>
 where V: AttrValue
 {
-    type Value = V;
-
     const KIND: &'static str = "fixed";
 
-    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         return self.0;
     }
 }
@@ -36,24 +34,22 @@ where V: AttrValue
 pub struct FixedAttrDecl<V>(V)
 where V: AttrValue;
 
-impl<V> FreeAttrDecl for FixedAttrDecl<V>
+impl<V> FreeAttrDecl<V> for FixedAttrDecl<V>
 where V: AttrValue
 {
-    type Value = V;
-    type Attr = FixedAttr<Self::Value>;
+    type Attr = FixedAttr<V>;
 
     fn materialize(self, _builder: &mut AttrBuilder) -> Result<Self::Attr> {
         return Ok(FixedAttr(self.0));
     }
 }
 
-impl<V> BoundAttrDecl for FixedAttrDecl<V>
+impl<V> BoundAttrDecl<V> for FixedAttrDecl<V>
 where V: AttrValue + Bounded
 {
-    type Value = V;
-    type Attr = FixedAttr<Self::Value>;
+    type Attr = FixedAttr<V>;
 
-    fn materialize(self, bounds: Bounds<Self::Value>, _builder: &mut AttrBuilder) -> Result<Self::Attr> {
+    fn materialize(self, bounds: Bounds<V>, _builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let value = bounds.ensure(self.0)?;
         return Ok(FixedAttr(value));
     }

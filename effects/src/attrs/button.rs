@@ -47,13 +47,12 @@ where V: AttrValue
     trigger: Input<()>,
 }
 
-impl<V> Attr for ButtonAttr<V>
+impl<V> Attr<V> for ButtonAttr<V>
 where V: AttrValue
 {
-    type Value = V;
     const KIND: &'static str = "button";
 
-    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value {
+    fn update(&mut self, ctx: &scene::RenderContext) -> V {
         if let Poll::Update(()) = self.trigger.poll() {
             self.state = State::Pressed(self.hold_time)
         };
@@ -78,10 +77,9 @@ where V: AttrValue
     pub trigger: InputHandle<()>,
 }
 
-impl<V> BoundAttrDecl for Button<V>
+impl<V> BoundAttrDecl<V> for Button<V>
 where V: AttrValue + Bounded
 {
-    type Value = V;
     type Attr = ButtonAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -95,10 +93,9 @@ where V: AttrValue + Bounded
     }
 }
 
-impl<V> FreeAttrDecl for Button<V>
+impl<V> FreeAttrDecl<V> for Button<V>
 where V: AttrValue
 {
-    type Value = V;
     type Attr = ButtonAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {

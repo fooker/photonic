@@ -20,7 +20,7 @@ where Source: NodeDecl
 pub struct BrightnessNode<Source, Value>
 where
     Source: Node + 'static,
-    Value: Attr<Value = f32>,
+    Value: Attr<f32>,
     Source::Element: Lerp,
 {
     source: NodeRef<Source>,
@@ -32,7 +32,7 @@ where
 impl<Source, Value> NodeDecl for Brightness<Source, Value>
 where
     Source: NodeDecl + 'static,
-    Value: BoundAttrDecl<Value = f32>,
+    Value: BoundAttrDecl<f32>,
     <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     type Node = BrightnessNode<Source::Node, Value::Attr>;
@@ -49,7 +49,7 @@ where
 impl<Source, Value> Node for BrightnessNode<Source, Value>
 where
     Source: Node,
-    Value: Attr<Value = f32>,
+    Value: Attr<f32>,
     Source::Element: Lerp,
 {
     const KIND: &'static str = "brightness";

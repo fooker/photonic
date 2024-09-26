@@ -15,6 +15,10 @@ where V: AttrValue
     const TYPE: AttrValueType = AttrValueType::Range(&V::TYPE);
 }
 
+impl AttrValue for ! {
+    const TYPE: AttrValueType = AttrValueType::Never;
+}
+
 macro_rules! attr_value {
     (
         $vt:expr

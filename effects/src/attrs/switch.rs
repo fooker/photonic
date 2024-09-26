@@ -16,13 +16,12 @@ where V: AttrValue
     input: Input<bool>,
 }
 
-impl<V> Attr for SwitchAttr<V>
+impl<V> Attr<V> for SwitchAttr<V>
 where V: AttrValue
 {
     const KIND: &'static str = "button";
-    type Value = V;
 
-    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         if let Poll::Update(pressed) = self.input.poll() {
             self.pressed = pressed;
         };
@@ -43,10 +42,9 @@ where V: AttrValue
     pub input: InputHandle<bool>,
 }
 
-impl<V> BoundAttrDecl for Switch<V>
+impl<V> BoundAttrDecl<V> for Switch<V>
 where V: AttrValue + Bounded
 {
-    type Value = V;
     type Attr = SwitchAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -59,10 +57,9 @@ where V: AttrValue + Bounded
     }
 }
 
-impl<V> FreeAttrDecl for Switch<V>
+impl<V> FreeAttrDecl<V> for Switch<V>
 where V: AttrValue
 {
-    type Value = V;
     type Attr = SwitchAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {

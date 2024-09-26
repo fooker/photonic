@@ -9,7 +9,7 @@ use crate::easing::Easing;
 pub struct FaderAttr<V, Input>
 where
     V: AttrValue + PartialEq + Lerp,
-    Input: Attr<Value = V>,
+    Input: Attr<V>,
 {
     input: Input,
 
@@ -21,16 +21,14 @@ where
     easing: Easing<f32>,
 }
 
-impl<V, Input> Attr for FaderAttr<V, Input>
+impl<V, Input> Attr<V> for FaderAttr<V, Input>
 where
     V: AttrValue + PartialEq + Lerp,
-    Input: Attr<Value = V>,
+    Input: Attr<V>,
 {
-    type Value = V;
-
     const KIND: &'static str = "fader";
 
-    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value {
+    fn update(&mut self, ctx: &scene::RenderContext) -> V {
         let curr = self.input.update(ctx);
 
         let Some(last) = self.last else {
@@ -70,12 +68,11 @@ pub struct Fader<Input> {
     pub easing: Easing<f32>,
 }
 
-impl<Input, V> BoundAttrDecl for Fader<Input>
+impl<Input, V> BoundAttrDecl<V> for Fader<Input>
 where
     V: AttrValue + PartialEq + Lerp + Bounded,
-    Input: BoundAttrDecl<Value = V>,
+    Input: BoundAttrDecl<V>,
 {
-    type Value = V;
     type Attr = FaderAttr<V, Input::Attr>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -91,12 +88,11 @@ where
     }
 }
 
-impl<Input, V> FreeAttrDecl for Fader<Input>
+impl<Input, V> FreeAttrDecl<V> for Fader<Input>
 where
     V: AttrValue + PartialEq + Lerp,
-    Input: FreeAttrDecl<Value = V>,
+    Input: FreeAttrDecl<V>,
 {
-    type Value = V;
     type Attr = FaderAttr<V, Input::Attr>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -114,6 +110,7 @@ where
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
+    use anyhow::bail;
     use std::time::Duration;
 
     use photonic::input;
@@ -138,6 +135,19 @@ pub mod dynamic {
     }
 
     impl<V> Producible<dyn DynFreeAttrDecl<V>> for Config<V>
+    where V: AttrValue + input::Coerced + DeserializeOwned
+    {
+        default type Product = !;
+
+        default fn produce<Reg: Registry>(
+            _config: Self,
+            _builder: builder::AttrBuilder<'_, Reg>,
+        ) -> Result<Self::Product> {
+            bail!("Attribute 'fader' no available for value type {}", std::any::type_name::<V>());
+        }
+    }
+
+    impl<V> Producible<dyn DynFreeAttrDecl<V>> for Config<V>
     where V: AttrValue + input::Coerced + DeserializeOwned + Lerp
     {
         type Product = Fader<BoxedFreeAttrDecl<V>>;
@@ -147,6 +157,19 @@ pub mod dynamic {
                 input: builder.free_attr("input", config.input)?,
                 easing: config.easing_function.with_speed(config.easing_duration),
             });
+        }
+    }
+
+    impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config<V>
+    where V: AttrValue + input::Coerced + DeserializeOwned + Bounded
+    {
+        default type Product = !;
+
+        default fn produce<Reg: Registry>(
+            _config: Self,
+            _builder: builder::AttrBuilder<'_, Reg>,
+        ) -> Result<Self::Product> {
+            bail!("Attribute 'fader' no available for value type {}", std::any::type_name::<V>());
         }
     }
 

@@ -3,6 +3,7 @@
 #![feature(impl_trait_in_assoc_type)]
 #![feature(map_try_insert)]
 #![feature(trivial_bounds)]
+#![feature(never_type)]
 
 pub use attr::{Attr, AttrValue};
 pub use buffer::{Buffer, BufferReader};

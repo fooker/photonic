@@ -10,13 +10,13 @@ pub struct Solid<Color> {
 }
 
 pub struct SolidNode<Color>
-where Color: Attr<Value = Rgb>
+where Color: Attr<Rgb>
 {
     color: Color,
 }
 
 impl<Color> NodeDecl for Solid<Color>
-where Color: FreeAttrDecl<Value = Rgb>
+where Color: FreeAttrDecl<Rgb>
 {
     type Node = SolidNode<Color::Attr>;
 
@@ -28,7 +28,7 @@ where Color: FreeAttrDecl<Value = Rgb>
 }
 
 impl<Color> Node for SolidNode<Color>
-where Color: Attr<Value = Rgb>
+where Color: Attr<Rgb>
 {
     const KIND: &'static str = "solid";
 

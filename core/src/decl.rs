@@ -16,16 +16,36 @@ pub trait OutputDecl {
     fn materialize(self) -> impl Future<Output = Result<Self::Output>>;
 }
 
-pub trait FreeAttrDecl {
-    type Value: AttrValue;
-    type Attr: Attr<Value = Self::Value>;
+pub trait FreeAttrDecl<V: AttrValue> {
+    type Attr: Attr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr>;
 }
 
-pub trait BoundAttrDecl {
-    type Value: AttrValue + Bounded;
-    type Attr: Attr<Value = Self::Value>;
+pub trait BoundAttrDecl<V: AttrValue + Bounded> {
+    type Attr: Attr<V>;
 
-    fn materialize(self, bounds: Bounds<Self::Value>, builder: &mut AttrBuilder) -> Result<Self::Attr>;
+    fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr>;
+}
+
+#[allow(unreachable_code)]
+impl<V> FreeAttrDecl<V> for !
+where V: AttrValue
+{
+    type Attr = !;
+
+    fn materialize(self, _builder: &mut AttrBuilder) -> Result<Self::Attr> {
+        return self;
+    }
+}
+
+#[allow(unreachable_code)]
+impl<V> BoundAttrDecl<V> for !
+where V: AttrValue + Bounded
+{
+    type Attr = !;
+
+    fn materialize(self, _bounds: Bounds<V>, _builder: &mut AttrBuilder) -> Result<Self::Attr> {
+        return self;
+    }
 }

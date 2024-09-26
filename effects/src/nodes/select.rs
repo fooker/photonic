@@ -10,7 +10,7 @@ use crate::easing::Easing;
 pub struct Select<Source, Value>
 where
     Source: NodeDecl,
-    Value: BoundAttrDecl<Value = usize>,
+    Value: BoundAttrDecl<usize>,
     <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     pub sources: Vec<NodeHandle<Source>>,
@@ -22,7 +22,7 @@ where
 pub struct SelectNode<Source, Value>
 where
     Source: Node + 'static,
-    Value: Attr<Value = usize>,
+    Value: Attr<usize>,
     Source::Element: Lerp,
 {
     sources: Vec<NodeRef<Source>>,
@@ -39,7 +39,7 @@ where
 impl<Source, Value> NodeDecl for Select<Source, Value>
 where
     Source: NodeDecl + 'static,
-    Value: BoundAttrDecl<Value = usize>,
+    Value: BoundAttrDecl<usize>,
     <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
 {
     type Node = SelectNode<Source::Node, Value::Attr>;
@@ -66,7 +66,7 @@ where
 impl<Source, Value> Node for SelectNode<Source, Value>
 where
     Source: Node,
-    Value: Attr<Value = usize>,
+    Value: Attr<usize>,
     Source::Element: Lerp,
 {
     const KIND: &'static str = "select";

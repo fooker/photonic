@@ -1,11 +1,13 @@
 use anyhow::Result;
+use std::marker::PhantomData;
 
 use crate::{scene, Attr, AttrBuilder, AttrValue, FreeAttrDecl};
 
-pub trait FreeAttrDeclExt: FreeAttrDecl + Sized {
-    fn map<F, R>(self, f: F) -> FreeMapAttrDecl<Self, F, R>
+pub trait FreeAttrDeclExt<V: AttrValue>: FreeAttrDecl<V> + Sized {
+    fn map<F, R>(self, f: F) -> FreeMapAttrDecl<Self, F, V, R>
     where
-        F: Fn(Self::Value) -> R,
+        F: Fn(V) -> R,
+        V: AttrValue,
         R: AttrValue;
 }
 
@@ -16,17 +18,20 @@ pub trait FreeAttrDeclExt: FreeAttrDecl + Sized {
 //             R: AttrValue;
 // }
 
-impl<Decl> FreeAttrDeclExt for Decl
-where Decl: FreeAttrDecl
+impl<V, Decl> FreeAttrDeclExt<V> for Decl
+where
+    V: AttrValue,
+    Decl: FreeAttrDecl<V>,
 {
-    fn map<F, R>(self, f: F) -> FreeMapAttrDecl<Self, F, R>
+    fn map<F, R>(self, f: F) -> FreeMapAttrDecl<Self, F, V, R>
     where
-        F: Fn(Decl::Value) -> R,
+        F: Fn(V) -> R,
         R: AttrValue,
     {
         return FreeMapAttrDecl {
             inner: self,
             f,
+            phantom: PhantomData,
         };
     }
 }
@@ -47,14 +52,15 @@ where Decl: FreeAttrDecl
 // }
 
 #[derive(Debug)]
-pub struct FreeMapAttrDecl<Inner, F, R>
+pub struct FreeMapAttrDecl<Inner, F, V, R>
 where
-    Inner: FreeAttrDecl,
-    F: Fn(Inner::Value) -> R,
+    F: Fn(V) -> R,
+    V: AttrValue,
     R: AttrValue,
 {
     inner: Inner,
     f: F,
+    phantom: PhantomData<(V, R)>,
 }
 
 // #[derive(Debug)]
@@ -68,14 +74,14 @@ where
 //     f: F,
 // }
 
-impl<Inner, F, R> FreeAttrDecl for FreeMapAttrDecl<Inner, F, R>
+impl<Inner, F, V, R> FreeAttrDecl<R> for FreeMapAttrDecl<Inner, F, V, R>
 where
-    Inner: FreeAttrDecl,
-    F: Fn(Inner::Value) -> R,
+    Inner: FreeAttrDecl<V>,
+    F: Fn(V) -> R,
+    V: AttrValue,
     R: AttrValue,
 {
-    type Value = R;
-    type Attr = MapAttr<Inner::Attr, F, R>;
+    type Attr = MapAttr<Inner::Attr, F, V, R>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let inner = builder.unbound_attr("inner", self.inner)?;
@@ -83,6 +89,7 @@ where
         return Ok(Self::Attr {
             inner,
             f: self.f,
+            phantom: self.phantom,
         });
     }
 }
@@ -112,27 +119,28 @@ where
 // }
 
 #[derive(Debug)]
-pub struct MapAttr<Inner, F, R>
+pub struct MapAttr<Inner, F, V, R>
 where
-    Inner: Attr,
-    F: Fn(Inner::Value) -> R,
+    Inner: Attr<V>,
+    F: Fn(V) -> R,
+    V: AttrValue,
     R: AttrValue,
 {
     inner: Inner,
     f: F,
+    phantom: PhantomData<(V, R)>,
 }
 
-impl<Inner, F, R> Attr for MapAttr<Inner, F, R>
+impl<Inner, F, V, R> Attr<R> for MapAttr<Inner, F, V, R>
 where
-    Inner: Attr,
-    F: Fn(Inner::Value) -> R,
+    Inner: Attr<V>,
+    F: Fn(V) -> R,
+    V: AttrValue,
     R: AttrValue,
 {
     const KIND: &'static str = "map";
 
-    type Value = R;
-
-    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value {
+    fn update(&mut self, ctx: &scene::RenderContext) -> R {
         let value = self.inner.update(ctx);
         return (self.f)(value);
     }

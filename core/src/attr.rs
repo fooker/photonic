@@ -8,6 +8,7 @@ pub use self::ext::FreeAttrDeclExt;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AttrValueType {
+    Never,
     Boolean,
     Integer,
     Decimal,
@@ -18,6 +19,7 @@ pub enum AttrValueType {
 impl std::fmt::Display for AttrValueType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self {
+            Self::Never => f.write_str("never"),
             Self::Boolean => f.write_str("boolean"),
             Self::Integer => f.write_str("integer"),
             Self::Decimal => f.write_str("decimal"),
@@ -27,12 +29,21 @@ impl std::fmt::Display for AttrValueType {
     }
 }
 
-pub trait Attr {
+pub trait Attr<V: AttrValue> {
     const KIND: &'static str;
 
-    type Value: AttrValue;
+    fn update(&mut self, ctx: &scene::RenderContext) -> V;
+}
 
-    fn update(&mut self, ctx: &scene::RenderContext) -> Self::Value;
+#[allow(unreachable_code)]
+impl<V> Attr<V> for !
+where V: AttrValue
+{
+    const KIND: &'static str = "never";
+
+    fn update(&mut self, _ctx: &scene::RenderContext) -> V {
+        return *self;
+    }
 }
 
 pub mod bounds;

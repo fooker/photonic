@@ -20,9 +20,9 @@ pub struct Raindrops<Rate, Color, Decay> {
 
 pub struct RaindropsNode<Rate, Color, Decay>
 where
-    Rate: Attr<Value = f32>,
-    Color: Attr<Value = Range<Hsl>>,
-    Decay: Attr<Value = Range<f32>>,
+    Rate: Attr<f32>,
+    Color: Attr<Range<Hsl>>,
+    Decay: Attr<Range<f32>>,
 {
     rate: Rate,
     color: Color,
@@ -35,9 +35,9 @@ where
 
 impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
 where
-    Rate: BoundAttrDecl<Value = f32>,
-    Color: FreeAttrDecl<Value = Range<Hsl>>,
-    Decay: BoundAttrDecl<Value = Range<f32>>,
+    Rate: BoundAttrDecl<f32>,
+    Color: FreeAttrDecl<Range<Hsl>>,
+    Decay: BoundAttrDecl<Range<f32>>,
 {
     type Node = RaindropsNode<Rate::Attr, Color::Attr, Decay::Attr>;
 
@@ -54,9 +54,9 @@ where
 
 impl<Rate, Color, Decay> Node for RaindropsNode<Rate, Color, Decay>
 where
-    Rate: Attr<Value = f32>,
-    Color: Attr<Value = Range<Hsl>>,
-    Decay: Attr<Value = Range<f32>>,
+    Rate: Attr<f32>,
+    Color: Attr<Range<Hsl>>,
+    Decay: Attr<Range<f32>>,
 {
     const KIND: &'static str = "raindrops";
 

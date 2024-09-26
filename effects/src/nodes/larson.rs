@@ -27,9 +27,9 @@ pub struct LarsonNode<Hue, Width, Speed> {
 
 impl<Hue, Width, Speed> NodeDecl for Larson<Hue, Width, Speed>
 where
-    Hue: BoundAttrDecl<Value = f32>,
-    Width: BoundAttrDecl<Value = f32>,
-    Speed: FreeAttrDecl<Value = f32>,
+    Hue: BoundAttrDecl<f32>,
+    Width: BoundAttrDecl<f32>,
+    Speed: FreeAttrDecl<f32>,
 {
     type Node = LarsonNode<Hue::Attr, Width::Attr, Speed::Attr>;
 
@@ -46,9 +46,9 @@ where
 
 impl<Hue, Width, Speed> Node for LarsonNode<Hue, Width, Speed>
 where
-    Hue: Attr<Value = f32>,
-    Width: Attr<Value = f32>,
-    Speed: Attr<Value = f32>,
+    Hue: Attr<f32>,
+    Width: Attr<f32>,
+    Speed: Attr<f32>,
 {
     const KIND: &'static str = "solid";
 

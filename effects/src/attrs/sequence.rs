@@ -16,13 +16,12 @@ where V: AttrValue
     prev: Option<Input<()>>,
 }
 
-impl<V> Attr for SequenceAttr<V>
+impl<V> Attr<V> for SequenceAttr<V>
 where V: AttrValue
 {
-    type Value = V;
     const KIND: &'static str = "sequence";
 
-    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         let next = self.next.as_mut().map_or(Poll::Pending, Input::poll);
         let prev = self.prev.as_mut().map_or(Poll::Pending, Input::poll);
 
@@ -50,10 +49,9 @@ where V: AttrValue
     pub prev: Option<InputHandle<()>>,
 }
 
-impl<V> BoundAttrDecl for Sequence<V>
+impl<V> BoundAttrDecl<V> for Sequence<V>
 where V: AttrValue + Bounded
 {
-    type Value = V;
     type Attr = SequenceAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -71,10 +69,9 @@ where V: AttrValue + Bounded
     }
 }
 
-impl<V> FreeAttrDecl for Sequence<V>
+impl<V> FreeAttrDecl<V> for Sequence<V>
 where V: AttrValue
 {
-    type Value = V;
     type Attr = SequenceAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {

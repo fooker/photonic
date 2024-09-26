@@ -22,13 +22,12 @@ where V: AttrValue + SampleUniform + Bounded
     trigger: Input<()>,
 }
 
-impl<V> Attr for RandomAttr<V>
+impl<V> Attr<V> for RandomAttr<V>
 where V: AttrValue + SampleUniform + Bounded
 {
-    type Value = V;
     const KIND: &'static str = "random";
 
-    fn update(&mut self, _ctx: &scene::RenderContext) -> Self::Value {
+    fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         if let Poll::Update(()) = self.trigger.poll() {
             self.current = self.uniform.sample(&mut self.random);
         }
@@ -43,10 +42,9 @@ pub struct Random<V> {
     phantom: PhantomData<V>,
 }
 
-impl<V> BoundAttrDecl for Random<V>
+impl<V> BoundAttrDecl<V> for Random<V>
 where V: AttrValue + SampleUniform + Bounded
 {
-    type Value = V;
     type Attr = RandomAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -69,6 +67,7 @@ where V: AttrValue + SampleUniform + Bounded
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
+    use anyhow::bail;
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
@@ -81,6 +80,19 @@ pub mod dynamic {
     #[derive(Deserialize, Debug)]
     pub struct Config {
         pub trigger: config::Input,
+    }
+
+    impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config
+    where V: AttrValue + DeserializeOwned + Bounded
+    {
+        default type Product = !;
+
+        default fn produce<Reg: Registry>(
+            _config: Self,
+            _builder: builder::AttrBuilder<'_, Reg>,
+        ) -> Result<Self::Product> {
+            bail!("Attribute 'random' no available for value type {}", std::any::type_name::<V>());
+        }
     }
 
     impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config

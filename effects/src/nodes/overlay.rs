@@ -34,7 +34,7 @@ impl<Base, Pave, Blend> NodeDecl for Overlay<Base, Pave, Blend>
 where
     Base: NodeDecl + 'static,
     Pave: NodeDecl + 'static,
-    Blend: BoundAttrDecl<Value = f32>,
+    Blend: BoundAttrDecl<f32>,
     <<Base as NodeDecl>::Node as Node>::Element: Lerp,
     <<Pave as NodeDecl>::Node as Node>::Element: IntoColor<<<Base as NodeDecl>::Node as Node>::Element>,
 {
@@ -53,7 +53,7 @@ impl<Base, Pave, Blend> Node for OverlayNode<Base, Pave, Blend>
 where
     Base: Node,
     Pave: Node,
-    Blend: Attr<Value = f32>,
+    Blend: Attr<f32>,
     Base::Element: Lerp,
     Pave::Element: IntoColor<Base::Element>,
 {

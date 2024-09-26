@@ -11,7 +11,7 @@ use photonic::{
 pub struct Blackout<Source, Active>
 where
     Source: NodeDecl + 'static,
-    Active: BoundAttrDecl<Value = f32>,
+    Active: BoundAttrDecl<f32>,
 {
     pub source: NodeHandle<Source>,
     pub active: Active,
@@ -23,7 +23,7 @@ where
 pub struct BlackoutNode<Source, Active>
 where
     Source: Node + 'static,
-    Active: Attr<Value = f32>,
+    Active: Attr<f32>,
 {
     source: NodeRef<Source>,
     active: Active,
@@ -36,7 +36,7 @@ impl<Source, Active> NodeDecl for Blackout<Source, Active>
 where
     Source: NodeDecl + 'static,
     <<Source as NodeDecl>::Node as Node>::Element: Lerp,
-    Active: BoundAttrDecl<Value = f32>,
+    Active: BoundAttrDecl<f32>,
 {
     type Node = BlackoutNode<Source::Node, Active::Attr>;
 
@@ -54,7 +54,7 @@ impl<Source, Active> Node for BlackoutNode<Source, Active>
 where
     Source: Node,
     <Source as Node>::Element: Lerp,
-    Active: Attr<Value = f32>,
+    Active: Attr<f32>,
 {
     const KIND: &'static str = "blackout";
 
