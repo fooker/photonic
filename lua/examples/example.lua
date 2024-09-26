@@ -1,12 +1,23 @@
+local example = {}
 
+function example:init()
 
-function update(ctx, out)
+end
+
+function example:update(ctx, out)
     size = out.size
-    out:update(function (i, _)
-        return i/size, 0, (size-i)/size
-    end)
 
-    for i = 0, out.size - 1, 7 do
-        out:set(i, 0, 1, 0)
+    -- out:update(function (i, _)
+    --    return i/size, 0, (size-i)/size
+    -- end)
+
+    for i = 0, out.size do
+        out[i] = { i/size, 0, (size-i)/size }
+    end
+
+    for i = 0, out.size, 7 do
+        out[i] = { 0, 1, 0 }
     end
 end
+
+return example

@@ -49,6 +49,7 @@
           nativeBuildInputs = with pkgs; [
             pkg-config
             protobuf
+            lua5_4
           ];
 
           buildInputs = with pkgs; [
