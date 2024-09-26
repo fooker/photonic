@@ -12,8 +12,9 @@ use crate::input::{AnyInputValue, InputSink, InputValueType};
 
 #[derive(Debug)]
 pub struct NodeInfo {
-    pub kind: &'static str,
+    pub key: String,
 
+    pub kind: &'static str,
     pub name: String,
 
     pub nodes: HashMap<String, Arc<NodeInfo>>,
@@ -36,8 +37,9 @@ impl NodeInfo {
 
 #[derive(Debug)]
 pub struct AttrInfo {
-    pub kind: &'static str,
+    pub key: String,
 
+    pub kind: &'static str,
     pub value_type: AttrValueType,
 
     pub attrs: HashMap<String, Arc<AttrInfo>>,
@@ -60,6 +62,8 @@ impl AttrInfo {
 
 #[derive(Debug)]
 pub struct InputInfo {
+    pub key: String,
+
     pub name: String,
     pub value_type: InputValueType,
 

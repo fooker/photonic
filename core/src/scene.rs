@@ -362,6 +362,10 @@ pub struct NodeBuilder<'b> {
 }
 
 impl<'b> NodeBuilder<'b> {
+    pub fn key(&self) -> &str {
+        return &self.info.key;
+    }
+
     pub fn kind(&self) -> &'static str {
         return self.info.kind;
     }
@@ -380,6 +384,16 @@ pub struct AttrBuilder<'b> {
     info: AttrInfo,
 }
 
+impl<'b> AttrBuilder<'b> {
+    pub fn key(&self) -> &str {
+        return &self.info.key;
+    }
+
+    pub fn kind(&self) -> &'static str {
+        return self.info.kind;
+    }
+}
+
 impl SceneBuilder {
     /// Create a node from its handle.
     pub async fn build<Node>(size: usize, root: NodeHandle<Node>) -> Result<(Self, NodeRef<Node::Node>)>
@@ -396,6 +410,7 @@ impl SceneBuilder {
             nodes: &mut nodes,
 
             info: NodeInfo {
+                key: "".to_string(),
                 kind: Node::Node::KIND,
                 name: root.name,
                 nodes: HashMap::new(),
@@ -449,12 +464,15 @@ impl NodeBuilder<'_> {
         <Node as NodeDecl>::Node: 'static,
         <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
+        let key = key.into();
+
         let mut builder = NodeBuilder {
             size,
 
             nodes: self.nodes,
 
             info: NodeInfo {
+                key: key.clone(),
                 kind: Node::Node::KIND,
                 name: decl.name,
                 nodes: HashMap::new(),
@@ -474,7 +492,7 @@ impl NodeBuilder<'_> {
 
         eprintln!("✨ Materialized node {} ({:?})", info.name, node);
 
-        if let Err(err) = self.info.nodes.try_insert(key.into(), Arc::new(info)) {
+        if let Err(err) = self.info.nodes.try_insert(key, Arc::new(info)) {
             bail!("Duplicated node: {}", err.entry.key())
         }
 
@@ -488,7 +506,7 @@ impl NodeBuilder<'_> {
     /// The created attribute is registered as an attribute to the currently built node.
     pub fn bound_attr<V, Attr>(
         &mut self,
-        name: impl Into<String>,
+        key: impl Into<String>,
         decl: Attr,
         bounds: impl Into<Bounds<V>>,
     ) -> Result<Attr::Attr>
@@ -496,12 +514,15 @@ impl NodeBuilder<'_> {
         V: AttrValue + Bounded,
         Attr: BoundAttrDecl<V>,
     {
+        let key = key.into();
+
         let bounds = bounds.into();
 
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
+                key: key.clone(),
                 kind: Attr::Attr::KIND,
                 value_type: V::TYPE,
                 attrs: HashMap::new(),
@@ -511,7 +532,7 @@ impl NodeBuilder<'_> {
 
         let attr = decl.materialize(bounds, &mut builder)?;
 
-        if let Err(err) = self.info.attrs.try_insert(name.into(), Arc::new(builder.info)) {
+        if let Err(err) = self.info.attrs.try_insert(key, Arc::new(builder.info)) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 
@@ -522,15 +543,18 @@ impl NodeBuilder<'_> {
     ///
     /// The created attribute is registered as an attribute to the currently built node.
     // TODO: Rename to `free_attr`
-    pub fn unbound_attr<V, Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
+    pub fn unbound_attr<V, Attr>(&mut self, key: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
     where
         V: AttrValue,
         Attr: FreeAttrDecl<V>,
     {
+        let key = key.into();
+
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
+                key: key.clone(),
                 kind: Attr::Attr::KIND,
                 value_type: V::TYPE,
                 attrs: HashMap::new(),
@@ -540,7 +564,7 @@ impl NodeBuilder<'_> {
 
         let attr = decl.materialize(&mut builder)?;
 
-        if let Err(err) = self.info.attrs.try_insert(name.into(), Arc::new(builder.info)) {
+        if let Err(err) = self.info.attrs.try_insert(key, Arc::new(builder.info)) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 
@@ -554,7 +578,7 @@ impl<'b> AttrBuilder<'b> {
     /// The created attribute is registered as an attribute to the currently built node.
     pub fn bound_attr<V, Attr>(
         &mut self,
-        name: impl Into<String>,
+        key: impl Into<String>,
         decl: Attr,
         bounds: impl Into<Bounds<V>>,
     ) -> Result<Attr::Attr>
@@ -562,12 +586,15 @@ impl<'b> AttrBuilder<'b> {
         V: AttrValue + Bounded,
         Attr: BoundAttrDecl<V>,
     {
+        let key = key.into();
+
         let bounds = bounds.into();
 
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
+                key: key.clone(),
                 kind: Attr::Attr::KIND,
                 value_type: V::TYPE,
                 attrs: HashMap::new(),
@@ -577,7 +604,7 @@ impl<'b> AttrBuilder<'b> {
 
         let attr = decl.materialize(bounds, &mut builder)?;
 
-        if let Err(err) = self.info.attrs.try_insert(name.into(), Arc::new(builder.info)) {
+        if let Err(err) = self.info.attrs.try_insert(key, Arc::new(builder.info)) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 
@@ -587,15 +614,18 @@ impl<'b> AttrBuilder<'b> {
     /// Create a unbound child-attribute from its handle.
     ///
     /// The created attribute is registered as an attribute to the currently built node.
-    pub fn unbound_attr<V, Attr>(&mut self, name: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
+    pub fn unbound_attr<V, Attr>(&mut self, key: impl Into<String>, decl: Attr) -> Result<Attr::Attr>
     where
         V: AttrValue,
         Attr: FreeAttrDecl<V>,
     {
+        let key = key.into();
+
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
             info: AttrInfo {
+                key: key.clone(),
                 kind: Attr::Attr::KIND,
                 value_type: V::TYPE,
                 attrs: HashMap::new(),
@@ -605,7 +635,7 @@ impl<'b> AttrBuilder<'b> {
 
         let attr = decl.materialize(&mut builder)?;
 
-        if let Err(err) = self.info.attrs.try_insert(name.into(), Arc::new(builder.info)) {
+        if let Err(err) = self.info.attrs.try_insert(key, Arc::new(builder.info)) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 
@@ -615,17 +645,20 @@ impl<'b> AttrBuilder<'b> {
     /// Create an input from its handle.
     ///
     /// The created input is registered as an input to the currently built node.
-    pub fn input<V>(&mut self, name: impl Into<String>, input: InputHandle<V>) -> Result<Input<V>>
+    pub fn input<V>(&mut self, key: impl Into<String>, input: InputHandle<V>) -> Result<Input<V>>
     where V: InputValue {
+        let key = key.into();
+
         let sink = input.sink();
 
         let info = InputInfo {
+            key: key.clone(),
             name: input.name,
             value_type: V::TYPE,
             sink,
         };
 
-        if let Err(err) = self.info.inputs.try_insert(name.into(), Arc::new(info)) {
+        if let Err(err) = self.info.inputs.try_insert(key, Arc::new(info)) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 
