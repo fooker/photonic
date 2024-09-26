@@ -90,7 +90,8 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic_dynamic::factory::Producible;
-    use photonic_dynamic::{config, BoxedNodeDecl};
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, BoxedNodeDecl, DynNodeDecl};
 
     use super::*;
 
@@ -101,16 +102,14 @@ pub mod dynamic {
         pub split: isize,
     }
 
-    impl Producible for Splice<BoxedNodeDecl, BoxedNodeDecl> {
-        type Config = Config;
-    }
-
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<Splice<BoxedNodeDecl, BoxedNodeDecl>>
-    where B: photonic_dynamic::NodeBuilder {
-        return Ok(Splice {
-            n1: builder.node("n1", config.n1)?,
-            n2: builder.node("n2", config.n2)?,
-            split: config.split,
-        });
+    impl Producible<dyn DynNodeDecl> for Config {
+        type Product = Splice<BoxedNodeDecl, BoxedNodeDecl>;
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Splice {
+                n1: builder.node("n1", config.n1)?,
+                n2: builder.node("n2", config.n2)?,
+                split: config.split,
+            });
+        }
     }
 }

@@ -1,7 +1,6 @@
-use std::marker::PhantomData;
-
 use anyhow::{anyhow, Context, Result};
 use serde::de::DeserializeOwned;
+use std::marker::PhantomData;
 
 use photonic::attr::{AsFixedAttr, Bounded};
 use photonic::input::InputValue;
@@ -12,39 +11,77 @@ use photonic_dynamic_boxed::{Boxed, BoxedBoundAttrDecl, BoxedFreeAttrDecl, Boxed
 use crate::config;
 use crate::registry::Registry;
 
-pub trait InputBuilder {
-    fn input<I>(&mut self, config: config::Input) -> Result<InputHandle<I>>
-    where I: InputValue;
+pub struct InputBuilder<'b, Reg: Registry>(&'b mut Builder<Reg>);
+
+pub struct AttrBuilder<'b, Reg: Registry>(&'b mut Builder<Reg>);
+
+pub struct NodeBuilder<'b, Reg: Registry>(&'b mut Builder<Reg>);
+
+pub struct OutputBuilder<'b, Reg: Registry>(&'b mut Builder<Reg>);
+
+impl<Reg: Registry> InputBuilder<'_, Reg> {
+    pub fn input<I>(&mut self, config: config::Input) -> Result<InputHandle<I>>
+    where I: InputValue {
+        return self.0.input(config);
+    }
 }
 
-pub trait AttrBuilder: InputBuilder {
-    fn free_attr<V>(&mut self, name: &str, config: config::Attr<V>) -> Result<BoxedFreeAttrDecl<V>>
-    where V: AttrValue + input::Coerced + DeserializeOwned;
+impl<Reg: Registry> AttrBuilder<'_, Reg> {
+    pub fn input<I>(&mut self, config: config::Input) -> Result<InputHandle<I>>
+    where I: InputValue {
+        return self.0.input(config);
+    }
 
-    fn bound_attr<V>(&mut self, name: &str, config: config::Attr<V>) -> Result<BoxedBoundAttrDecl<V>>
-    where V: AttrValue + input::Coerced + DeserializeOwned + Bounded;
+    pub fn free_attr<V>(&mut self, name: &str, config: config::Attr<V>) -> Result<BoxedFreeAttrDecl<V>>
+    where V: AttrValue + input::Coerced + DeserializeOwned {
+        return self.0.free_attr(name, config);
+    }
+
+    pub fn bound_attr<V>(&mut self, name: &str, config: config::Attr<V>) -> Result<BoxedBoundAttrDecl<V>>
+    where V: AttrValue + input::Coerced + DeserializeOwned + Bounded {
+        return self.0.bound_attr(name, config);
+    }
 }
 
-pub trait NodeBuilder: AttrBuilder {
-    fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl>>;
+impl<Reg: Registry> NodeBuilder<'_, Reg> {
+    pub fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl>> {
+        return self.0.node(name, config);
+    }
+
+    pub fn input<I>(&mut self, config: config::Input) -> Result<InputHandle<I>>
+    where I: InputValue {
+        return self.0.input(config);
+    }
+
+    pub fn free_attr<V>(&mut self, name: &str, config: config::Attr<V>) -> Result<BoxedFreeAttrDecl<V>>
+    where V: AttrValue + input::Coerced + DeserializeOwned {
+        return self.0.free_attr(name, config);
+    }
+
+    pub fn bound_attr<V>(&mut self, name: &str, config: config::Attr<V>) -> Result<BoxedBoundAttrDecl<V>>
+    where V: AttrValue + input::Coerced + DeserializeOwned + Bounded {
+        return self.0.bound_attr(name, config);
+    }
 }
 
-pub trait OutputBuilder {}
+impl<Reg: Registry> OutputBuilder<'_, Reg> {
+    pub fn output(&mut self, config: config::Output) -> Result<BoxedOutputDecl> {
+        return self.0.output(config);
+    }
+}
 
-pub struct Builder<Registry>
-where Registry: ?Sized
-{
+pub struct Builder<Reg> {
     scene: Scene,
-    registry: PhantomData<Registry>,
+    registry: PhantomData<Reg>,
 }
 
-impl<Registry> Default for Builder<Registry> {
+impl<Reg: Registry> Default for Builder<Reg> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<Registry> Builder<Registry> {
+impl<Reg: Registry> Builder<Reg> {
     pub fn new() -> Self {
         let scene = Scene::new();
 
@@ -57,38 +94,12 @@ impl<Registry> Builder<Registry> {
     pub fn build(self) -> Scene {
         return self.scene;
     }
-}
 
-impl<Registry> Builder<Registry>
-where Registry: self::Registry<Self> + ?Sized
-{
-    pub fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl>> {
-        return NodeBuilder::node(self, name, config);
-    }
-
-    pub fn output(&mut self, config: config::Output) -> Result<BoxedOutputDecl> {
-        let factory = Registry::output(&config.kind).ok_or_else(|| anyhow!("Unknown output type: {}", config.kind))?;
-
-        let decl = factory
-            .produce(config.config, self)
-            .with_context(|| format!("Failed to build output: (type={})", config.kind))?;
-
-        return Ok(decl);
-    }
-}
-
-impl<Registry> InputBuilder for Builder<Registry>
-where Registry: self::Registry<Self> + ?Sized
-{
     fn input<I>(&mut self, config: config::Input) -> Result<InputHandle<I>>
     where I: InputValue {
         return self.scene.input(&config.input).with_context(|| format!("Failed to build input: {}", config.input));
     }
-}
 
-impl<Registry> AttrBuilder for Builder<Registry>
-where Registry: self::Registry<Self> + ?Sized
-{
     fn free_attr<V>(&mut self, name: &str, config: config::Attr<V>) -> Result<BoxedFreeAttrDecl<V>>
     where V: AttrValue + input::Coerced + DeserializeOwned {
         match config {
@@ -96,10 +107,11 @@ where Registry: self::Registry<Self> + ?Sized
                 kind,
                 config,
             } => {
-                let factory = Registry::free_attr(&kind).ok_or_else(|| anyhow!("Unknown attribute type: {}", kind))?;
+                let factory =
+                    Reg::free_attr::<Reg, V>(&kind).ok_or_else(|| anyhow!("Unknown attribute type: {}", kind))?;
 
                 let decl = factory
-                    .produce(config, self)
+                    .produce(config, AttrBuilder(self))
                     .with_context(|| format!("Failed to build attribute: (type={}) @{}", kind, name))?;
 
                 return Ok(decl);
@@ -128,10 +140,11 @@ where Registry: self::Registry<Self> + ?Sized
                 kind,
                 config,
             } => {
-                let factory = Registry::bound_attr(&kind).ok_or_else(|| anyhow!("Unknown attribute type: {}", kind))?;
+                let factory =
+                    Reg::bound_attr::<Reg, V>(&kind).ok_or_else(|| anyhow!("Unknown attribute type: {}", kind))?;
 
                 let decl = factory
-                    .produce(config, self)
+                    .produce(config, AttrBuilder(self))
                     .with_context(|| format!("Failed to build attribute: (type={}) @{}", kind, name))?;
 
                 return Ok(decl);
@@ -152,20 +165,25 @@ where Registry: self::Registry<Self> + ?Sized
             }
         }
     }
-}
 
-impl<Registry> NodeBuilder for Builder<Registry>
-where Registry: self::Registry<Self> + ?Sized
-{
-    fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl>> {
-        let factory = Registry::node(&config.kind).ok_or_else(|| anyhow!("Unknown node type: {}", config.kind))?;
+    pub fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl>> {
+        let factory = Reg::node::<Reg>(&config.kind).ok_or_else(|| anyhow!("Unknown node type: {}", config.kind))?;
 
         let decl = factory
-            .produce(config.config, self)
+            .produce(config.config, NodeBuilder(self))
             .with_context(|| format!("Failed to build node: {} (type={}) @{}", config.name, config.kind, name))?;
 
         return self.scene.node(&config.name, decl);
     }
-}
 
-impl<Registry> OutputBuilder for Builder<Registry> where Registry: self::Registry<Self> + ?Sized {}
+    pub fn output(&mut self, config: config::Output) -> Result<BoxedOutputDecl> {
+        let factory =
+            Reg::output::<Reg>(&config.kind).ok_or_else(|| anyhow!("Unknown output type: {}", config.kind))?;
+
+        let decl = factory
+            .produce(config.config, OutputBuilder(self))
+            .with_context(|| format!("Failed to build output: (type={})", config.kind))?;
+
+        return Ok(decl);
+    }
+}

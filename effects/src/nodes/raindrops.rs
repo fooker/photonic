@@ -93,7 +93,8 @@ pub mod dynamic {
 
     use photonic::attr::FreeAttrDeclExt;
     use photonic_dynamic::factory::Producible;
-    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedFreeAttrDecl};
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynNodeDecl};
 
     use super::*;
 
@@ -107,18 +108,16 @@ pub mod dynamic {
     type BoxedRaindrops =
         Raindrops<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<Hsl>>, BoxedBoundAttrDecl<Range<f32>>>;
 
-    impl Producible for BoxedRaindrops {
-        type Config = Config;
-    }
-
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<BoxedRaindrops>
-    where B: photonic_dynamic::NodeBuilder {
-        return Ok(Raindrops {
-            rate: builder.bound_attr("rate", config.rate)?,
-            color: Box::new(
-                builder.free_attr::<Range<Rgb>>("color", config.color)?.map(|range| range.map(Hsl::from_color)),
-            ), // TODO: Remove box?
-            decay: builder.bound_attr("decay", config.decay)?,
-        });
+    impl Producible<dyn DynNodeDecl> for Config {
+        type Product = BoxedRaindrops;
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Raindrops {
+                rate: builder.bound_attr("rate", config.rate)?,
+                color: Box::new(
+                    builder.free_attr::<Range<Rgb>>("color", config.color)?.map(|range| range.map(Hsl::from_color)),
+                ), // TODO: Remove box?
+                decay: builder.bound_attr("decay", config.decay)?,
+            });
+        }
     }
 }

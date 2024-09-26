@@ -116,12 +116,13 @@ where
 pub mod dynamic {
     use std::time::Duration;
 
+    use photonic::input;
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
-    use photonic::input;
     use photonic_dynamic::factory::Producible;
-    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedFreeAttrDecl};
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynBoundAttrDecl, DynFreeAttrDecl};
 
     use crate::easing::Easings;
 
@@ -136,39 +137,29 @@ pub mod dynamic {
         pub easing_duration: Duration,
     }
 
-    impl<V> Producible for Fader<BoxedFreeAttrDecl<V>>
-    where V: AttrValue + DeserializeOwned
+    impl<V> Producible<dyn DynFreeAttrDecl<V>> for Config<V>
+    where V: AttrValue + input::Coerced + DeserializeOwned + Lerp
     {
-        type Config = Config<V>;
+        type Product = Fader<BoxedFreeAttrDecl<V>>;
+
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Fader {
+                input: builder.free_attr("input", config.input)?,
+                easing: config.easing_function.with_speed(config.easing_duration),
+            });
+        }
     }
 
-    impl<V> Producible for Fader<BoxedBoundAttrDecl<V>>
-    where V: AttrValue + DeserializeOwned + Bounded
+    impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config<V>
+    where V: AttrValue + input::Coerced + DeserializeOwned + Bounded + Lerp
     {
-        type Config = Config<V>;
-    }
+        type Product = Fader<BoxedBoundAttrDecl<V>>;
 
-    #[allow(dead_code)]
-    pub fn free_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Fader<BoxedFreeAttrDecl<V>>>
-    where
-        B: photonic_dynamic::AttrBuilder,
-        V: AttrValue + input::Coerced + DeserializeOwned,
-    {
-        return Ok(Fader {
-            input: builder.free_attr("input", config.input)?,
-            easing: config.easing_function.with_speed(config.easing_duration),
-        });
-    }
-
-    #[allow(dead_code)]
-    pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Fader<BoxedBoundAttrDecl<V>>>
-    where
-        B: photonic_dynamic::AttrBuilder,
-        V: AttrValue + input::Coerced + DeserializeOwned + Bounded,
-    {
-        return Ok(Fader {
-            input: builder.bound_attr("input", config.input)?,
-            easing: config.easing_function.with_speed(config.easing_duration),
-        });
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Fader {
+                input: builder.bound_attr("input", config.input)?,
+                easing: config.easing_function.with_speed(config.easing_duration),
+            });
+        }
     }
 }

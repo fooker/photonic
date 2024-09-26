@@ -73,7 +73,8 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic_dynamic::factory::Producible;
-    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedFreeAttrDecl};
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynNodeDecl};
 
     use super::*;
 
@@ -84,21 +85,15 @@ pub mod dynamic {
         pub speed: config::Attr<f32>,
     }
 
-    impl Producible for Alert<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<i64>, BoxedFreeAttrDecl<f32>> {
-        type Config = Config;
-    }
+    impl Producible<dyn DynNodeDecl> for Config {
+        type Product = Alert<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<i64>, BoxedFreeAttrDecl<f32>>;
 
-    pub fn node<B>(
-        config: Config,
-        builder: &mut B,
-    ) -> Result<Alert<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<i64>, BoxedFreeAttrDecl<f32>>>
-    where
-        B: photonic_dynamic::NodeBuilder,
-    {
-        return Ok(Alert {
-            hue: builder.bound_attr("hue", config.hue)?,
-            block: builder.bound_attr("block", config.block)?,
-            speed: builder.free_attr("speed", config.speed)?,
-        });
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Alert {
+                hue: builder.bound_attr("hue", config.hue)?,
+                block: builder.bound_attr("block", config.block)?,
+                speed: builder.free_attr("speed", config.speed)?,
+            });
+        }
     }
 }

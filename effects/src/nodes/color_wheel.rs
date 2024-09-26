@@ -62,9 +62,11 @@ impl Node for ColorWheelNode {
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
+    use photonic_dynamic::{builder, DynNodeDecl};
     use serde::Deserialize;
 
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::registry::Registry;
 
     use super::*;
 
@@ -78,18 +80,16 @@ pub mod dynamic {
         pub intensity: f32,
     }
 
-    impl Producible for ColorWheel {
-        type Config = Config;
-    }
-
-    pub fn node<B>(config: Config, _builder: &mut B) -> Result<ColorWheel>
-    where B: photonic_dynamic::NodeBuilder {
-        return Ok(ColorWheel {
-            scale: config.scale,
-            speed: config.speed,
-            offset: config.offset,
-            saturation: config.saturation,
-            intensity: config.intensity,
-        });
+    impl Producible<dyn DynNodeDecl> for Config {
+        type Product = ColorWheel;
+        fn produce<Reg: Registry>(config: Self, _builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(ColorWheel {
+                scale: config.scale,
+                speed: config.speed,
+                offset: config.offset,
+                saturation: config.saturation,
+                intensity: config.intensity,
+            });
+        }
     }
 }

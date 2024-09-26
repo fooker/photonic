@@ -48,7 +48,8 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic_dynamic::factory::Producible;
-    use photonic_dynamic::{config, BoxedFreeAttrDecl};
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, BoxedFreeAttrDecl, DynNodeDecl};
 
     use super::*;
 
@@ -57,14 +58,12 @@ pub mod dynamic {
         pub color: config::Attr<Rgb>,
     }
 
-    impl Producible for Solid<BoxedFreeAttrDecl<Rgb>> {
-        type Config = Config;
-    }
-
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<Solid<BoxedFreeAttrDecl<Rgb>>>
-    where B: photonic_dynamic::NodeBuilder {
-        return Ok(Solid {
-            color: builder.free_attr("color", config.color)?,
-        });
+    impl Producible<dyn DynNodeDecl> for Config {
+        type Product = Solid<BoxedFreeAttrDecl<Rgb>>;
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Solid {
+                color: builder.free_attr("color", config.color)?,
+            });
+        }
     }
 }

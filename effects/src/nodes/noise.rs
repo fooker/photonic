@@ -76,7 +76,8 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic_dynamic::factory::Producible;
-    use photonic_dynamic::{config, BoxedFreeAttrDecl};
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, BoxedFreeAttrDecl, DynNodeDecl};
 
     use super::*;
 
@@ -119,16 +120,14 @@ pub mod dynamic {
 
     type BoxedNoise = Noise<BoxedFreeAttrDecl<f32>, BoxedFreeAttrDecl<f32>, Box<dyn NoiseFn<f64, 2>>>;
 
-    impl Producible for BoxedNoise {
-        type Config = Config;
-    }
-
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<BoxedNoise>
-    where B: photonic_dynamic::NodeBuilder {
-        return Ok(Noise {
-            speed: builder.free_attr("speed", config.speed)?,
-            stretch: builder.free_attr("stretch", config.stretch)?,
-            noise: config.noise.into(),
-        });
+    impl Producible<dyn DynNodeDecl> for Config {
+        type Product = BoxedNoise;
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Noise {
+                speed: builder.free_attr("speed", config.speed)?,
+                stretch: builder.free_attr("stretch", config.stretch)?,
+                noise: config.noise.into(),
+            });
+        }
     }
 }

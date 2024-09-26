@@ -1,64 +1,30 @@
 use serde::de::DeserializeOwned;
 
 use photonic::attr::Bounded;
-use photonic::AttrValue;
+use photonic::{input, AttrValue};
 
 use crate::factory::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory};
 
 #[allow(unused_variables)]
-pub trait Registry<B>
-where B: ?Sized
-{
-    fn node(kind: &str) -> Option<NodeFactory<B>> {
+pub trait Registry {
+    fn node<Reg: Registry>(kind: &str) -> Option<NodeFactory<Reg>> {
         None
     }
-    fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<B, V>>
-    where V: AttrValue + DeserializeOwned {
+
+    fn free_attr<Reg: Registry, V>(kind: &str) -> Option<FreeAttrFactory<Reg, V>>
+    where V: AttrValue + DeserializeOwned + input::Coerced {
         None
     }
-    fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<B, V>>
-    where V: AttrValue + DeserializeOwned + Bounded {
+
+    fn bound_attr<Reg: Registry, V>(kind: &str) -> Option<BoundAttrFactory<Reg, V>>
+    where V: AttrValue + DeserializeOwned + input::Coerced + Bounded {
         None
     }
-    fn output(kind: &str) -> Option<OutputFactory<B>> {
+
+    fn output<Reg: Registry>(kind: &str) -> Option<OutputFactory<Reg>> {
         None
     }
 }
-
-// pub struct Combined<R1, R2, B>(PhantomData<(R1, R2, B)>)
-//     where
-//         R1: Registry<B>,
-//         R2: Registry<B>,
-//         B: ?Sized;
-//
-// impl<R1, R2, B> Registry<B> for Combined<R1, R2, B>
-//     where
-//         R1: Registry<B>,
-//         R2: Registry<B>,
-//         B: ?Sized,
-// {
-//     fn node(kind: &str) -> Option<NodeFactory<B>> {
-//         return R1::node(kind).or_else(|| R2::node(kind));
-//     }
-//
-//     fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<B, V>>
-//         where
-//             V: AttrValue + DeserializeOwned + InputValue,
-//     {
-//         return R1::free_attr(kind).or_else(|| R2::free_attr(kind));
-//     }
-//
-//     fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<B, V>>
-//         where
-//             V: AttrValue + DeserializeOwned + InputValue + Bounded,
-//     {
-//         return R1::bound_attr(kind).or_else(|| R2::bound_attr(kind));
-//     }
-//
-//     fn output(kind: &str) -> Option<OutputFactory<B>> {
-//         return R1::output(kind).or_else(|| R2::output(kind));
-//     }
-// }
 
 #[macro_export]
 macro_rules! combine {

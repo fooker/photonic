@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use anyhow::{bail, Context, Result};
 use clap::Parser;
 use photonic::attr::Bounded;
-use photonic::AttrValue;
+use photonic::{input, AttrValue};
 use serde::de::DeserializeOwned;
 
 use photonic_dynamic::factory::{BoundAttrFactory, FreeAttrFactory, NodeFactory, OutputFactory};
@@ -60,22 +60,22 @@ async fn main() -> Result<()> {
 
 struct RunnerRegistries {}
 
-impl Registry<Builder<Self>> for RunnerRegistries {
-    fn node(kind: &str) -> Option<NodeFactory<Builder<Self>>> {
+impl Registry for RunnerRegistries {
+    fn node<Reg: Registry>(kind: &str) -> Option<NodeFactory<Reg>> {
         return combine!(node, kind, (photonic_effects::dynamic::Registry));
     }
 
-    fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<Builder<Self>, V>>
-    where V: AttrValue + DeserializeOwned {
+    fn free_attr<Reg: Registry, V>(kind: &str) -> Option<FreeAttrFactory<Reg, V>>
+    where V: AttrValue + DeserializeOwned + input::Coerced {
         return combine!(free_attr, kind, (photonic_effects::dynamic::Registry));
     }
 
-    fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<Builder<Self>, V>>
-    where V: AttrValue + DeserializeOwned + Bounded {
+    fn bound_attr<Reg: Registry, V>(kind: &str) -> Option<BoundAttrFactory<Reg, V>>
+    where V: AttrValue + DeserializeOwned + input::Coerced + Bounded {
         return combine!(bound_attr, kind, (photonic_effects::dynamic::Registry));
     }
 
-    fn output(kind: &str) -> Option<OutputFactory<Builder<Self>>> {
+    fn output<Reg: Registry>(kind: &str) -> Option<OutputFactory<Reg>> {
         return combine!(
             output,
             kind,

@@ -71,8 +71,9 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
-    use photonic_dynamic::config;
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, DynBoundAttrDecl};
 
     use super::*;
 
@@ -82,21 +83,16 @@ pub mod dynamic {
         pub trigger: config::Input,
     }
 
-    impl<V> Producible for Looper<V>
-    where V: AttrValue + DeserializeOwned
+    impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config<V>
+    where V: AttrValue + DeserializeOwned + Bounded + Num + PartialOrd
     {
-        type Config = Config<V>;
-    }
+        type Product = Looper<V>;
 
-    #[allow(dead_code)]
-    pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Looper<V>>
-    where
-        B: photonic_dynamic::AttrBuilder,
-        V: AttrValue + DeserializeOwned + Bounded + Num + PartialOrd,
-    {
-        return Ok(Looper {
-            step: config.step,
-            trigger: builder.input(config.trigger)?,
-        });
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Looper {
+                step: config.step,
+                trigger: builder.input(config.trigger)?,
+            });
+        }
     }
 }

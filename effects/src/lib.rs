@@ -1,3 +1,6 @@
+#![feature(specialization)]
+#![feature(never_type)]
+
 pub mod attrs;
 pub mod nodes;
 
@@ -8,52 +11,50 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
 
     use photonic::attr::Bounded;
-    use photonic::AttrValue;
+    use photonic::{input, AttrValue};
     use photonic_dynamic::factory::{factory, BoundAttrFactory, FreeAttrFactory, NodeFactory};
-    use photonic_dynamic::{registry, NodeBuilder};
+    use photonic_dynamic::registry;
 
     pub struct Registry;
 
-    impl<B> registry::Registry<B> for Registry
-    where B: NodeBuilder + 'static
-    {
-        fn node(kind: &str) -> Option<NodeFactory<B>> {
+    impl registry::Registry for Registry {
+        fn node<Reg: registry::Registry>(kind: &str) -> Option<NodeFactory<Reg>> {
             return Some(match kind {
-                "alert" => factory(crate::nodes::alert::dynamic::node),
-                "blackout" => factory(crate::nodes::blackout::dynamic::node),
-                "brightness" => factory(crate::nodes::brightness::dynamic::node),
-                "color-wheel" => factory(crate::nodes::color_wheel::dynamic::node),
-                "larson" => factory(crate::nodes::larson::dynamic::node),
-                "noise" => factory(crate::nodes::noise::dynamic::node),
-                "overlay" => factory(crate::nodes::overlay::dynamic::node),
-                "raindrops" => factory(crate::nodes::raindrops::dynamic::node),
-                "select" => factory(crate::nodes::select::dynamic::node),
-                "solid" => factory(crate::nodes::solid::dynamic::node),
-                "splice" => factory(crate::nodes::splice::dynamic::node),
+                "alert" => factory::<crate::nodes::alert::dynamic::Config>(),
+                "blackout" => factory::<crate::nodes::blackout::dynamic::Config>(),
+                "brightness" => factory::<crate::nodes::brightness::dynamic::Config>(),
+                "color-wheel" => factory::<crate::nodes::color_wheel::dynamic::Config>(),
+                "larson" => factory::<crate::nodes::larson::dynamic::Config>(),
+                "noise" => factory::<crate::nodes::noise::dynamic::Config>(),
+                "overlay" => factory::<crate::nodes::overlay::dynamic::Config>(),
+                "raindrops" => factory::<crate::nodes::raindrops::dynamic::Config>(),
+                "select" => factory::<crate::nodes::select::dynamic::Config>(),
+                "solid" => factory::<crate::nodes::solid::dynamic::Config>(),
+                "splice" => factory::<crate::nodes::splice::dynamic::Config>(),
                 _ => return None,
             });
         }
 
-        fn free_attr<V>(kind: &str) -> Option<FreeAttrFactory<B, V>>
-        where V: AttrValue + DeserializeOwned {
+        fn free_attr<Reg: registry::Registry, V>(kind: &str) -> Option<FreeAttrFactory<Reg, V>>
+        where V: AttrValue + DeserializeOwned + input::Coerced {
             return Some(match kind {
-                "button" => factory(crate::attrs::button::dynamic::free_attr),
-                "switch" => factory(crate::attrs::switch::dynamic::free_attr),
-                // "fader" => factory(crate::attrs::fader::dynamic::free_attr),
-                "sequence" => factory(crate::attrs::sequence::dynamic::free_attr),
+                "button" => factory::<crate::attrs::button::dynamic::Config<V>>(),
+                "switch" => factory::<crate::attrs::switch::dynamic::Config<V>>(),
+                // "fader" => factory::<crate::attrs::fader::dynamic::Config<V>>(),
+                "sequence" => factory::<crate::attrs::sequence::dynamic::Config<V>>(),
                 _ => return None,
             });
         }
 
-        fn bound_attr<V>(kind: &str) -> Option<BoundAttrFactory<B, V>>
-        where V: AttrValue + DeserializeOwned + Bounded {
+        fn bound_attr<Reg: registry::Registry, V>(kind: &str) -> Option<BoundAttrFactory<Reg, V>>
+        where V: AttrValue + DeserializeOwned + input::Coerced + Bounded {
             return Some(match kind {
-                "button" => factory(crate::attrs::button::dynamic::bound_attr),
-                "switch" => factory(crate::attrs::switch::dynamic::bound_attr),
-                // "fader" => factory(crate::attrs::fader::dynamic::bound_attr),
-                // "looper" => factory(crate::attrs::looper::dynamic::bound_attr),
-                // "random" => factory(crate::attrs::random::dynamic::bound_attr),
-                "sequence" => factory(crate::attrs::sequence::dynamic::bound_attr),
+                "button" => factory::<crate::attrs::button::dynamic::Config<V>>(),
+                "switch" => factory::<crate::attrs::switch::dynamic::Config<V>>(),
+                // "fader" => factory::<crate::attrs::fader::dynamic::Config<V>>(),
+                // "looper" => factory::<crate::attrs::looper::dynamic::Config<V>(),
+                // "random" => factory::<crate::attrs::random::dynamic::Config<V>(),
+                "sequence" => factory::<crate::attrs::sequence::dynamic::Config<V>>(),
                 _ => return None,
             });
         }

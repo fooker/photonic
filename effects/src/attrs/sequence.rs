@@ -95,8 +95,9 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
-    use photonic_dynamic::config;
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, DynBoundAttrDecl, DynFreeAttrDecl};
 
     use super::*;
 
@@ -107,33 +108,31 @@ pub mod dynamic {
         pub prev: Option<config::Input>,
     }
 
-    impl<V> Producible for Sequence<V>
+    impl<V> Producible<dyn DynFreeAttrDecl<V>> for Config<V>
     where V: AttrValue + DeserializeOwned
     {
-        type Config = Config<V>;
+        type Product = Sequence<V>;
+
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Sequence {
+                values: config.values,
+                next: config.next.map(|config| builder.input(config)).transpose()?,
+                prev: config.prev.map(|config| builder.input(config)).transpose()?,
+            });
+        }
     }
 
-    pub fn free_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Sequence<V>>
-    where
-        B: photonic_dynamic::AttrBuilder,
-        V: AttrValue + DeserializeOwned,
+    impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config<V>
+    where V: AttrValue + DeserializeOwned + Bounded
     {
-        return Ok(Sequence {
-            values: config.values,
-            next: config.next.map(|config| builder.input(config)).transpose()?,
-            prev: config.prev.map(|config| builder.input(config)).transpose()?,
-        });
-    }
+        type Product = Sequence<V>;
 
-    pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Sequence<V>>
-    where
-        B: photonic_dynamic::AttrBuilder,
-        V: AttrValue + DeserializeOwned + Bounded,
-    {
-        return Ok(Sequence {
-            values: config.values,
-            next: config.next.map(|config| builder.input(config)).transpose()?,
-            prev: config.prev.map(|config| builder.input(config)).transpose()?,
-        });
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Sequence {
+                values: config.values,
+                next: config.next.map(|config| builder.input(config)).transpose()?,
+                prev: config.prev.map(|config| builder.input(config)).transpose()?,
+            });
+        }
     }
 }

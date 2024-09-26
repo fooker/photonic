@@ -122,7 +122,8 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic_dynamic::factory::Producible;
-    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedNodeDecl};
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
 
     use crate::easing::Easings;
 
@@ -136,23 +137,21 @@ pub mod dynamic {
         pub easing_speed: Duration,
     }
 
-    impl Producible for Select<BoxedNodeDecl, BoxedBoundAttrDecl<usize>> {
-        type Config = Config;
-    }
+    impl Producible<dyn DynNodeDecl> for Config {
+        type Product = Select<BoxedNodeDecl, BoxedBoundAttrDecl<usize>>;
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
+            let sources = config
+                .sources
+                .into_iter()
+                .enumerate()
+                .map(|(i, source)| builder.node(&format!("sources.{}", i), source))
+                .collect::<Result<_>>()?;
 
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<Select<BoxedNodeDecl, BoxedBoundAttrDecl<usize>>>
-    where B: photonic_dynamic::NodeBuilder {
-        let sources = config
-            .sources
-            .into_iter()
-            .enumerate()
-            .map(|(i, source)| builder.node(&format!("sources.{}", i), source))
-            .collect::<Result<_>>()?;
-
-        return Ok(Select {
-            sources,
-            value: builder.bound_attr("value", config.value)?,
-            easing: config.easing_func.with_speed(config.easing_speed),
-        });
+            return Ok(Select {
+                sources,
+                value: builder.bound_attr("value", config.value)?,
+                easing: config.easing_func.with_speed(config.easing_speed),
+            });
+        }
     }
 }

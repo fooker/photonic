@@ -82,7 +82,8 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic_dynamic::factory::Producible;
-    use photonic_dynamic::{config, BoxedBoundAttrDecl, BoxedNodeDecl};
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
 
     use super::*;
 
@@ -95,17 +96,15 @@ pub mod dynamic {
         pub range: Option<Range<usize>>,
     }
 
-    impl Producible for Blackout<BoxedNodeDecl, BoxedBoundAttrDecl<f32>> {
-        type Config = Config;
-    }
-
-    pub fn node<B>(config: Config, builder: &mut B) -> Result<Blackout<BoxedNodeDecl, BoxedBoundAttrDecl<f32>>>
-    where B: photonic_dynamic::NodeBuilder {
-        return Ok(Blackout {
-            source: builder.node("source", config.source)?,
-            active: builder.bound_attr("active", config.active)?,
-            value: config.value,
-            range: config.range,
-        });
+    impl Producible<dyn DynNodeDecl> for Config {
+        type Product = Blackout<BoxedNodeDecl, BoxedBoundAttrDecl<f32>>;
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Blackout {
+                source: builder.node("source", config.source)?,
+                active: builder.bound_attr("active", config.active)?,
+                value: config.value,
+                range: config.range,
+            });
+        }
     }
 }

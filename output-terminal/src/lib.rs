@@ -107,7 +107,7 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic_dynamic::factory::{factory, OutputFactory, Producible};
-    use photonic_dynamic::{registry, OutputBuilder};
+    use photonic_dynamic::{builder, registry, DynOutputDecl};
 
     use crate::Terminal;
 
@@ -118,27 +118,36 @@ pub mod dynamic {
         waterfall: bool,
     }
 
-    impl Producible for Terminal {
-        type Config = Config;
+    impl Producible<dyn DynOutputDecl> for Config {
+        type Product = Terminal;
+
+        fn produce<Reg: registry::Registry>(
+            config: Self,
+            _builder: builder::OutputBuilder<'_, Reg>,
+        ) -> Result<Self::Product> {
+            return Ok(Terminal {
+                size: config.size,
+                path: config.path,
+                waterfall: config.waterfall,
+            });
+        }
     }
 
-    pub fn output_x<B>(config: Config, _builder: &mut B) -> Result<Terminal>
-    where B: OutputBuilder {
-        return Ok(Terminal {
-            size: config.size,
-            path: config.path,
-            waterfall: config.waterfall,
-        });
-    }
+    // pub fn output<B>(config: Config, _builder: &mut B) -> Result<Terminal>
+    // where B: OutputBuilder {
+    //     return Ok(Terminal {
+    //         size: config.size,
+    //         path: config.path,
+    //         waterfall: config.waterfall,
+    //     });
+    // }
 
     pub struct Registry;
 
-    impl<B> registry::Registry<B> for Registry
-    where B: OutputBuilder + 'static
-    {
-        fn output(kind: &str) -> Option<OutputFactory<B>> {
+    impl registry::Registry for Registry {
+        fn output<Reg: registry::Registry>(kind: &str) -> Option<OutputFactory<Reg>> {
             return match kind {
-                "terminal" => Some(factory(output_x)),
+                "terminal" => Some(factory::<Config>()),
                 _ => return None,
             };
         }

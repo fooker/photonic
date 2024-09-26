@@ -117,8 +117,9 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
-    use photonic_dynamic::config;
     use photonic_dynamic::factory::Producible;
+    use photonic_dynamic::registry::Registry;
+    use photonic_dynamic::{builder, config, DynBoundAttrDecl, DynFreeAttrDecl};
 
     use super::*;
 
@@ -132,35 +133,33 @@ pub mod dynamic {
         pub trigger: config::Input,
     }
 
-    impl<V> Producible for Button<V>
+    impl<V> Producible<dyn DynFreeAttrDecl<V>> for Config<V>
     where V: AttrValue + DeserializeOwned
     {
-        type Config = Config<V>;
+        type Product = Button<V>;
+
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Button {
+                value_release: config.value_release,
+                value_pressed: config.value_pressed,
+                hold_time: config.hold_time,
+                trigger: builder.input(config.trigger)?,
+            });
+        }
     }
 
-    pub fn free_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Button<V>>
-    where
-        B: photonic_dynamic::AttrBuilder,
-        V: AttrValue + DeserializeOwned,
+    impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config<V>
+    where V: AttrValue + DeserializeOwned + Bounded
     {
-        return Ok(Button {
-            value_release: config.value_release,
-            value_pressed: config.value_pressed,
-            hold_time: config.hold_time,
-            trigger: builder.input(config.trigger)?,
-        });
-    }
+        type Product = Button<V>;
 
-    pub fn bound_attr<V, B>(config: Config<V>, builder: &mut B) -> Result<Button<V>>
-    where
-        B: photonic_dynamic::AttrBuilder,
-        V: AttrValue + DeserializeOwned + Bounded,
-    {
-        return Ok(Button {
-            value_release: config.value_release,
-            value_pressed: config.value_pressed,
-            hold_time: config.hold_time,
-            trigger: builder.input(config.trigger)?,
-        });
+        fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
+            return Ok(Button {
+                value_release: config.value_release,
+                value_pressed: config.value_pressed,
+                hold_time: config.hold_time,
+                trigger: builder.input(config.trigger)?,
+            });
+        }
     }
 }
