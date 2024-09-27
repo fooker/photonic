@@ -1,11 +1,13 @@
 use std::ops::Range;
 
 use anyhow::Result;
+use palette::num::{Arithmetics, One, Zero};
+use palette::Darken;
 
-use photonic::attr::Bounds;
-use photonic::math::Lerp;
+use photonic::attr::{Bounded, Bounds};
 use photonic::{
-    Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
+    Attr, AttrValue, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef,
+    RenderContext,
 };
 
 pub struct Brightness<Source, Value>
@@ -20,8 +22,9 @@ where Source: NodeDecl
 pub struct BrightnessNode<Source, Value>
 where
     Source: Node + 'static,
-    Value: Attr<f32>,
-    Source::Element: Lerp,
+    Value: Attr<<Source::Element as Darken>::Scalar>,
+    Source::Element: Darken,
+    <Source::Element as Darken>::Scalar: AttrValue + Bounded,
 {
     source: NodeRef<Source>,
 
@@ -32,8 +35,9 @@ where
 impl<Source, Value> NodeDecl for Brightness<Source, Value>
 where
     Source: NodeDecl + 'static,
-    Value: BoundAttrDecl<f32>,
-    <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
+    Value: BoundAttrDecl<<<Source::Node as Node>::Element as Darken>::Scalar>,
+    <Source::Node as Node>::Element: Darken,
+    <<Source::Node as Node>::Element as Darken>::Scalar: AttrValue + Bounded + Zero + One + Arithmetics,
 {
     type Node = BrightnessNode<Source::Node, Value::Attr>;
 
@@ -49,8 +53,9 @@ where
 impl<Source, Value> Node for BrightnessNode<Source, Value>
 where
     Source: Node,
-    Value: Attr<f32>,
-    Source::Element: Lerp,
+    Value: Attr<<Source::Element as Darken>::Scalar>,
+    Source::Element: Darken,
+    <Source::Element as Darken>::Scalar: AttrValue + Bounded + Zero + One + Arithmetics,
 {
     const KIND: &'static str = "brightness";
 
@@ -60,8 +65,10 @@ where
         let value = self.value.update(ctx);
         let source = &ctx[self.source];
 
-        // TODO: Use better brightness algo here
-        out.blit_from(source.map_range(&self.range, |c| Lerp::lerp(Self::Element::default(), c, value)));
+        // Invert the value to get the amount to "darken"
+        let value = <Self::Element as Darken>::Scalar::one() - value;
+
+        out.blit_from(source.map_range(&self.range, |c| c.darken(value)));
 
         return Ok(());
     }
