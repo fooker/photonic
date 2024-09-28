@@ -41,8 +41,12 @@ async fn main() -> Result<()> {
 
     let noise = scene.node("noise", Noise {
         speed: 0.05.fixed(),
-        stretch: 0.01.fixed(),
+        stretch: 0.05.fixed(),
         noise: noise::OpenSimplex::default(),
+    })?;
+    let noise = scene.node("noise:rgb", Map {
+        source: noise,
+        mapper: Rgb::from_color,
     })?;
 
     let colors = scene.node("colors", ColorWheel {
@@ -157,12 +161,12 @@ async fn main() -> Result<()> {
 
     let mut scene = scene.run(kitchen, output).await?;
 
-    let restore = photonic_interface_restore::Restore {
-        path: "/tmp/photonic.example.restore".into(),
-        write_threshold: 5,
-        write_timeout: Duration::from_secs(5),
-    };
-    scene.serve("restore", restore);
+    // let restore = photonic_interface_restore::Restore {
+    //     path: "/tmp/photonic.example.restore".into(),
+    //     write_threshold: 5,
+    //     write_timeout: Duration::from_secs(5),
+    // };
+    // scene.serve("restore", restore);
 
     let cli = photonic_interface_cli::stdio::CLI;
     scene.serve("CLI", cli);
