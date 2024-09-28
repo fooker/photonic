@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Context, Result};
+use palette::rgb::Rgb;
 use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
 
@@ -44,7 +45,7 @@ impl<Reg: Registry> AttrBuilder<'_, Reg> {
 }
 
 impl<Reg: Registry> NodeBuilder<'_, Reg> {
-    pub fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl>> {
+    pub fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl<Rgb>>> {
         return self.0.node(name, config);
     }
 
@@ -166,7 +167,7 @@ impl<Reg: Registry> Builder<Reg> {
         }
     }
 
-    pub fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl>> {
+    pub fn node(&mut self, name: &str, config: config::Node) -> Result<NodeHandle<BoxedNodeDecl<Rgb>>> {
         let factory = Reg::node::<Reg>(&config.kind).ok_or_else(|| anyhow!("Unknown node type: {}", config.kind))?;
 
         let decl = factory

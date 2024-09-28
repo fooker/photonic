@@ -70,6 +70,7 @@ where
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
+    use palette::rgb::Rgb;
     use serde::Deserialize;
 
     use photonic::boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynNodeDecl};
@@ -86,7 +87,7 @@ pub mod dynamic {
         pub speed: config::Attr<f32>,
     }
 
-    impl Producible<dyn DynNodeDecl> for Config {
+    impl Producible<dyn DynNodeDecl<Rgb>> for Config {
         type Product = Alert<BoxedBoundAttrDecl<f32>, BoxedBoundAttrDecl<i64>, BoxedFreeAttrDecl<f32>>;
 
         fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {

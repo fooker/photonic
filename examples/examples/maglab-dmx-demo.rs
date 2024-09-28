@@ -3,6 +3,7 @@
 use std::time::Duration;
 
 use anyhow::Result;
+use palette::rgb::Rgb;
 use palette::{FromColor, Hsl, Srgb};
 
 use photonic::attr::{AsFixedAttr, Range};
@@ -56,7 +57,7 @@ async fn main() -> Result<()> {
     let input_animation = scene.input::<i64>("animation")?;
     let animation = scene.node(
         "animation",
-        Select::with_value(input_animation.attr(0))
+        Select::<Rgb, _>::with_value(input_animation.attr(0))
             .with_easing(Easings::Quartic(EasingDirection::InOut).with_speed(Duration::from_secs(3)))
             .with_source(noise)
             .with_source(raindrops)

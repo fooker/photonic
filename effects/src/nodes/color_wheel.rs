@@ -62,6 +62,7 @@ impl Node for ColorWheelNode {
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
+    use palette::rgb::Rgb;
     use serde::Deserialize;
 
     use photonic::boxed::DynNodeDecl;
@@ -81,7 +82,7 @@ pub mod dynamic {
         pub intensity: f32,
     }
 
-    impl Producible<dyn DynNodeDecl> for Config {
+    impl Producible<dyn DynNodeDecl<Rgb>> for Config {
         type Product = ColorWheel;
         fn produce<Reg: Registry>(config: Self, _builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
             return Ok(ColorWheel {

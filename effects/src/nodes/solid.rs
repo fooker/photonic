@@ -59,7 +59,7 @@ pub mod dynamic {
         pub color: config::Attr<Rgb>,
     }
 
-    impl Producible<dyn DynNodeDecl> for Config {
+    impl Producible<dyn DynNodeDecl<Rgb>> for Config {
         type Product = Solid<BoxedFreeAttrDecl<Rgb>>;
         fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
             return Ok(Solid {

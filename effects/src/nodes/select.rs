@@ -1,26 +1,31 @@
 use anyhow::Result;
-use palette::rgb::Rgb;
+use palette::convert::FromColorUnclamped;
 use std::time::Duration;
 
-use photonic::boxed::{Boxed, BoxedNode, BoxedNodeDecl, DynNodeDecl};
+use photonic::boxed::{Boxed, DynNode, DynNodeDecl};
+use photonic::math::Lerp;
 use photonic::{
     Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
 };
 
 use crate::easing::{Easing, Easings};
 
-pub struct Select<Value>
-where Value: BoundAttrDecl<usize>
+pub struct Select<E, Value>
+where
+    Value: BoundAttrDecl<usize>,
+    E: Default + Copy,
 {
     value: Value,
 
-    sources: Vec<NodeHandle<BoxedNodeDecl>>,
+    sources: Vec<NodeHandle<Box<dyn DynNodeDecl<E>>>>,
 
     easing: Easing<f32>,
 }
 
-impl<Value> Select<Value>
-where Value: BoundAttrDecl<usize>
+impl<E, Value> Select<E, Value>
+where
+    Value: BoundAttrDecl<usize>,
+    E: Default + Copy,
 {
     pub fn with_value(value: Value) -> Self {
         return Self {
@@ -35,16 +40,22 @@ where Value: BoundAttrDecl<usize>
         return self;
     }
 
-    pub fn with_source(mut self, source: NodeHandle<impl NodeDecl + Boxed<dyn DynNodeDecl>>) -> Self {
+    pub fn with_source<Decl>(mut self, source: NodeHandle<Decl>) -> Self
+    where
+        Decl: NodeDecl + Boxed<dyn DynNodeDecl<E>> + 'static,
+        E: FromColorUnclamped<<<Decl as NodeDecl>::Node as Node>::Element> + 'static,
+    {
         self.sources.push(source.boxed());
         return self;
     }
 }
 
-pub struct SelectNode<Value>
-where Value: Attr<usize>
+pub struct SelectNode<E, Value>
+where
+    Value: Attr<usize>,
+    E: Default + Copy + 'static,
 {
-    sources: Vec<NodeRef<BoxedNode>>,
+    sources: Vec<NodeRef<Box<dyn DynNode<E>>>>,
     value: Value,
 
     last: Option<usize>,
@@ -55,12 +66,14 @@ where Value: Attr<usize>
     easing: Easing<f32>,
 }
 
-impl<Value> NodeDecl for Select<Value>
-where Value: BoundAttrDecl<usize>
+impl<E, Value> NodeDecl for Select<E, Value>
+where
+    Value: BoundAttrDecl<usize>,
+    E: Default + Copy + Lerp + 'static,
 {
     const KIND: &'static str = "select";
 
-    type Node = SelectNode<Value::Attr>;
+    type Node = SelectNode<E, Value::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         let mut sources = Vec::new();
@@ -81,10 +94,12 @@ where Value: BoundAttrDecl<usize>
     }
 }
 
-impl<Value> Node for SelectNode<Value>
-where Value: Attr<usize>
+impl<E, Value> Node for SelectNode<E, Value>
+where
+    Value: Attr<usize>,
+    E: Default + Copy + Lerp,
 {
-    type Element = Rgb;
+    type Element = E;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let curr = self.value.update(ctx);
@@ -130,6 +145,7 @@ where Value: Attr<usize>
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
+    use palette::rgb::Rgb;
     use serde::Deserialize;
 
     use photonic::boxed::BoxedBoundAttrDecl;
@@ -146,8 +162,8 @@ pub mod dynamic {
         pub easing: Easing<f32>,
     }
 
-    impl Producible<dyn DynNodeDecl> for Config {
-        type Product = Select<BoxedBoundAttrDecl<usize>>;
+    impl Producible<dyn DynNodeDecl<Rgb>> for Config {
+        type Product = Select<Rgb, BoxedBoundAttrDecl<usize>>;
         fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
             let sources = config
                 .sources

@@ -97,8 +97,8 @@ pub mod dynamic {
         pub range: Option<Range<usize>>,
     }
 
-    impl Producible<dyn DynNodeDecl> for Config {
-        type Product = Blackout<BoxedNodeDecl, BoxedBoundAttrDecl<f32>>;
+    impl Producible<dyn DynNodeDecl<Rgb>> for Config {
+        type Product = Blackout<BoxedNodeDecl<Rgb>, BoxedBoundAttrDecl<f32>>;
         fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
             return Ok(Blackout {
                 source: builder.node("source", config.source)?,

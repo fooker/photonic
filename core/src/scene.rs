@@ -13,7 +13,6 @@ use palette::FromColor;
 
 use crate::arena::{Arena, Ref, Slice};
 use crate::attr::{AttrValue, Bounded, Bounds};
-use crate::boxed::DynNodeDecl;
 use crate::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl, OutputDecl};
 use crate::input::{Input, InputSink, InputValue};
 use crate::interface::{Interface, Introspection};
@@ -71,12 +70,14 @@ where Decl: NodeDecl
 
 #[cfg(feature = "boxed")]
 impl<Decl> NodeHandle<Decl>
-where Decl: NodeDecl + crate::boxed::Boxed<dyn DynNodeDecl>
+where Decl: NodeDecl + 'static
 {
-    pub fn boxed(self) -> NodeHandle<crate::boxed::BoxedNodeDecl> {
+    pub fn boxed<E>(self) -> NodeHandle<crate::boxed::BoxedNodeDecl<E>>
+    where E: Default + Copy + palette::convert::FromColorUnclamped<<<Decl as NodeDecl>::Node as Node>::Element> + 'static
+    {
         return NodeHandle {
             name: self.name,
-            decl: self.decl.boxed(),
+            decl: crate::boxed::Boxed::boxed(self.decl),
         };
     }
 }

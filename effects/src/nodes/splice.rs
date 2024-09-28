@@ -87,6 +87,7 @@ where
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
+    use palette::rgb::Rgb;
     use serde::Deserialize;
 
     use photonic::boxed::{BoxedNodeDecl, DynNodeDecl};
@@ -103,8 +104,8 @@ pub mod dynamic {
         pub split: isize,
     }
 
-    impl Producible<dyn DynNodeDecl> for Config {
-        type Product = Splice<BoxedNodeDecl, BoxedNodeDecl>;
+    impl Producible<dyn DynNodeDecl<Rgb>> for Config {
+        type Product = Splice<BoxedNodeDecl<Rgb>, BoxedNodeDecl<Rgb>>;
         fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
             return Ok(Splice {
                 n1: builder.node("n1", config.n1)?,

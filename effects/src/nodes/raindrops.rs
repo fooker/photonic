@@ -109,7 +109,7 @@ pub mod dynamic {
     type BoxedRaindrops =
         Raindrops<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<Hsl>>, BoxedBoundAttrDecl<Range<f32>>>;
 
-    impl Producible<dyn DynNodeDecl> for Config {
+    impl Producible<dyn DynNodeDecl<Rgb>> for Config {
         type Product = BoxedRaindrops;
         fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
             return Ok(Raindrops {
