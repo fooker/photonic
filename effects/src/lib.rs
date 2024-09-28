@@ -42,6 +42,7 @@ pub mod dynamic {
                 "switch" => factory::<crate::attrs::switch::dynamic::Config<V>>(),
                 "fader" => factory::<crate::attrs::fader::dynamic::Config<V>>(),
                 "sequence" => factory::<crate::attrs::sequence::dynamic::Config<V>>(),
+                "peak" => factory::<crate::attrs::peak::dynamic::Config<V>>(),
                 _ => return None,
             });
         }
@@ -55,6 +56,7 @@ pub mod dynamic {
                 "looper" => factory::<crate::attrs::looper::dynamic::Config<V>>(),
                 "random" => factory::<crate::attrs::random::dynamic::Config>(),
                 "sequence" => factory::<crate::attrs::sequence::dynamic::Config<V>>(),
+                "peak" => factory::<crate::attrs::peak::dynamic::Config<V>>(),
                 _ => return None,
             });
         }
