@@ -42,6 +42,7 @@ pub enum EasingDirection {
 #[cfg_attr(feature = "dynamic", derive(photonic_dynamic::serde::Deserialize))]
 #[cfg_attr(feature = "dynamic", serde(rename_all = "snake_case"))]
 pub enum Easings {
+    Instant,
     Linear,
     Quadratic(EasingDirection),
     Cubic(EasingDirection),
@@ -65,6 +66,7 @@ impl<F: Float> From<Easings> for Easing<F> {
     fn from(value: Easings) -> Self {
         use ezing::*;
         return match value {
+            Easings::Instant => |_| F::one(),
             Easings::Linear => linear,
             Easings::Quadratic(EasingDirection::In) => quad_in,
             Easings::Quadratic(EasingDirection::Out) => quad_out,

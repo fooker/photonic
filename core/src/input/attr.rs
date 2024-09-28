@@ -17,6 +17,8 @@ where A: AttrValue + input::Coerced
 impl<A> BoundAttrDecl<A> for InputAttrDecl<A>
 where A: AttrValue + input::Coerced + Bounded
 {
+    const KIND: &'static str = "input";
+
     type Attr = BoundInputAttr<A>;
 
     fn materialize(self, bounds: Bounds<A>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -35,6 +37,8 @@ where A: AttrValue + input::Coerced + Bounded
 impl<A> FreeAttrDecl<A> for InputAttrDecl<A>
 where A: AttrValue + input::Coerced
 {
+    const KIND: &'static str = "input";
+
     type Attr = FreeInputAttr<A>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -60,8 +64,6 @@ where A: AttrValue + input::Coerced + Bounded
 impl<A> Attr<A> for BoundInputAttr<A>
 where A: AttrValue + input::Coerced + Bounded
 {
-    const KIND: &'static str = "input";
-
     fn update(&mut self, _ctx: &scene::RenderContext) -> A {
         if let Poll::Update(update) = self.input.poll() {
             // TODO: This needs error handling - best idea for now is to couple inputs and attrs more tightly to allow
@@ -89,8 +91,6 @@ where A: AttrValue + input::Coerced
 impl<A> Attr<A> for FreeInputAttr<A>
 where A: AttrValue + input::Coerced
 {
-    const KIND: &'static str = "input";
-
     fn update(&mut self, _ctx: &scene::RenderContext) -> A {
         if let Poll::Update(update) = self.input.poll() {
             if let Ok(update) = A::try_from_input(update) {

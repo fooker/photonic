@@ -24,6 +24,8 @@ pub struct ColorWheelNode {
 }
 
 impl NodeDecl for ColorWheel {
+    const KIND: &'static str = "color_wheel";
+
     type Node = ColorWheelNode;
 
     async fn materialize(self, _builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -39,8 +41,6 @@ impl NodeDecl for ColorWheel {
 }
 
 impl Node for ColorWheelNode {
-    const KIND: &'static str = "color_wheel";
-
     type Element = Hsv;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -62,9 +62,10 @@ impl Node for ColorWheelNode {
 
 #[cfg(feature = "dynamic")]
 pub mod dynamic {
-    use photonic_dynamic::{builder, DynNodeDecl};
     use serde::Deserialize;
 
+    use photonic::boxed::DynNodeDecl;
+    use photonic_dynamic::builder;
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
 

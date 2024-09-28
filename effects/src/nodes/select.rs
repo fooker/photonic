@@ -1,31 +1,50 @@
 use anyhow::Result;
+use palette::rgb::Rgb;
+use std::time::Duration;
 
-use photonic::math::Lerp;
+use photonic::boxed::{Boxed, BoxedNode, BoxedNodeDecl, DynNodeDecl};
 use photonic::{
     Attr, BoundAttrDecl, Buffer, BufferReader, Node, NodeBuilder, NodeDecl, NodeHandle, NodeRef, RenderContext,
 };
 
-use crate::easing::Easing;
+use crate::easing::{Easing, Easings};
 
-pub struct Select<Source, Value>
-where
-    Source: NodeDecl,
-    Value: BoundAttrDecl<usize>,
-    <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
+pub struct Select<Value>
+where Value: BoundAttrDecl<usize>
 {
-    pub sources: Vec<NodeHandle<Source>>,
-    pub value: Value,
+    value: Value,
 
-    pub easing: Easing<f32>,
+    sources: Vec<NodeHandle<BoxedNodeDecl>>,
+
+    easing: Easing<f32>,
 }
 
-pub struct SelectNode<Source, Value>
-where
-    Source: Node + 'static,
-    Value: Attr<usize>,
-    Source::Element: Lerp,
+impl<Value> Select<Value>
+where Value: BoundAttrDecl<usize>
 {
-    sources: Vec<NodeRef<Source>>,
+    pub fn with_value(value: Value) -> Self {
+        return Self {
+            value,
+            sources: vec![],
+            easing: Easings::Instant.with_speed(Duration::ZERO),
+        };
+    }
+
+    pub fn with_easing(mut self, easing: impl Into<Easing<f32>>) -> Self {
+        self.easing = easing.into();
+        return self;
+    }
+
+    pub fn with_source(mut self, source: NodeHandle<impl NodeDecl + Boxed<dyn DynNodeDecl>>) -> Self {
+        self.sources.push(source.boxed());
+        return self;
+    }
+}
+
+pub struct SelectNode<Value>
+where Value: Attr<usize>
+{
+    sources: Vec<NodeRef<BoxedNode>>,
     value: Value,
 
     last: Option<usize>,
@@ -36,18 +55,17 @@ where
     easing: Easing<f32>,
 }
 
-impl<Source, Value> NodeDecl for Select<Source, Value>
-where
-    Source: NodeDecl + 'static,
-    Value: BoundAttrDecl<usize>,
-    <Source::Node as Node>::Element: Lerp + Default, // TODO: Remove default constrain
+impl<Value> NodeDecl for Select<Value>
+where Value: BoundAttrDecl<usize>
 {
-    type Node = SelectNode<Source::Node, Value::Attr>;
+    const KIND: &'static str = "select";
+
+    type Node = SelectNode<Value::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
         let mut sources = Vec::new();
         for (i, source) in self.sources.into_iter().enumerate() {
-            sources.push(builder.node(format!("source-{}", i), source).await?);
+            sources.push(builder.node(format!("source-{i}"), source).await?);
         }
 
         let value = builder.bound_attr("value", self.value, (0, sources.len() - 1))?;
@@ -63,15 +81,10 @@ where
     }
 }
 
-impl<Source, Value> Node for SelectNode<Source, Value>
-where
-    Source: Node,
-    Value: Attr<usize>,
-    Source::Element: Lerp,
+impl<Value> Node for SelectNode<Value>
+where Value: Attr<usize>
 {
-    const KIND: &'static str = "select";
-
-    type Element = Source::Element;
+    type Element = Rgb;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
         let curr = self.value.update(ctx);
@@ -119,9 +132,10 @@ where
 pub mod dynamic {
     use serde::Deserialize;
 
+    use photonic::boxed::BoxedBoundAttrDecl;
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 
@@ -133,7 +147,7 @@ pub mod dynamic {
     }
 
     impl Producible<dyn DynNodeDecl> for Config {
-        type Product = Select<BoxedNodeDecl, BoxedBoundAttrDecl<usize>>;
+        type Product = Select<BoxedBoundAttrDecl<usize>>;
         fn produce<Reg: Registry>(config: Self, mut builder: builder::NodeBuilder<'_, Reg>) -> Result<Self::Product> {
             let sources = config
                 .sources

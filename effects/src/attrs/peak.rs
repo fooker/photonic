@@ -20,8 +20,6 @@ where
     V: AttrValue + PartialEq + Float,
     Input: Attr<V>,
 {
-    const KIND: &'static str = "fader";
-
     fn update(&mut self, ctx: &scene::RenderContext) -> V {
         let curr = self.input.update(ctx);
 
@@ -42,6 +40,8 @@ where
     V: AttrValue + PartialEq + Float + Bounded,
     Input: BoundAttrDecl<V>,
 {
+    const KIND: &'static str = "fader";
+
     type Attr = PeakAttr<V, Input::Attr>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -60,6 +60,8 @@ where
     V: AttrValue + PartialEq + Float,
     Input: FreeAttrDecl<V>,
 {
+    const KIND: &'static str = "fader";
+
     type Attr = PeakAttr<V, Input::Attr>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -80,10 +82,11 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
+    use photonic::boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynBoundAttrDecl, DynFreeAttrDecl};
     use photonic::input;
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynBoundAttrDecl, DynFreeAttrDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

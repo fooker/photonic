@@ -34,6 +34,8 @@ where
     Stretch: FreeAttrDecl<f32>,
     F: NoiseFn<f64, 2>,
 {
+    const KIND: &'static str = "noise";
+
     type Node = NoiseNode<Speed::Attr, Stretch::Attr, F>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -52,8 +54,6 @@ where
     Stretch: Attr<f32>,
     F: NoiseFn<f64, 2>,
 {
-    const KIND: &'static str = "noise";
-
     type Element = Lch;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -75,9 +75,10 @@ where
 pub mod dynamic {
     use serde::Deserialize;
 
+    use photonic::boxed::{BoxedFreeAttrDecl, DynNodeDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedFreeAttrDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

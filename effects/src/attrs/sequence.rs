@@ -19,8 +19,6 @@ where V: AttrValue
 impl<V> Attr<V> for SequenceAttr<V>
 where V: AttrValue
 {
-    const KIND: &'static str = "sequence";
-
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         let next = self.next.as_mut().map_or(Poll::Pending, Input::poll);
         let prev = self.prev.as_mut().map_or(Poll::Pending, Input::poll);
@@ -52,6 +50,8 @@ where V: AttrValue
 impl<V> BoundAttrDecl<V> for Sequence<V>
 where V: AttrValue + Bounded
 {
+    const KIND: &'static str = "sequence";
+
     type Attr = SequenceAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -72,6 +72,8 @@ where V: AttrValue + Bounded
 impl<V> FreeAttrDecl<V> for Sequence<V>
 where V: AttrValue
 {
+    const KIND: &'static str = "sequence";
+
     type Attr = SequenceAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -92,9 +94,10 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
+    use photonic::boxed::{DynBoundAttrDecl, DynFreeAttrDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, DynBoundAttrDecl, DynFreeAttrDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

@@ -6,16 +6,16 @@ use async_trait::async_trait;
 use palette::rgb::Rgb;
 use palette::{FromColor, IntoColor};
 
-use photonic::{BufferReader, Output, OutputDecl};
+use crate::{BufferReader, Output, OutputDecl};
 
-use crate::Boxed;
+use super::Boxed;
 
-#[async_trait(? Send)]
+#[async_trait(?Send)]
 pub trait DynOutputDecl {
     async fn materialize(self: Box<Self>) -> Result<BoxedOutput>;
 }
 
-#[async_trait(? Send)]
+#[async_trait(?Send)]
 impl<T> DynOutputDecl for T
 where
     T: OutputDecl + 'static,
@@ -41,6 +41,8 @@ where
 pub type BoxedOutputDecl = Box<dyn DynOutputDecl>;
 
 impl OutputDecl for BoxedOutputDecl {
+    const KIND: &'static str = "boxed";
+
     type Output = BoxedOutput;
 
     fn materialize(self) -> impl Future<Output = Result<Self::Output>> {
@@ -48,14 +50,14 @@ impl OutputDecl for BoxedOutputDecl {
     }
 }
 
-#[async_trait(? Send)]
+#[async_trait(?Send)]
 pub trait DynOutput {
     async fn render(&mut self, out: &dyn BufferReader<Element = Rgb>) -> Result<()>;
 
     fn size(&self) -> usize;
 }
 
-#[async_trait(? Send)]
+#[async_trait(?Send)]
 impl<T> DynOutput for T
 where
     T: Output,

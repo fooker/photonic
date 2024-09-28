@@ -54,11 +54,14 @@ async fn main() -> Result<()> {
 
     // TODO: Add switcher for more animations
     let input_animation = scene.input::<i64>("animation")?;
-    let animation = scene.node("animation", Select {
-        sources: vec![noise],
-        value: input_animation.attr(0),
-        easing: Easings::Quartic(EasingDirection::InOut).with_speed(Duration::from_secs(3)),
-    })?;
+    let animation = scene.node(
+        "animation",
+        Select::with_value(input_animation.attr(0))
+            .with_easing(Easings::Quartic(EasingDirection::InOut).with_speed(Duration::from_secs(3)))
+            .with_source(noise)
+            .with_source(raindrops)
+            .with_source(colors),
+    )?;
 
     let input_brightness = scene.input::<f32>("brightness")?;
     let brightness = scene.node("brightness", Brightness {
@@ -103,16 +106,14 @@ async fn main() -> Result<()> {
     //    split: -8,
     // })?;
 
-    let output = alert;
-
-    let output = scene.node("output:rgbw", Map {
-        source: output,
+    let rgbw = scene.node("output:rgbw", Map {
+        source: alert,
         mapper: |e| Srgb::from_color(e).black(),
     })?;
 
     let input_kitchen = scene.input::<bool>("kitchen")?;
     let kitchen = scene.node("kitchen", Blackout {
-        source: output,
+        source: rgbw,
         active: Fader {
             input: Switch {
                 value_release: 0.0,

@@ -21,8 +21,6 @@ where V: AttrValue + Num
 impl<V> Attr<V> for LooperAttr<V>
 where V: AttrValue + Num
 {
-    const KIND: &'static str = "looper";
-
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         if let Poll::Update(()) = self.trigger.poll() {
             self.current = self.min + (self.current + self.step - self.min) % (self.max - self.min);
@@ -43,6 +41,8 @@ where V: AttrValue
 impl<V> BoundAttrDecl<V> for Looper<V>
 where V: AttrValue + Bounded + Num + PartialOrd
 {
+    const KIND: &'static str = "looper";
+
     type Attr = LooperAttr<V>;
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         let step = if self.step >= V::zero() {
@@ -70,9 +70,10 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
+    use photonic::boxed::DynBoundAttrDecl;
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, DynBoundAttrDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

@@ -48,6 +48,8 @@ pub struct NetDmxSenderOutput<E> {
 }
 
 impl<E> OutputDecl for NetDmxSender<E> {
+    const KIND: &'static str = "dmx";
+
     type Output = NetDmxSenderOutput<E>;
 
     async fn materialize(self) -> Result<Self::Output>

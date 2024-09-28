@@ -81,6 +81,8 @@ where
     V: AttrValue,
     R: AttrValue,
 {
+    const KIND: &'static str = "map";
+
     type Attr = MapAttr<Inner::Attr, F, V, R>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -138,8 +140,6 @@ where
     V: AttrValue,
     R: AttrValue,
 {
-    const KIND: &'static str = "map";
-
     fn update(&mut self, ctx: &scene::RenderContext) -> R {
         let value = self.inner.update(ctx);
         return (self.f)(value);

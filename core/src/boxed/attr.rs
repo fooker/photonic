@@ -1,9 +1,9 @@
 use anyhow::Result;
 
-use photonic::attr::{Bounded, Bounds};
-use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
+use crate::attr::{Bounded, Bounds};
+use crate::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
-use crate::Boxed;
+use super::Boxed;
 
 pub trait DynFreeAttrDecl<V>
 where V: AttrValue
@@ -39,6 +39,8 @@ pub type BoxedFreeAttrDecl<V> = Box<dyn DynFreeAttrDecl<V>>;
 impl<V> FreeAttrDecl<V> for BoxedFreeAttrDecl<V>
 where V: AttrValue
 {
+    const KIND: &'static str = "boxed";
+
     type Attr = BoxedAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -80,6 +82,8 @@ pub type BoxedBoundAttrDecl<V> = Box<dyn DynBoundAttrDecl<V>>;
 impl<V> BoundAttrDecl<V> for BoxedBoundAttrDecl<V>
 where V: AttrValue + Bounded
 {
+    const KIND: &'static str = "boxed";
+
     type Attr = BoxedAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -108,8 +112,6 @@ pub type BoxedAttr<V> = Box<dyn DynAttr<V>>;
 impl<V> Attr<V> for BoxedAttr<V>
 where V: AttrValue
 {
-    const KIND: &'static str = "todo!()";
-
     fn update(&mut self, ctx: &scene::RenderContext) -> V {
         return DynAttr::update(self.as_mut(), ctx);
     }

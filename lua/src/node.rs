@@ -34,6 +34,8 @@ pub struct LuaNode {
 }
 
 impl NodeDecl for Lua {
+    const KIND: &'static str = "lua";
+
     type Node = LuaNode;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -69,8 +71,6 @@ impl NodeDecl for Lua {
 }
 
 impl Node for LuaNode {
-    const KIND: &'static str = "lua";
-
     type Element = Rgb;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {

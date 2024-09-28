@@ -22,6 +22,8 @@ where
     T: Default,
     R: Default + Copy,
 {
+    const KIND: &'static str = "map";
+
     type Node = MapNode<N::Node, F, T, R>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -48,7 +50,6 @@ where
     F: Fn(T) -> R,
     R: Default + Copy,
 {
-    const KIND: &'static str = "map";
     type Element = R;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {

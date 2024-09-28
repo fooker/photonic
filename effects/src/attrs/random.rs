@@ -25,8 +25,6 @@ where V: AttrValue + SampleUniform + Bounded
 impl<V> Attr<V> for RandomAttr<V>
 where V: AttrValue + SampleUniform + Bounded
 {
-    const KIND: &'static str = "random";
-
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         if let Poll::Update(()) = self.trigger.poll() {
             self.current = self.uniform.sample(&mut self.random);
@@ -45,6 +43,8 @@ pub struct Random<V> {
 impl<V> BoundAttrDecl<V> for Random<V>
 where V: AttrValue + SampleUniform + Bounded
 {
+    const KIND: &'static str = "random";
+
     type Attr = RandomAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -71,9 +71,10 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
+    use photonic::boxed::DynBoundAttrDecl;
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, DynBoundAttrDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

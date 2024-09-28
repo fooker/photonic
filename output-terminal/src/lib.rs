@@ -42,6 +42,8 @@ pub struct TerminalOutput {
 }
 
 impl OutputDecl for Terminal {
+    const KIND: &'static str = "terminal";
+
     type Output = TerminalOutput;
 
     async fn materialize(self) -> Result<Self::Output>
@@ -106,8 +108,9 @@ pub mod dynamic {
     use anyhow::Result;
     use serde::Deserialize;
 
+    use photonic::boxed::DynOutputDecl;
     use photonic_dynamic::factory::{factory, OutputFactory, Producible};
-    use photonic_dynamic::{builder, registry, DynOutputDecl};
+    use photonic_dynamic::{builder, registry};
 
     use crate::Terminal;
 

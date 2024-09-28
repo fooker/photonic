@@ -3,15 +3,15 @@ use async_trait::async_trait;
 use palette::rgb::Rgb;
 use palette::{FromColor, IntoColor};
 
-use crate::Boxed;
-use photonic::{Buffer, BufferReader, Node, NodeBuilder, NodeDecl, RenderContext};
+use super::Boxed;
+use crate::{Buffer, BufferReader, Node, NodeBuilder, NodeDecl, RenderContext};
 
-#[async_trait(? Send)]
+#[async_trait(?Send)]
 pub trait DynNodeDecl {
     async fn materialize(self: Box<Self>, builder: &mut NodeBuilder<'_>) -> Result<BoxedNode>;
 }
 
-#[async_trait(? Send)]
+#[async_trait(?Send)]
 impl<T> DynNodeDecl for T
 where
     T: NodeDecl + 'static,
@@ -43,6 +43,8 @@ where
 pub type BoxedNodeDecl = Box<dyn DynNodeDecl>;
 
 impl NodeDecl for BoxedNodeDecl {
+    const KIND: &'static str = "boxed";
+
     type Node = BoxedNode;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -62,7 +64,6 @@ where
     N: Node,
     Rgb: FromColor<<N as Node>::Element>,
 {
-    const KIND: &'static str = "boxed";
     type Element = Rgb;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -90,8 +91,6 @@ where
 pub type BoxedNode = Box<dyn DynNode>;
 
 impl Node for BoxedNode {
-    const KIND: &'static str = "todo!()";
-
     type Element = Rgb;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {

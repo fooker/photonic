@@ -39,6 +39,8 @@ where
     Color: FreeAttrDecl<Range<Hsl>>,
     Decay: BoundAttrDecl<Range<f32>>,
 {
+    const KIND: &'static str = "raindrops";
+
     type Node = RaindropsNode<Rate::Attr, Color::Attr, Decay::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -58,8 +60,6 @@ where
     Color: Attr<Range<Hsl>>,
     Decay: Attr<Range<f32>>,
 {
-    const KIND: &'static str = "raindrops";
-
     type Element = Hsl;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -92,9 +92,10 @@ pub mod dynamic {
     use serde::Deserialize;
 
     use photonic::attr::FreeAttrDeclExt;
+    use photonic::boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynNodeDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

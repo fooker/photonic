@@ -28,3 +28,6 @@ pub mod output;
 pub mod random;
 pub mod scene;
 pub mod utils;
+
+#[cfg(feature = "boxed")]
+pub mod boxed;

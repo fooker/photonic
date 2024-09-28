@@ -3,10 +3,10 @@ use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
 
 use photonic::attr::{AsFixedAttr, Bounded};
+use photonic::boxed::{Boxed, BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
 use photonic::input::InputValue;
 use photonic::scene::InputHandle;
 use photonic::{input, AttrValue, NodeHandle, Scene};
-use photonic_dynamic_boxed::{Boxed, BoxedBoundAttrDecl, BoxedFreeAttrDecl, BoxedNodeDecl, BoxedOutputDecl};
 
 use crate::config;
 use crate::registry::Registry;

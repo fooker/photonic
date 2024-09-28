@@ -25,6 +25,8 @@ where
     Block: BoundAttrDecl<i64>,
     Speed: FreeAttrDecl<f32>, // TODO: Make speed an attr of duration
 {
+    const KIND: &'static str = "alert";
+
     type Node = AlertNode<Hue::Attr, Block::Attr, Speed::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -44,8 +46,6 @@ where
     Block: Attr<i64>,
     Speed: Attr<f32>,
 {
-    const KIND: &'static str = "alert";
-
     type Element = Hsv;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -72,9 +72,10 @@ where
 pub mod dynamic {
     use serde::Deserialize;
 
+    use photonic::boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynNodeDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

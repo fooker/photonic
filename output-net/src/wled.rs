@@ -44,6 +44,8 @@ pub struct WledSenderOutput {
 }
 
 impl OutputDecl for WledSender {
+    const KIND: &'static str = "wled";
+
     type Output = WledSenderOutput;
 
     async fn materialize(self) -> Result<Self::Output>

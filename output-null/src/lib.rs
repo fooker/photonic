@@ -24,6 +24,7 @@ impl<E> Null<E> {
 }
 
 impl<E> OutputDecl for Null<E> {
+    const KIND: &'static str = "null";
     type Output = NullOutput<E>;
 
     async fn materialize(self) -> Result<Self::Output>

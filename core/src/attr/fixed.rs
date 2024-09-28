@@ -13,8 +13,6 @@ where V: AttrValue;
 impl<V> Attr<V> for FixedAttr<V>
 where V: AttrValue
 {
-    const KIND: &'static str = "fixed";
-
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         return self.0;
     }
@@ -37,6 +35,8 @@ where V: AttrValue;
 impl<V> FreeAttrDecl<V> for FixedAttrDecl<V>
 where V: AttrValue
 {
+    const KIND: &'static str = "fixed";
+
     type Attr = FixedAttr<V>;
 
     fn materialize(self, _builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -47,6 +47,8 @@ where V: AttrValue
 impl<V> BoundAttrDecl<V> for FixedAttrDecl<V>
 where V: AttrValue + Bounded
 {
+    const KIND: &'static str = "fixed";
+
     type Attr = FixedAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, _builder: &mut AttrBuilder) -> Result<Self::Attr> {

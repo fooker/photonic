@@ -45,6 +45,8 @@ where
     <N2 as NodeDecl>::Node: Node<Element = E> + 'static,
     E: Default + Copy,
 {
+    const KIND: &'static str = "splice";
+
     type Node = SpliceNode<N1::Node, N2::Node>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -65,8 +67,6 @@ where
     N2: Node<Element = E> + 'static,
     E: Default + Copy,
 {
-    const KIND: &'static str = "splice";
-
     type Element = E;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -89,9 +89,10 @@ where
 pub mod dynamic {
     use serde::Deserialize;
 
+    use photonic::boxed::{BoxedNodeDecl, DynNodeDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedNodeDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

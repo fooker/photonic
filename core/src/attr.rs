@@ -30,8 +30,6 @@ impl std::fmt::Display for AttrValueType {
 }
 
 pub trait Attr<V: AttrValue> {
-    const KIND: &'static str;
-
     fn update(&mut self, ctx: &scene::RenderContext) -> V;
 }
 
@@ -39,8 +37,6 @@ pub trait Attr<V: AttrValue> {
 impl<V> Attr<V> for !
 where V: AttrValue
 {
-    const KIND: &'static str = "never";
-
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
         return *self;
     }

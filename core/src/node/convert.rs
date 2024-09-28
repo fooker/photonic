@@ -22,6 +22,8 @@ where
     T: Default,
     R: Default + Copy + From<T>,
 {
+    const KIND: &'static str = "convert";
+
     type Node = ConvertNode<N::Node, T, R>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -46,7 +48,6 @@ where
     N: Node<Element = T> + 'static,
     R: Default + Copy + From<T>,
 {
-    const KIND: &'static str = "convert";
     type Element = R;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {

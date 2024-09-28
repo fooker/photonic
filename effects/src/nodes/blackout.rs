@@ -38,6 +38,8 @@ where
     <<Source as NodeDecl>::Node as Node>::Element: Lerp,
     Active: BoundAttrDecl<f32>,
 {
+    const KIND: &'static str = "blackout";
+
     type Node = BlackoutNode<Source::Node, Active::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -56,8 +58,6 @@ where
     <Source as Node>::Element: Lerp,
     Active: Attr<f32>,
 {
-    const KIND: &'static str = "blackout";
-
     type Element = Source::Element;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -81,9 +81,10 @@ pub mod dynamic {
     use palette::rgb::Rgb;
     use serde::Deserialize;
 
+    use photonic::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

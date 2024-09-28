@@ -4,7 +4,7 @@ use anyhow::Result;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 
-use photonic_dynamic_boxed::{Boxed, DynBoundAttrDecl, DynFreeAttrDecl, DynNodeDecl, DynOutputDecl};
+use photonic::boxed::{Boxed, DynBoundAttrDecl, DynFreeAttrDecl, DynNodeDecl, DynOutputDecl};
 
 use crate::config::Anything;
 use crate::registry::Registry;

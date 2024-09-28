@@ -18,6 +18,8 @@ where Color: Attr<Rgb>
 impl<Color> NodeDecl for Solid<Color>
 where Color: FreeAttrDecl<Rgb>
 {
+    const KIND: &'static str = "solid";
+
     type Node = SolidNode<Color::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -30,8 +32,6 @@ where Color: FreeAttrDecl<Rgb>
 impl<Color> Node for SolidNode<Color>
 where Color: Attr<Rgb>
 {
-    const KIND: &'static str = "solid";
-
     type Element = Rgb;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -47,9 +47,10 @@ where Color: Attr<Rgb>
 pub mod dynamic {
     use serde::Deserialize;
 
+    use photonic::boxed::{BoxedFreeAttrDecl, DynNodeDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedFreeAttrDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

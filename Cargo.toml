@@ -16,7 +16,6 @@ members = [
     "lua",
     "dynamic",
     "dynamic/runner",
-    "dynamic/boxed",
     "examples",
 ]
 

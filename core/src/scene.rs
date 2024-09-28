@@ -12,7 +12,8 @@ use futures::FutureExt;
 use palette::FromColor;
 
 use crate::arena::{Arena, Ref, Slice};
-use crate::attr::{Attr, AttrValue, Bounded, Bounds};
+use crate::attr::{AttrValue, Bounded, Bounds};
+use crate::boxed::DynNodeDecl;
 use crate::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl, OutputDecl};
 use crate::input::{Input, InputSink, InputValue};
 use crate::interface::{Interface, Introspection};
@@ -66,6 +67,18 @@ where Decl: NodeDecl
 
     /// The declaration of the node
     pub decl: Decl,
+}
+
+#[cfg(feature = "boxed")]
+impl<Decl> NodeHandle<Decl>
+where Decl: NodeDecl + crate::boxed::Boxed<dyn DynNodeDecl>
+{
+    pub fn boxed(self) -> NodeHandle<crate::boxed::BoxedNodeDecl> {
+        return NodeHandle {
+            name: self.name,
+            decl: self.decl.boxed(),
+        };
+    }
 }
 
 #[derive(Debug)]
@@ -411,7 +424,7 @@ impl SceneBuilder {
 
             info: NodeInfo {
                 key: "".to_string(),
-                kind: Node::Node::KIND,
+                kind: Node::KIND,
                 name: root.name,
                 nodes: HashMap::new(),
                 attrs: HashMap::new(),
@@ -473,7 +486,7 @@ impl NodeBuilder<'_> {
 
             info: NodeInfo {
                 key: key.clone(),
-                kind: Node::Node::KIND,
+                kind: Node::KIND,
                 name: decl.name,
                 nodes: HashMap::new(),
                 attrs: HashMap::new(),
@@ -523,7 +536,7 @@ impl NodeBuilder<'_> {
             size: self.size,
             info: AttrInfo {
                 key: key.clone(),
-                kind: Attr::Attr::KIND,
+                kind: Attr::KIND,
                 value_type: V::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
@@ -555,7 +568,7 @@ impl NodeBuilder<'_> {
             size: self.size,
             info: AttrInfo {
                 key: key.clone(),
-                kind: Attr::Attr::KIND,
+                kind: Attr::KIND,
                 value_type: V::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
@@ -595,7 +608,7 @@ impl<'b> AttrBuilder<'b> {
             size: self.size,
             info: AttrInfo {
                 key: key.clone(),
-                kind: Attr::Attr::KIND,
+                kind: Attr::KIND,
                 value_type: V::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),
@@ -626,7 +639,7 @@ impl<'b> AttrBuilder<'b> {
             size: self.size,
             info: AttrInfo {
                 key: key.clone(),
-                kind: Attr::Attr::KIND,
+                kind: Attr::KIND,
                 value_type: V::TYPE,
                 attrs: HashMap::new(),
                 inputs: HashMap::new(),

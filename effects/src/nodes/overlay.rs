@@ -38,6 +38,8 @@ where
     <<Base as NodeDecl>::Node as Node>::Element: Lerp,
     <<Pave as NodeDecl>::Node as Node>::Element: IntoColor<<<Base as NodeDecl>::Node as Node>::Element>,
 {
+    const KIND: &'static str = "overlay";
+
     type Node = OverlayNode<Base::Node, Pave::Node, Blend::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -57,8 +59,6 @@ where
     Base::Element: Lerp,
     Pave::Element: IntoColor<Base::Element>,
 {
-    const KIND: &'static str = "overlay";
-
     type Element = Base::Element;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -83,9 +83,10 @@ where
 pub mod dynamic {
     use serde::Deserialize;
 
+    use photonic::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

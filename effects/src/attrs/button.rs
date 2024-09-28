@@ -50,8 +50,6 @@ where V: AttrValue
 impl<V> Attr<V> for ButtonAttr<V>
 where V: AttrValue
 {
-    const KIND: &'static str = "button";
-
     fn update(&mut self, ctx: &scene::RenderContext) -> V {
         if let Poll::Update(()) = self.trigger.poll() {
             self.state = State::Pressed(self.hold_time)
@@ -80,6 +78,8 @@ where V: AttrValue
 impl<V> BoundAttrDecl<V> for Button<V>
 where V: AttrValue + Bounded
 {
+    const KIND: &'static str = "button";
+
     type Attr = ButtonAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -96,6 +96,8 @@ where V: AttrValue + Bounded
 impl<V> FreeAttrDecl<V> for Button<V>
 where V: AttrValue
 {
+    const KIND: &'static str = "button";
+
     type Attr = ButtonAttr<V>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
@@ -114,9 +116,10 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
+    use photonic::boxed::{DynBoundAttrDecl, DynFreeAttrDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, DynBoundAttrDecl, DynFreeAttrDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

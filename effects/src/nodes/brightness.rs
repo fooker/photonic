@@ -39,6 +39,8 @@ where
     <Source::Node as Node>::Element: Darken,
     <<Source::Node as Node>::Element as Darken>::Scalar: AttrValue + Bounded + Zero + One + Arithmetics,
 {
+    const KIND: &'static str = "brightness";
+
     type Node = BrightnessNode<Source::Node, Value::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -57,8 +59,6 @@ where
     Source::Element: Darken,
     <Source::Element as Darken>::Scalar: AttrValue + Bounded + Zero + One + Arithmetics,
 {
-    const KIND: &'static str = "brightness";
-
     type Element = Source::Element;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -78,9 +78,10 @@ where
 pub mod dynamic {
     use serde::Deserialize;
 
+    use photonic::boxed::{BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedNodeDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 

@@ -31,6 +31,8 @@ where
     Width: BoundAttrDecl<f32>,
     Speed: FreeAttrDecl<f32>,
 {
+    const KIND: &'static str = "solid";
+
     type Node = LarsonNode<Hue::Attr, Width::Attr, Speed::Attr>;
 
     async fn materialize(self, builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
@@ -50,8 +52,6 @@ where
     Width: Attr<f32>,
     Speed: Attr<f32>,
 {
-    const KIND: &'static str = "solid";
-
     type Element = Hsv;
 
     fn update(&mut self, ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
@@ -96,9 +96,10 @@ where
 pub mod dynamic {
     use serde::Deserialize;
 
+    use photonic::boxed::{BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynNodeDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
-    use photonic_dynamic::{builder, config, BoxedBoundAttrDecl, BoxedFreeAttrDecl, DynNodeDecl};
+    use photonic_dynamic::{builder, config};
 
     use super::*;
 
