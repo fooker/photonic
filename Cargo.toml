@@ -71,5 +71,7 @@ unused_parens = "deny"
 unused_qualifications = "deny"
 while_true = "deny"
 
+incomplete_features = "allow"
+
 [workspace.lints.clippy]
 needless_return = "allow"

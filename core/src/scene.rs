@@ -15,9 +15,9 @@ use crate::arena::{Arena, Ref, Slice};
 use crate::attr::{AttrValue, Bounded, Bounds};
 use crate::decl::{BoundAttrDecl, FreeAttrDecl, NodeDecl, OutputDecl};
 use crate::input::{Input, InputSink, InputValue};
-use crate::interface::{Interface, Introspection};
+use crate::interface::{AttrInfoBuilder, InputInfoBuilder, Interface, Introspection, NodeInfoBuilder};
 use crate::utils::{FrameStats, FrameTimer};
-use crate::{AttrInfo, Buffer, BufferReader, InputInfo, Node, NodeInfo, Output};
+use crate::{Buffer, BufferReader, Node, Output};
 
 pub struct RenderContext<'ctx> {
     /// Duration since last update
@@ -363,7 +363,7 @@ pub struct SceneBuilder {
 
     nodes: Arena<dyn NodeHolder>,
 
-    root: Arc<NodeInfo>,
+    root: NodeInfoBuilder,
 }
 
 pub struct NodeBuilder<'b> {
@@ -372,7 +372,7 @@ pub struct NodeBuilder<'b> {
     /// Size of the scene
     pub size: usize,
 
-    info: NodeInfo,
+    info: NodeInfoBuilder,
 }
 
 impl<'b> NodeBuilder<'b> {
@@ -395,7 +395,7 @@ pub struct AttrBuilder<'b> {
     /// Size of the scene
     pub size: usize,
 
-    info: AttrInfo,
+    info: AttrInfoBuilder,
 }
 
 impl<'b> AttrBuilder<'b> {
@@ -423,7 +423,7 @@ impl SceneBuilder {
 
             nodes: &mut nodes,
 
-            info: NodeInfo {
+            info: NodeInfoBuilder {
                 key: "".to_string(),
                 kind: Node::KIND,
                 name: root.name,
@@ -448,7 +448,7 @@ impl SceneBuilder {
         let scene = SceneBuilder {
             size,
             nodes,
-            root: Arc::new(info),
+            root: info,
         };
 
         return Ok((scene, NodeRef {
@@ -485,7 +485,7 @@ impl NodeBuilder<'_> {
 
             nodes: self.nodes,
 
-            info: NodeInfo {
+            info: NodeInfoBuilder {
                 key: key.clone(),
                 kind: Node::KIND,
                 name: decl.name,
@@ -506,7 +506,7 @@ impl NodeBuilder<'_> {
 
         eprintln!("✨ Materialized node {} ({:?})", info.name, node);
 
-        if let Err(err) = self.info.nodes.try_insert(key, Arc::new(info)) {
+        if let Err(err) = self.info.nodes.try_insert(key, info) {
             bail!("Duplicated node: {}", err.entry.key())
         }
 
@@ -535,7 +535,7 @@ impl NodeBuilder<'_> {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
-            info: AttrInfo {
+            info: AttrInfoBuilder {
                 key: key.clone(),
                 kind: Attr::KIND,
                 value_type: V::TYPE,
@@ -546,7 +546,7 @@ impl NodeBuilder<'_> {
 
         let attr = decl.materialize(bounds, &mut builder)?;
 
-        if let Err(err) = self.info.attrs.try_insert(key, Arc::new(builder.info)) {
+        if let Err(err) = self.info.attrs.try_insert(key, builder.info) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 
@@ -567,7 +567,7 @@ impl NodeBuilder<'_> {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
-            info: AttrInfo {
+            info: AttrInfoBuilder {
                 key: key.clone(),
                 kind: Attr::KIND,
                 value_type: V::TYPE,
@@ -578,7 +578,7 @@ impl NodeBuilder<'_> {
 
         let attr = decl.materialize(&mut builder)?;
 
-        if let Err(err) = self.info.attrs.try_insert(key, Arc::new(builder.info)) {
+        if let Err(err) = self.info.attrs.try_insert(key, builder.info) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 
@@ -607,7 +607,7 @@ impl<'b> AttrBuilder<'b> {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
-            info: AttrInfo {
+            info: AttrInfoBuilder {
                 key: key.clone(),
                 kind: Attr::KIND,
                 value_type: V::TYPE,
@@ -618,7 +618,7 @@ impl<'b> AttrBuilder<'b> {
 
         let attr = decl.materialize(bounds, &mut builder)?;
 
-        if let Err(err) = self.info.attrs.try_insert(key, Arc::new(builder.info)) {
+        if let Err(err) = self.info.attrs.try_insert(key, builder.info) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 
@@ -638,7 +638,7 @@ impl<'b> AttrBuilder<'b> {
         let mut builder = AttrBuilder {
             nodes: self.nodes,
             size: self.size,
-            info: AttrInfo {
+            info: AttrInfoBuilder {
                 key: key.clone(),
                 kind: Attr::KIND,
                 value_type: V::TYPE,
@@ -649,7 +649,7 @@ impl<'b> AttrBuilder<'b> {
 
         let attr = decl.materialize(&mut builder)?;
 
-        if let Err(err) = self.info.attrs.try_insert(key, Arc::new(builder.info)) {
+        if let Err(err) = self.info.attrs.try_insert(key, builder.info) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 
@@ -665,14 +665,14 @@ impl<'b> AttrBuilder<'b> {
 
         let sink = input.sink();
 
-        let info = InputInfo {
+        let info = InputInfoBuilder {
             key: key.clone(),
             name: input.name,
             value_type: V::TYPE,
             sink,
         };
 
-        if let Err(err) = self.info.inputs.try_insert(key, Arc::new(info)) {
+        if let Err(err) = self.info.inputs.try_insert(key, info) {
             bail!("Duplicated attribute: {}", err.entry.key())
         }
 

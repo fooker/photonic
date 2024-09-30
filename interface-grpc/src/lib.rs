@@ -70,10 +70,10 @@ impl interface_server::Interface for InterfaceImpl {
         let root = &*self.introspection.root;
 
         return Ok(Response::new(NodeInfoResponse {
-            kind: root.kind.to_string(),
-            name: root.name.to_string(),
-            nodes: root.nodes.iter().map(|(name, info)| (name.clone(), info.name.clone())).collect(),
-            attrs: root.attrs.keys().cloned().collect(),
+            kind: root.kind().to_string(),
+            name: root.name().to_string(),
+            nodes: root.nodes().iter().map(|(name, info)| (name.clone(), info.name().to_owned())).collect(),
+            attrs: root.attrs().keys().cloned().collect(),
         }));
     }
 
@@ -87,10 +87,10 @@ impl interface_server::Interface for InterfaceImpl {
             .ok_or_else(|| Status::not_found(format!("No such node: {}", request.name)))?;
 
         return Ok(Response::new(NodeInfoResponse {
-            kind: node.kind.to_string(),
-            name: node.name.to_string(),
-            nodes: node.nodes.iter().map(|(name, info)| (name.clone(), info.name.clone())).collect(),
-            attrs: node.attrs.keys().cloned().collect(),
+            kind: node.kind().to_string(),
+            name: node.name().to_string(),
+            nodes: node.nodes().iter().map(|(name, info)| (name.clone(), info.name().to_owned())).collect(),
+            attrs: node.attrs().keys().cloned().collect(),
         }));
     }
 
@@ -111,10 +111,10 @@ impl interface_server::Interface for InterfaceImpl {
 
         return Ok(Response::new(AttrInfoResponse {
             attr: Some(attr_ref.clone()),
-            kind: attr.kind.to_string(),
-            value_type: attr.value_type.to_string(),
-            attrs: attr.attrs.keys().cloned().collect(),
-            inputs: attr.inputs.iter().map(|(name, info)| (name.clone(), info.name.clone())).collect(),
+            kind: attr.kind().to_string(),
+            value_type: attr.value_type().to_string(),
+            attrs: attr.attrs().keys().cloned().collect(),
+            inputs: attr.inputs().iter().map(|(name, info)| (name.clone(), info.name().to_owned())).collect(),
         }));
     }
 
@@ -128,8 +128,8 @@ impl interface_server::Interface for InterfaceImpl {
             .ok_or_else(|| Status::not_found(format!("No such input: {}", request.name)))?;
 
         return Ok(Response::new(InputInfoResponse {
-            name: input.name.to_string(),
-            value_type: match input.value_type {
+            name: input.name().to_string(),
+            value_type: match input.value_type() {
                 InputValueType::Trigger => photonic_interface_grpc_proto::InputValueType::Trigger,
                 InputValueType::Boolean => photonic_interface_grpc_proto::InputValueType::Bool,
                 InputValueType::Integer => photonic_interface_grpc_proto::InputValueType::Integer,
@@ -168,7 +168,7 @@ impl interface_server::Interface for InterfaceImpl {
             };
         }
 
-        match &input.sink {
+        match &input.sink() {
             InputSink::Trigger(sink) => {
                 match_value!(Trigger);
                 sink.send(());
@@ -234,7 +234,7 @@ impl interface_server::Interface for InterfaceImpl {
             .get(&request.name)
             .ok_or_else(|| Status::not_found(format!("No such input: {}", request.name)))?;
 
-        let stream: Pin<Box<dyn Stream<Item = Result<_, _>> + Send + 'static>> = match &input.sink {
+        let stream: Pin<Box<dyn Stream<Item = Result<_, _>> + Send + 'static>> = match &input.sink() {
             InputSink::Trigger(sink) => Box::pin(sink.subscribe().map(|value| {
                 Ok(InputValue {
                     value: Some(input_value::Value::Trigger(value)),

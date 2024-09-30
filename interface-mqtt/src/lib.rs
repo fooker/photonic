@@ -115,7 +115,7 @@ impl Interface for MQTT {
                         };
 
                         let res: Result<()> = (|| {
-                            match &input.sink {
+                            match &input.sink() {
                                 InputSink::Trigger(sink) => sink.send(()),
                                 InputSink::Boolean(sink) => sink.send(payload.parse()?),
                                 InputSink::Integer(sink) => sink.send(payload.parse()?),

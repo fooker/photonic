@@ -43,16 +43,18 @@ async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspectio
             Some("node") => {
                 if let Some(node) = line.get(1) {
                     if let Some(node) = introspection.nodes.get(node) {
-                        o.write_all(format!("Node '{}':\n", node.name).as_bytes()).await?;
-                        o.write_all(format!("  Kind: {}\n", node.kind).as_bytes()).await?;
-                        o.write_all(format!("  Nodes: {}\n", node.kind).as_bytes()).await?;
-                        for (name, info) in node.nodes.iter() {
-                            o.write_all(format!("    {} = [{}]\n", name, info.kind).as_bytes()).await?;
+                        o.write_all(format!("Node '{}':\n", node.name()).as_bytes()).await?;
+                        o.write_all(format!("  Kind: {}\n", node.kind()).as_bytes()).await?;
+                        o.write_all(format!("  Nodes: {}\n", node.kind()).as_bytes()).await?;
+                        for (name, info) in node.nodes().iter() {
+                            o.write_all(format!("    {} = [{}]\n", name, info.kind()).as_bytes()).await?;
                         }
-                        o.write_all(format!("  Attributes: {}\n", node.kind).as_bytes()).await?;
-                        for (name, info) in node.attrs.iter() {
-                            o.write_all(format!("    {} : {} = [{}]\n", name, info.value_type, info.kind).as_bytes())
-                                .await?;
+                        o.write_all(format!("  Attributes: {}\n", node.kind()).as_bytes()).await?;
+                        for (name, info) in node.attrs().iter() {
+                            o.write_all(
+                                format!("    {} : {} = [{}]\n", name, info.value_type(), info.kind()).as_bytes(),
+                            )
+                            .await?;
                             // TODO: Recurse into attrs
                             // TODO: Show attached inputs
                         }
@@ -61,7 +63,7 @@ async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspectio
                     }
                 } else {
                     for (name, info) in introspection.nodes.iter() {
-                        o.write_all(format!("{} = [{}]\n", name, info.kind).as_bytes()).await?;
+                        o.write_all(format!("{} = [{}]\n", name, info.kind()).as_bytes()).await?;
                     }
                 }
             }
@@ -71,7 +73,7 @@ async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspectio
                     if let Some(input) = introspection.inputs.get(input) {
                         if let Some(value) = line.get(2) {
                             let res: Result<()> = (|| {
-                                match &input.sink {
+                                match &input.sink() {
                                     InputSink::Trigger(sink) => sink.send(()),
                                     InputSink::Boolean(sink) => sink.send(value.parse()?),
                                     InputSink::Integer(sink) => sink.send(value.parse()?),
@@ -90,22 +92,22 @@ async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspectio
                                 Ok(()) => {}
                                 Err(err) => {
                                     o.write_all(
-                                        format!("Invalid value: '{}' for {}: {}", value, input.sink, err).as_bytes(),
+                                        format!("Invalid value: '{}' for {}: {}", value, input.sink(), err).as_bytes(),
                                     )
                                     .await?;
                                     continue;
                                 }
                             }
                         } else {
-                            o.write_all(format!("Input '{}':\n", input.name).as_bytes()).await?;
-                            o.write_all(format!("  Value: {}\n", input.value_type).as_bytes()).await?;
+                            o.write_all(format!("Input '{}':\n", input.name()).as_bytes()).await?;
+                            o.write_all(format!("  Value: {}\n", input.value_type()).as_bytes()).await?;
                         }
                     } else {
                         o.write_all(format!("No such input: '{}'\n", input).as_bytes()).await?;
                     }
                 } else {
                     for (name, info) in introspection.inputs.iter() {
-                        o.write_all(format!("{} : {}\n", name, info.value_type).as_bytes()).await?;
+                        o.write_all(format!("{} : {}\n", name, info.value_type()).as_bytes()).await?;
                     }
                 }
             }

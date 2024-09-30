@@ -3,7 +3,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build_transport(true)
         .build_client(cfg!(feature = "client"))
         .build_server(cfg!(feature = "server"))
-        .compile(&["proto/photonic.proto"], &["proto/"])?;
+        .compile_protos(&["proto/photonic.proto"], &["proto/"])?;
 
     return Ok(());
 }

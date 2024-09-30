@@ -50,7 +50,7 @@ impl Interface for Restore {
             } else {
                 continue;
             };
-            match (&input.sink, value) {
+            match (&input.sink(), value) {
                 (InputSink::Boolean(sink), InputValue::Boolean(value)) => sink.send(*value),
                 (InputSink::Integer(sink), InputValue::Integer(value)) => sink.send(*value),
                 (InputSink::Decimal(sink), InputValue::Decimal(value)) => sink.send(*value),
