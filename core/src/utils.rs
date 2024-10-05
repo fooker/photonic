@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::time::Duration;
 
 pub fn combine_opts<V, F>(v1: Option<V>, v2: Option<V>, f: F) -> Option<V>
@@ -114,39 +115,43 @@ impl FrameTimer {
     }
 }
 
-#[derive(Debug)]
-pub struct TreeIterator<E, F, I>
+pub struct TreeIterator<'a, T, F, I>
 where
-    F: Fn(&E) -> I,
-    I: Iterator<Item = E>,
+    T: 'a,
+    F: Fn(&'a T) -> I,
+    I: Iterator<Item = &'a T>,
 {
     sprawl: F,
-    stack: Vec<E>,
+    queue: VecDeque<&'a T>,
 }
 
-impl<E, F, I> TreeIterator<E, F, I>
+impl<'a, T, F, I> TreeIterator<'a, T, F, I>
 where
-    F: Fn(&E) -> I,
-    I: Iterator<Item = E>,
+    F: Fn(&'a T) -> I,
+    I: Iterator<Item = &'a T>,
 {
-    pub fn new(root: E, sprawl: F) -> Self {
+    pub fn new(t: &'a T, sprawl: F) -> Self {
         return Self {
             sprawl,
-            stack: vec![root],
+            queue: VecDeque::from([t]),
         };
     }
 }
 
-impl<E, F, I> Iterator for TreeIterator<E, F, I>
+impl<'a, T, F, I> Iterator for TreeIterator<'a, T, F, I>
 where
-    F: Fn(&E) -> I,
-    I: Iterator<Item = E>,
+    F: Fn(&'a T) -> I,
+    I: Iterator<Item = &'a T>,
 {
-    type Item = E;
+    type Item = &'a T;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        let curr = self.stack.pop()?;
-        self.stack.extend((self.sprawl)(&curr));
-        return Some(curr);
+        if let Some(t) = self.queue.pop_front() {
+            self.queue.extend((self.sprawl)(t));
+            return Some(t);
+        } else {
+            return None;
+        }
     }
 }

@@ -1,5 +1,5 @@
 use std::borrow::Borrow;
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 use std::future::Future;
 use std::hash::Hash;
 use std::sync::{Arc, OnceLock};
@@ -9,6 +9,7 @@ use futures::Stream;
 
 use crate::attr::AttrValueType;
 use crate::input::{AnyInputValue, InputSink, InputValueType};
+use crate::utils::TreeIterator;
 
 #[derive(Debug)]
 pub struct NodeInfoBuilder {
@@ -285,13 +286,13 @@ impl Introspection {
 
         let root = build_node(root, None);
 
-        let nodes = TreeIter::new(&root, |node| node.nodes().values())
+        let nodes = TreeIterator::new(&root, |node| node.nodes().values())
             .map(|node| (node.name.clone(), node.clone()))
             .collect::<HashMap<_, _>>();
 
-        let inputs = TreeIter::new(&root, |node| node.nodes().values())
+        let inputs = TreeIterator::new(&root, |node| node.nodes().values())
             .flat_map(|node| node.attrs().values())
-            .flat_map(|attr| TreeIter::new(attr, |attr| attr.attrs().values()))
+            .flat_map(|attr| TreeIterator::new(attr, |attr| attr.attrs().values()))
             .flat_map(|attr| attr.inputs().values())
             .map(|input| (input.name.clone(), input.clone()))
             .collect();
@@ -347,45 +348,4 @@ impl Introspection {
 
 pub trait Interface {
     fn listen(self, introspection: Arc<Introspection>) -> impl Future<Output = Result<()>> + Send + 'static;
-}
-
-struct TreeIter<'a, T, F, I>
-where
-    T: 'a,
-    F: Fn(&'a T) -> I,
-    I: Iterator<Item = &'a T>,
-{
-    f: F,
-    queue: VecDeque<&'a T>,
-}
-
-impl<'a, T, F, I> TreeIter<'a, T, F, I>
-where
-    F: Fn(&'a T) -> I,
-    I: Iterator<Item = &'a T>,
-{
-    pub fn new(t: &'a T, f: F) -> Self {
-        return Self {
-            f,
-            queue: VecDeque::from(vec![t]),
-        };
-    }
-}
-
-impl<'a, T, F, I> Iterator for TreeIter<'a, T, F, I>
-where
-    F: Fn(&'a T) -> I,
-    I: Iterator<Item = &'a T>,
-{
-    type Item = &'a T;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        if let Some(t) = self.queue.pop_front() {
-            self.queue.extend((self.f)(t));
-            return Some(t);
-        } else {
-            return None;
-        }
-    }
 }

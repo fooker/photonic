@@ -60,7 +60,6 @@ pub enum Poll<T> {
 pub struct Input<V>
 where V: InputValue
 {
-    //shared: Arc<Shared<V>>,
     tx: broadcast::Sender<V>,
     rx: broadcast::Receiver<V>,
 }
