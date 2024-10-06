@@ -5,7 +5,7 @@ use palette::rgb::Rgb;
 use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt, BufReader, BufWriter};
 
 use photonic::attr::Range;
-use photonic::input::InputSink;
+use photonic::input::{InputSink, Trigger};
 use photonic::interface::Introspection;
 
 pub mod stdio;
@@ -72,18 +72,23 @@ async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspectio
                 if let Some(input) = line.get(1) {
                     if let Some(input) = introspection.inputs.get(input) {
                         if let Some(value) = line.get(2) {
-                            let res: Result<()> = (|| match &input.sink() {
-                                InputSink::Trigger(sink) => sink.send(()),
-                                InputSink::Boolean(sink) => sink.send(value.parse()?),
-                                InputSink::Integer(sink) => sink.send(value.parse()?),
-                                InputSink::Decimal(sink) => sink.send(value.parse()?),
-                                InputSink::Color(sink) => sink.send(value.parse::<Rgb<_, u8>>()?.into_format()),
-                                InputSink::IntegerRange(sink) => sink.send(value.parse()?),
-                                InputSink::DecimalRange(sink) => sink.send(value.parse()?),
-                                InputSink::ColorRange(sink) => {
-                                    sink.send(value.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format))
+                            let res: Result<()> = (async {
+                                match &input.sink() {
+                                    InputSink::Trigger(sink) => sink.send(Trigger::next()).await,
+                                    InputSink::Boolean(sink) => sink.send(value.parse()?).await,
+                                    InputSink::Integer(sink) => sink.send(value.parse()?).await,
+                                    InputSink::Decimal(sink) => sink.send(value.parse()?).await,
+                                    InputSink::Color(sink) => {
+                                        sink.send(value.parse::<Rgb<_, u8>>()?.into_format()).await
+                                    }
+                                    InputSink::IntegerRange(sink) => sink.send(value.parse()?).await,
+                                    InputSink::DecimalRange(sink) => sink.send(value.parse()?).await,
+                                    InputSink::ColorRange(sink) => {
+                                        sink.send(value.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format)).await
+                                    }
                                 }
-                            })();
+                            })
+                            .await;
 
                             match res {
                                 Ok(()) => {}

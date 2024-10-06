@@ -7,13 +7,14 @@ use palette::{
 };
 
 use crate::attr::Range;
+use crate::input::trigger::Trigger;
 
 use super::sink::{InputSink, Sink};
 use super::{InputValue, InputValueType};
 
-impl super::private::Sealed for () {}
+impl super::private::Sealed for Trigger {}
 
-impl InputValue for () {
+impl InputValue for Trigger {
     const TYPE: InputValueType = InputValueType::Trigger;
     fn sink(sink: Sink<Self>) -> InputSink {
         return InputSink::Trigger(sink);

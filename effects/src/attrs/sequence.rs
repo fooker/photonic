@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use photonic::attr::{Bounded, Bounds};
-use photonic::input::{Input, Poll};
+use photonic::input::{Input, Poll, Trigger};
 use photonic::scene::InputHandle;
 use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
@@ -12,8 +12,8 @@ where V: AttrValue
 
     position: usize,
 
-    next: Option<Input<()>>,
-    prev: Option<Input<()>>,
+    next: Option<Input<Trigger>>,
+    prev: Option<Input<Trigger>>,
 }
 
 impl<V> Attr<V> for SequenceAttr<V>
@@ -24,12 +24,12 @@ where V: AttrValue
         let prev = self.prev.as_mut().map_or(Poll::Pending, |input| input.poll(anyhow::Ok));
 
         return match (next, prev) {
-            (Poll::Update(()), Poll::Update(())) | (Poll::Pending, Poll::Pending) => self.values[self.position],
-            (Poll::Update(()), Poll::Pending) => {
+            (Poll::Update(_), Poll::Update(_)) | (Poll::Pending, Poll::Pending) => self.values[self.position],
+            (Poll::Update(_), Poll::Pending) => {
                 self.position = (self.position + self.values.len() + 1) % self.values.len();
                 self.values[self.position]
             }
-            (Poll::Pending, Poll::Update(())) => {
+            (Poll::Pending, Poll::Update(_)) => {
                 self.position = (self.position + self.values.len() - 1) % self.values.len();
                 self.values[self.position]
             }
@@ -42,9 +42,8 @@ where V: AttrValue
 {
     pub values: Vec<V>,
 
-    pub next: Option<InputHandle<()>>,
-
-    pub prev: Option<InputHandle<()>>,
+    pub next: Option<InputHandle<Trigger>>,
+    pub prev: Option<InputHandle<Trigger>>,
 }
 
 impl<V> BoundAttrDecl<V> for Sequence<V>

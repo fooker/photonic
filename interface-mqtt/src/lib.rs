@@ -6,7 +6,7 @@ use bytes::Bytes;
 use futures::StreamExt;
 use palette::rgb::Rgb;
 use photonic::attr::Range;
-use photonic::input::{AnyInputValue, InputSink};
+use photonic::input::{AnyInputValue, InputSink, Trigger};
 use rumqttc::{AsyncClient, Event, Incoming, LastWill, MqttOptions, QoS};
 use tokio_stream::StreamMap;
 
@@ -114,16 +114,16 @@ impl Interface for MQTT {
                             }
                         };
 
-                        let res: Result<()> = (|| match input.sink() {
-                            InputSink::Trigger(sink) => sink.send(()),
-                            InputSink::Boolean(sink) => sink.send(payload.parse()?),
-                            InputSink::Integer(sink) => sink.send(payload.parse()?),
-                            InputSink::Decimal(sink) => sink.send(payload.parse()?),
-                            InputSink::Color(sink) => sink.send(payload.parse::<Rgb<_, u8>>()?.into_format()),
-                            InputSink::IntegerRange(sink) => sink.send(payload.parse()?),
-                            InputSink::DecimalRange(sink) => sink.send(payload.parse()?),
-                            InputSink::ColorRange(sink) => sink.send(payload.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format)),
-                        })();
+                        let res: Result<()> = (async { match input.sink() {
+                            InputSink::Trigger(sink) => sink.send(Trigger::next()).await,
+                            InputSink::Boolean(sink) => sink.send(payload.parse()?).await,
+                            InputSink::Integer(sink) => sink.send(payload.parse()?).await,
+                            InputSink::Decimal(sink) => sink.send(payload.parse()?).await,
+                            InputSink::Color(sink) => sink.send(payload.parse::<Rgb<_, u8>>()?.into_format()).await,
+                            InputSink::IntegerRange(sink) => sink.send(payload.parse()?).await,
+                            InputSink::DecimalRange(sink) => sink.send(payload.parse()?).await,
+                            InputSink::ColorRange(sink) => sink.send(payload.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format)).await,
+                        }}).await;
 
                         match res {
                             Ok(()) => {}

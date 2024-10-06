@@ -2,7 +2,7 @@ use anyhow::Result;
 use num_traits::Num;
 
 use photonic::attr::{Bounded, Bounds};
-use photonic::input::{Input, Poll};
+use photonic::input::{Input, Poll, Trigger};
 use photonic::scene::InputHandle;
 use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 
@@ -15,14 +15,14 @@ where V: AttrValue + Num
 
     current: V,
 
-    trigger: Input<()>,
+    trigger: Input<Trigger>,
 }
 
 impl<V> Attr<V> for LooperAttr<V>
 where V: AttrValue + Num
 {
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
-        if let Poll::Update(()) = self.trigger.poll(anyhow::Ok) {
+        if let Poll::Update(_) = self.trigger.poll(anyhow::Ok) {
             self.current = self.min + (self.current + self.step - self.min) % (self.max - self.min);
         }
 
@@ -35,7 +35,7 @@ where V: AttrValue
 {
     pub step: V,
 
-    pub trigger: InputHandle<()>,
+    pub trigger: InputHandle<Trigger>,
 }
 
 impl<V> BoundAttrDecl<V> for Looper<V>

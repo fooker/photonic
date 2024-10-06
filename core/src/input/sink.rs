@@ -7,6 +7,7 @@ use tokio::sync::{broadcast, mpsc, oneshot};
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::attr::Range;
+use crate::input::trigger::Trigger;
 
 use super::{InputValue, UpdateRequest};
 
@@ -21,15 +22,17 @@ where V: InputValue
 impl<V> Sink<V>
 where V: InputValue + Sync
 {
-    pub fn send(&self, next: V) -> Result<()> {
+    pub async fn send(&self, next: V) -> Result<()> {
         let (responder_tx, responder_rx) = oneshot::channel();
 
-        self.update_tx.blocking_send(UpdateRequest {
-            value: next,
-            responder: responder_tx,
-        })?;
+        self.update_tx
+            .send(UpdateRequest {
+                value: next,
+                responder: responder_tx,
+            })
+            .await?;
 
-        return responder_rx.blocking_recv()?;
+        return responder_rx.await?;
     }
 
     pub fn subscribe(&self) -> impl Stream<Item = V> + Send {
@@ -38,7 +41,7 @@ where V: InputValue + Sync
 }
 
 pub enum InputSink {
-    Trigger(Sink<()>),
+    Trigger(Sink<Trigger>),
     Boolean(Sink<bool>),
     Integer(Sink<i64>),
     Decimal(Sink<f32>),
@@ -106,8 +109,8 @@ pub enum AnyInputValue {
     ColorRange(Range<Rgb>),
 }
 
-impl From<()> for AnyInputValue {
-    fn from(_: ()) -> Self {
+impl From<Trigger> for AnyInputValue {
+    fn from(_: Trigger) -> Self {
         return Self::Trigger;
     }
 }

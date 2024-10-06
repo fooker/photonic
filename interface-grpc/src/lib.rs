@@ -10,7 +10,7 @@ use tonic::transport::Server;
 use tonic::{async_trait, Request, Response, Status};
 
 use photonic::attr::Range;
-use photonic::input::{InputSink, InputValueType};
+use photonic::input::{InputSink, InputValueType, Trigger};
 use photonic::interface::{Interface, Introspection};
 use photonic_interface_grpc_proto::input_value::{ColorRange, DecimalRange, IntegerRange, Rgb};
 use photonic_interface_grpc_proto::interface_server::InterfaceServer;
@@ -171,40 +171,40 @@ impl interface_server::Interface for InterfaceImpl {
         match &input.sink() {
             InputSink::Trigger(sink) => {
                 match_value!(Trigger);
-                sink.send(())
+                sink.send(Trigger::next()).await
             }
 
             InputSink::Boolean(sink) => {
                 let value = match_value!(Bool);
-                sink.send(*value)
+                sink.send(*value).await
             }
 
             InputSink::Integer(sink) => {
                 let value = match_value!(Integer);
-                sink.send(*value)
+                sink.send(*value).await
             }
 
             InputSink::Decimal(sink) => {
                 let value = match_value!(Decimal);
-                sink.send(*value)
+                sink.send(*value).await
             }
 
             InputSink::Color(sink) => {
                 let value = match_value!(Color);
                 let value = palette::Srgb::new(value.r, value.g, value.b);
-                sink.send(value)
+                sink.send(value).await
             }
 
             InputSink::IntegerRange(sink) => {
                 let value = match_value!(IntegerRange);
                 let value = Range::new(value.a, value.b);
-                sink.send(value)
+                sink.send(value).await
             }
 
             InputSink::DecimalRange(sink) => {
                 let value = match_value!(DecimalRange);
                 let value = Range::new(value.a, value.b);
-                sink.send(value)
+                sink.send(value).await
             }
 
             InputSink::ColorRange(sink) => {
@@ -215,7 +215,7 @@ impl interface_server::Interface for InterfaceImpl {
                     palette::Srgb::new(value_a.r, value_a.g, value_a.b),
                     palette::Srgb::new(value_b.r, value_b.g, value_b.b),
                 );
-                sink.send(value)
+                sink.send(value).await
             }
         }
         .map_err(|err| Status::invalid_argument(format!("Invalid value: {}", err)))?;
@@ -236,9 +236,9 @@ impl interface_server::Interface for InterfaceImpl {
             .ok_or_else(|| Status::not_found(format!("No such input: {}", request.name)))?;
 
         let stream: Pin<Box<dyn Stream<Item = Result<_, _>> + Send + 'static>> = match &input.sink() {
-            InputSink::Trigger(sink) => Box::pin(sink.subscribe().map(|value| {
+            InputSink::Trigger(sink) => Box::pin(sink.subscribe().map(|_| {
                 Ok(InputValue {
-                    value: Some(input_value::Value::Trigger(value)),
+                    value: Some(input_value::Value::Trigger(())),
                 })
             })),
 

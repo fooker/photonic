@@ -7,7 +7,7 @@ use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
 use photonic::attr::{Bounded, Bounds};
-use photonic::input::{Input, Poll};
+use photonic::input::{Input, Poll, Trigger};
 use photonic::scene::InputHandle;
 use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl};
 
@@ -19,14 +19,14 @@ where V: AttrValue + SampleUniform + Bounded
 
     current: V,
 
-    trigger: Input<()>,
+    trigger: Input<Trigger>,
 }
 
 impl<V> Attr<V> for RandomAttr<V>
 where V: AttrValue + SampleUniform + Bounded
 {
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
-        if let Poll::Update(()) = self.trigger.poll(anyhow::Ok) {
+        if let Poll::Update(_) = self.trigger.poll(anyhow::Ok) {
             self.current = self.uniform.sample(&mut self.random);
         }
 
@@ -35,7 +35,7 @@ where V: AttrValue + SampleUniform + Bounded
 }
 
 pub struct Random<V> {
-    pub trigger: InputHandle<()>,
+    pub trigger: InputHandle<Trigger>,
 
     phantom: PhantomData<V>,
 }

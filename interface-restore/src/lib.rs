@@ -51,13 +51,13 @@ impl Interface for Restore {
                 continue;
             };
             let result = match (&input.sink(), value) {
-                (InputSink::Boolean(sink), InputValue::Boolean(value)) => sink.send(*value),
-                (InputSink::Integer(sink), InputValue::Integer(value)) => sink.send(*value),
-                (InputSink::Decimal(sink), InputValue::Decimal(value)) => sink.send(*value),
-                (InputSink::Color(sink), InputValue::Color(value)) => sink.send(*value),
-                (InputSink::IntegerRange(sink), InputValue::IntegerRange(a, b)) => sink.send(Range::new(*a, *b)),
-                (InputSink::DecimalRange(sink), InputValue::DecimalRange(a, b)) => sink.send(Range::new(*a, *b)),
-                (InputSink::ColorRange(sink), InputValue::ColorRange(a, b)) => sink.send(Range::new(*a, *b)),
+                (InputSink::Boolean(sink), InputValue::Boolean(value)) => sink.send(*value).await,
+                (InputSink::Integer(sink), InputValue::Integer(value)) => sink.send(*value).await,
+                (InputSink::Decimal(sink), InputValue::Decimal(value)) => sink.send(*value).await,
+                (InputSink::Color(sink), InputValue::Color(value)) => sink.send(*value).await,
+                (InputSink::IntegerRange(sink), InputValue::IntegerRange(a, b)) => sink.send(Range::new(*a, *b)).await,
+                (InputSink::DecimalRange(sink), InputValue::DecimalRange(a, b)) => sink.send(Range::new(*a, *b)).await,
+                (InputSink::ColorRange(sink), InputValue::ColorRange(a, b)) => sink.send(Range::new(*a, *b)).await,
                 (_, _) => Err(anyhow!("Restore data type mismatch: {} - ignoring", name)),
             };
 

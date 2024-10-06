@@ -3,7 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 
 use photonic::attr::{Bounded, Bounds};
-use photonic::input::{Input, Poll};
+use photonic::input::{Input, Poll, Trigger};
 use photonic::scene::InputHandle;
 use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
@@ -44,14 +44,14 @@ where V: AttrValue
 
     state: State,
 
-    trigger: Input<()>,
+    trigger: Input<Trigger>,
 }
 
 impl<V> Attr<V> for ButtonAttr<V>
 where V: AttrValue
 {
     fn update(&mut self, ctx: &scene::RenderContext) -> V {
-        if let Poll::Update(()) = self.trigger.poll(anyhow::Ok) {
+        if let Poll::Update(_) = self.trigger.poll(anyhow::Ok) {
             self.state = State::Pressed(self.hold_time)
         };
 
@@ -72,7 +72,7 @@ where V: AttrValue
 
     pub hold_time: Duration,
 
-    pub trigger: InputHandle<()>,
+    pub trigger: InputHandle<Trigger>,
 }
 
 impl<V> BoundAttrDecl<V> for Button<V>

@@ -5,11 +5,13 @@ use anyhow::Result;
 use futures::Future;
 use tokio::sync::{broadcast, mpsc, oneshot};
 
-pub use sink::{AnyInputValue, InputSink, Sink};
-pub use values::Coerced;
+pub use self::sink::{AnyInputValue, InputSink, Sink};
+pub use self::trigger::Trigger;
+pub use self::values::Coerced;
 
 mod attr;
 mod sink;
+mod trigger;
 mod values;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
@@ -73,14 +75,6 @@ where V: InputValue
 
     value_tx: broadcast::Sender<V>,
     value_rx: broadcast::Receiver<V>,
-}
-
-impl<V> Default for Input<V>
-where V: InputValue
-{
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 impl<V> Input<V>
