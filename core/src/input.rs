@@ -1,8 +1,9 @@
 use std::pin::pin;
 use std::task::Context;
 
+use anyhow::Result;
 use futures::Future;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, mpsc, oneshot};
 
 pub use sink::{AnyInputValue, InputSink, Sink};
 pub use values::Coerced;
@@ -56,12 +57,22 @@ pub enum Poll<T> {
     Pending,
 }
 
+struct UpdateRequest<V>
+where V: InputValue
+{
+    value: V,
+    responder: oneshot::Sender<Result<()>>,
+}
+
 #[derive(Debug)]
 pub struct Input<V>
 where V: InputValue
 {
-    tx: broadcast::Sender<V>,
-    rx: broadcast::Receiver<V>,
+    update_tx: mpsc::Sender<UpdateRequest<V>>,
+    update_rx: mpsc::Receiver<UpdateRequest<V>>,
+
+    value_tx: broadcast::Sender<V>,
+    value_rx: broadcast::Receiver<V>,
 }
 
 impl<V> Default for Input<V>
@@ -76,25 +87,50 @@ impl<V> Input<V>
 where V: InputValue
 {
     pub fn new() -> Self {
-        let (tx, rx) = broadcast::channel(1);
+        let (update_tx, update_rx) = mpsc::channel(1);
+
+        let (value_tx, value_rx) = broadcast::channel(1);
 
         return Self {
-            tx,
-            rx,
+            update_tx,
+            update_rx,
+            value_tx,
+            value_rx,
         };
     }
 
-    pub fn poll(&mut self) -> Poll<V> {
-        return match pin!(self.rx.recv()).as_mut().poll(&mut Context::from_waker(futures::task::noop_waker_ref())) {
-            std::task::Poll::Ready(Ok(value)) => Poll::Update(value),
-            std::task::Poll::Ready(Err(_)) => Poll::Pending, // We can ignore dangling or lagging here
-            std::task::Poll::Pending => Poll::Pending,
+    pub fn poll<F, R, E>(&mut self, validate: F) -> Poll<R>
+    where
+        F: Fn(V) -> Result<R, E>,
+        E: Into<anyhow::Error>,
+    {
+        let ctx = &mut Context::from_waker(futures::task::noop_waker_ref());
+
+        let std::task::Poll::Ready(Some(UpdateRequest {
+            responder,
+            value,
+        })) = pin!(self.update_rx.recv()).as_mut().poll(ctx)
+        else {
+            return Poll::Pending;
         };
+
+        match validate(value) {
+            Ok(update) => {
+                let _ = responder.send(Ok(()));
+                let _ = self.value_tx.send(value);
+                return Poll::Update(update);
+            }
+            Err(err) => {
+                let _ = responder.send(Err(err.into()));
+                return Poll::Pending;
+            }
+        }
     }
 
     pub fn sink(&self) -> Sink<V> {
         return Sink {
-            tx: self.tx.clone(),
+            update_tx: self.update_tx.clone(),
+            value_rx: self.value_rx.resubscribe(),
         };
     }
 }

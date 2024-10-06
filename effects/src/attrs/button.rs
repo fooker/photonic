@@ -51,7 +51,7 @@ impl<V> Attr<V> for ButtonAttr<V>
 where V: AttrValue
 {
     fn update(&mut self, ctx: &scene::RenderContext) -> V {
-        if let Poll::Update(()) = self.trigger.poll() {
+        if let Poll::Update(()) = self.trigger.poll(anyhow::Ok) {
             self.state = State::Pressed(self.hold_time)
         };
 

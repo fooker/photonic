@@ -1,75 +1,74 @@
 use anyhow::Result;
 
 use photonic::attr::{Bounded, Bounds};
-use photonic::input::{Input, Poll};
-use photonic::scene::InputHandle;
 use photonic::{scene, Attr, AttrBuilder, AttrValue, BoundAttrDecl, FreeAttrDecl};
 
-pub struct SwitchAttr<V>
-where V: AttrValue
+pub struct SwitchAttr<V, I>
+where
+    V: AttrValue,
+    I: Attr<bool>,
 {
     value_released: V,
     value_pressed: V,
 
-    pressed: bool,
-
-    input: Input<bool>,
+    pressed: I,
 }
 
-impl<V> Attr<V> for SwitchAttr<V>
-where V: AttrValue
+impl<V, I> Attr<V> for SwitchAttr<V, I>
+where
+    V: AttrValue,
+    I: Attr<bool>,
 {
-    fn update(&mut self, _ctx: &scene::RenderContext) -> V {
-        if let Poll::Update(pressed) = self.input.poll() {
-            self.pressed = pressed;
-        };
-
-        return match self.pressed {
+    fn update(&mut self, ctx: &scene::RenderContext) -> V {
+        let pressed = self.pressed.update(ctx);
+        return match pressed {
             true => self.value_pressed,
             false => self.value_released,
         };
     }
 }
 
-pub struct Switch<V>
+pub struct Switch<V, I>
 where V: AttrValue
 {
     pub value_release: V,
     pub value_pressed: V,
 
-    pub input: InputHandle<bool>,
+    pub pressed: I,
 }
 
-impl<V> BoundAttrDecl<V> for Switch<V>
-where V: AttrValue + Bounded
+impl<V, I> BoundAttrDecl<V> for Switch<V, I>
+where
+    V: AttrValue + Bounded,
+    I: FreeAttrDecl<bool>,
 {
     const KIND: &'static str = "button";
 
-    type Attr = SwitchAttr<V>;
+    type Attr = SwitchAttr<V, I::Attr>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         return Ok(SwitchAttr {
             value_released: bounds.ensure(self.value_release)?,
             value_pressed: bounds.ensure(self.value_pressed)?,
-            pressed: false,
-            input: builder.input("input", self.input)?,
+            pressed: builder.unbound_attr("pressed", self.pressed)?,
         });
     }
 }
 
-impl<V> FreeAttrDecl<V> for Switch<V>
-where V: AttrValue
+impl<V, I> FreeAttrDecl<V> for Switch<V, I>
+where
+    V: AttrValue,
+    I: FreeAttrDecl<bool>,
 {
     const KIND: &'static str = "button";
 
-    type Attr = SwitchAttr<V>;
+    type Attr = SwitchAttr<V, I::Attr>;
 
     fn materialize(self, builder: &mut AttrBuilder) -> Result<Self::Attr> {
         return Ok(SwitchAttr {
             value_released: self.value_release,
             value_pressed: self.value_pressed,
-            pressed: false,
-            input: builder.input("input", self.input)?,
+            pressed: builder.unbound_attr("input", self.pressed)?,
         });
     }
 }
@@ -79,7 +78,7 @@ pub mod dynamic {
     use serde::de::DeserializeOwned;
     use serde::Deserialize;
 
-    use photonic::boxed::{DynBoundAttrDecl, DynFreeAttrDecl};
+    use photonic::boxed::{BoxedFreeAttrDecl, DynBoundAttrDecl, DynFreeAttrDecl};
     use photonic_dynamic::factory::Producible;
     use photonic_dynamic::registry::Registry;
     use photonic_dynamic::{builder, config};
@@ -93,19 +92,19 @@ pub mod dynamic {
         #[serde(bound(deserialize = "V: Deserialize<'de>"))]
         pub value_pressed: V,
 
-        pub input: config::Input,
+        pub pressed: config::Attr<bool>,
     }
 
     impl<V> Producible<dyn DynFreeAttrDecl<V>> for Config<V>
     where V: AttrValue + DeserializeOwned
     {
-        type Product = Switch<V>;
+        type Product = Switch<V, BoxedFreeAttrDecl<bool>>;
 
         fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
             return Ok(Switch {
                 value_release: config.value_release,
                 value_pressed: config.value_pressed,
-                input: builder.input(config.input)?,
+                pressed: builder.free_attr("pressed", config.pressed)?,
             });
         }
     }
@@ -113,13 +112,13 @@ pub mod dynamic {
     impl<V> Producible<dyn DynBoundAttrDecl<V>> for Config<V>
     where V: AttrValue + DeserializeOwned + Bounded
     {
-        type Product = Switch<V>;
+        type Product = Switch<V, BoxedFreeAttrDecl<bool>>;
 
         fn produce<Reg: Registry>(config: Self, mut builder: builder::AttrBuilder<'_, Reg>) -> Result<Self::Product> {
             return Ok(Switch {
                 value_release: config.value_release,
                 value_pressed: config.value_pressed,
-                input: builder.input(config.input)?,
+                pressed: builder.free_attr("pressed", config.pressed)?,
             });
         }
     }

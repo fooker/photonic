@@ -65,15 +65,12 @@ impl<A> Attr<A> for BoundInputAttr<A>
 where A: AttrValue + input::Coerced + Bounded
 {
     fn update(&mut self, _ctx: &scene::RenderContext) -> A {
-        if let Poll::Update(update) = self.input.poll() {
-            // TODO: This needs error handling - best idea for now is to couple inputs and attrs more tightly to allow
-            // InputAttrs to report errors to the input they are feeding from by moving the atomic value latch to the
-            // InputAttr and have all direct users of Inputs converted to Attrs (check if possible first)
-            if let Ok(update) = A::try_from_input(update) {
-                if let Ok(update) = self.bounds.ensure(update) {
-                    self.current = update;
-                }
-            }
+        if let Poll::Update(update) = self.input.poll(|value| {
+            let value = A::try_from_input(value)?;
+            let value = self.bounds.ensure(value)?;
+            return anyhow::Ok(value);
+        }) {
+            self.current = update;
         }
 
         return self.current;
@@ -92,10 +89,8 @@ impl<A> Attr<A> for FreeInputAttr<A>
 where A: AttrValue + input::Coerced
 {
     fn update(&mut self, _ctx: &scene::RenderContext) -> A {
-        if let Poll::Update(update) = self.input.poll() {
-            if let Ok(update) = A::try_from_input(update) {
-                self.current = update;
-            }
+        if let Poll::Update(update) = self.input.poll(A::try_from_input) {
+            self.current = update;
         }
 
         return self.current;

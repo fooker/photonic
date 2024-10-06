@@ -119,7 +119,7 @@ async fn main() -> Result<()> {
             input: Switch {
                 value_release: 0.0,
                 value_pressed: 1.0,
-                input: input_kitchen,
+                pressed: input_kitchen.attr(false),
             },
             easing: Easings::Linear.with_speed(Duration::from_secs(1)),
         },

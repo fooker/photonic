@@ -85,7 +85,7 @@ impl InputValue for Range<Rgb> {
 
 pub trait Coerced: Sized {
     type Input: InputValue;
-    type Error;
+    type Error: std::error::Error + Send + Sync;
 
     fn try_from_input(input: Self::Input) -> Result<Self, Self::Error>;
 }

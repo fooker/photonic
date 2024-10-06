@@ -72,20 +72,17 @@ async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspectio
                 if let Some(input) = line.get(1) {
                     if let Some(input) = introspection.inputs.get(input) {
                         if let Some(value) = line.get(2) {
-                            let res: Result<()> = (|| {
-                                match &input.sink() {
-                                    InputSink::Trigger(sink) => sink.send(()),
-                                    InputSink::Boolean(sink) => sink.send(value.parse()?),
-                                    InputSink::Integer(sink) => sink.send(value.parse()?),
-                                    InputSink::Decimal(sink) => sink.send(value.parse()?),
-                                    InputSink::Color(sink) => sink.send(value.parse::<Rgb<_, u8>>()?.into_format()),
-                                    InputSink::IntegerRange(sink) => sink.send(value.parse()?),
-                                    InputSink::DecimalRange(sink) => sink.send(value.parse()?),
-                                    InputSink::ColorRange(sink) => {
-                                        sink.send(value.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format))
-                                    }
+                            let res: Result<()> = (|| match &input.sink() {
+                                InputSink::Trigger(sink) => sink.send(()),
+                                InputSink::Boolean(sink) => sink.send(value.parse()?),
+                                InputSink::Integer(sink) => sink.send(value.parse()?),
+                                InputSink::Decimal(sink) => sink.send(value.parse()?),
+                                InputSink::Color(sink) => sink.send(value.parse::<Rgb<_, u8>>()?.into_format()),
+                                InputSink::IntegerRange(sink) => sink.send(value.parse()?),
+                                InputSink::DecimalRange(sink) => sink.send(value.parse()?),
+                                InputSink::ColorRange(sink) => {
+                                    sink.send(value.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format))
                                 }
-                                return Ok(());
                             })();
 
                             match res {

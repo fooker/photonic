@@ -26,7 +26,7 @@ impl<V> Attr<V> for RandomAttr<V>
 where V: AttrValue + SampleUniform + Bounded
 {
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
-        if let Poll::Update(()) = self.trigger.poll() {
+        if let Poll::Update(()) = self.trigger.poll(anyhow::Ok) {
             self.current = self.uniform.sample(&mut self.random);
         }
 

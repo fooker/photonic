@@ -20,8 +20,8 @@ impl<V> Attr<V> for SequenceAttr<V>
 where V: AttrValue
 {
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
-        let next = self.next.as_mut().map_or(Poll::Pending, Input::poll);
-        let prev = self.prev.as_mut().map_or(Poll::Pending, Input::poll);
+        let next = self.next.as_mut().map_or(Poll::Pending, |input| input.poll(anyhow::Ok));
+        let prev = self.prev.as_mut().map_or(Poll::Pending, |input| input.poll(anyhow::Ok));
 
         return match (next, prev) {
             (Poll::Update(()), Poll::Update(())) | (Poll::Pending, Poll::Pending) => self.values[self.position],

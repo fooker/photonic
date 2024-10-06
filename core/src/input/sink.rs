@@ -1,28 +1,39 @@
 use std::pin::Pin;
 
+use anyhow::Result;
 use futures::{Stream, StreamExt};
 use palette::rgb::Rgb;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, mpsc, oneshot};
 use tokio_stream::wrappers::BroadcastStream;
 
 use crate::attr::Range;
 
-use super::InputValue;
+use super::{InputValue, UpdateRequest};
 
 #[derive(Debug)]
-pub struct Sink<V> {
-    pub(super) tx: broadcast::Sender<V>,
+pub struct Sink<V>
+where V: InputValue
+{
+    pub(super) update_tx: mpsc::Sender<UpdateRequest<V>>,
+    pub(super) value_rx: broadcast::Receiver<V>,
 }
 
 impl<V> Sink<V>
-where V: InputValue
+where V: InputValue + Sync
 {
-    pub fn send(&self, next: V) {
-        let _ = self.tx.send(next);
+    pub fn send(&self, next: V) -> Result<()> {
+        let (responder_tx, responder_rx) = oneshot::channel();
+
+        self.update_tx.blocking_send(UpdateRequest {
+            value: next,
+            responder: responder_tx,
+        })?;
+
+        return responder_rx.blocking_recv()?;
     }
 
     pub fn subscribe(&self) -> impl Stream<Item = V> + Send {
-        return BroadcastStream::new(self.tx.subscribe()).filter_map(|r| async { r.ok() }); // Ignore lagging errors
+        return BroadcastStream::new(self.value_rx.resubscribe()).filter_map(|r| async { r.ok() }); // Ignore lagging errors
     }
 }
 

@@ -171,40 +171,40 @@ impl interface_server::Interface for InterfaceImpl {
         match &input.sink() {
             InputSink::Trigger(sink) => {
                 match_value!(Trigger);
-                sink.send(());
+                sink.send(())
             }
 
             InputSink::Boolean(sink) => {
                 let value = match_value!(Bool);
-                sink.send(*value);
+                sink.send(*value)
             }
 
             InputSink::Integer(sink) => {
                 let value = match_value!(Integer);
-                sink.send(*value);
+                sink.send(*value)
             }
 
             InputSink::Decimal(sink) => {
                 let value = match_value!(Decimal);
-                sink.send(*value);
+                sink.send(*value)
             }
 
             InputSink::Color(sink) => {
                 let value = match_value!(Color);
                 let value = palette::Srgb::new(value.r, value.g, value.b);
-                sink.send(value);
+                sink.send(value)
             }
 
             InputSink::IntegerRange(sink) => {
                 let value = match_value!(IntegerRange);
                 let value = Range::new(value.a, value.b);
-                sink.send(value);
+                sink.send(value)
             }
 
             InputSink::DecimalRange(sink) => {
                 let value = match_value!(DecimalRange);
                 let value = Range::new(value.a, value.b);
-                sink.send(value);
+                sink.send(value)
             }
 
             InputSink::ColorRange(sink) => {
@@ -215,9 +215,10 @@ impl interface_server::Interface for InterfaceImpl {
                     palette::Srgb::new(value_a.r, value_a.g, value_a.b),
                     palette::Srgb::new(value_b.r, value_b.g, value_b.b),
                 );
-                sink.send(value);
+                sink.send(value)
             }
         }
+        .map_err(|err| Status::invalid_argument(format!("Invalid value: {}", err)))?;
 
         return Ok(Response::new(()));
     }

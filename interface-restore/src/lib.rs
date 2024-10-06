@@ -4,7 +4,7 @@ use std::pin::pin;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use photonic::attr::Range;
 use serde::{Deserialize, Serialize};
 use tokio_stream::{StreamExt, StreamMap};
@@ -50,7 +50,7 @@ impl Interface for Restore {
             } else {
                 continue;
             };
-            match (&input.sink(), value) {
+            let result = match (&input.sink(), value) {
                 (InputSink::Boolean(sink), InputValue::Boolean(value)) => sink.send(*value),
                 (InputSink::Integer(sink), InputValue::Integer(value)) => sink.send(*value),
                 (InputSink::Decimal(sink), InputValue::Decimal(value)) => sink.send(*value),
@@ -58,9 +58,11 @@ impl Interface for Restore {
                 (InputSink::IntegerRange(sink), InputValue::IntegerRange(a, b)) => sink.send(Range::new(*a, *b)),
                 (InputSink::DecimalRange(sink), InputValue::DecimalRange(a, b)) => sink.send(Range::new(*a, *b)),
                 (InputSink::ColorRange(sink), InputValue::ColorRange(a, b)) => sink.send(Range::new(*a, *b)),
-                (_, _) => {
-                    eprintln!("Restore data type mismatch: {} - ignoring", name);
-                }
+                (_, _) => Err(anyhow!("Restore data type mismatch: {} - ignoring", name)),
+            };
+
+            if let Err(err) = result {
+                eprintln!("Failed to restore input value: {}", err);
             }
         }
 

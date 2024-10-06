@@ -114,19 +114,15 @@ impl Interface for MQTT {
                             }
                         };
 
-                        let res: Result<()> = (|| {
-                            match &input.sink() {
-                                InputSink::Trigger(sink) => sink.send(()),
-                                InputSink::Boolean(sink) => sink.send(payload.parse()?),
-                                InputSink::Integer(sink) => sink.send(payload.parse()?),
-                                InputSink::Decimal(sink) => sink.send(payload.parse()?),
-                                InputSink::Color(sink) => sink.send(payload.parse::<Rgb<_, u8>>()?.into_format()),
-                                InputSink::IntegerRange(sink) => sink.send(payload.parse()?),
-                                InputSink::DecimalRange(sink) => sink.send(payload.parse()?),
-                                InputSink::ColorRange(sink) => sink.send(payload.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format)),
-                            };
-
-                            return Ok(());
+                        let res: Result<()> = (|| match input.sink() {
+                            InputSink::Trigger(sink) => sink.send(()),
+                            InputSink::Boolean(sink) => sink.send(payload.parse()?),
+                            InputSink::Integer(sink) => sink.send(payload.parse()?),
+                            InputSink::Decimal(sink) => sink.send(payload.parse()?),
+                            InputSink::Color(sink) => sink.send(payload.parse::<Rgb<_, u8>>()?.into_format()),
+                            InputSink::IntegerRange(sink) => sink.send(payload.parse()?),
+                            InputSink::DecimalRange(sink) => sink.send(payload.parse()?),
+                            InputSink::ColorRange(sink) => sink.send(payload.parse::<Range<Rgb<_, u8>>>()?.map(Rgb::into_format)),
                         })();
 
                         match res {

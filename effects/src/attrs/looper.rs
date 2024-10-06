@@ -22,7 +22,7 @@ impl<V> Attr<V> for LooperAttr<V>
 where V: AttrValue + Num
 {
     fn update(&mut self, _ctx: &scene::RenderContext) -> V {
-        if let Poll::Update(()) = self.trigger.poll() {
+        if let Poll::Update(()) = self.trigger.poll(anyhow::Ok) {
             self.current = self.min + (self.current + self.step - self.min) % (self.max - self.min);
         }
 
