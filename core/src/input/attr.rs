@@ -22,9 +22,9 @@ where A: AttrValue + input::Coerced + Bounded
     type Attr = BoundInputAttr<A>;
 
     fn materialize(self, bounds: Bounds<A>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
-        let input = builder.input("input", self.input)?;
-
         let initial = bounds.ensure(self.initial)?;
+
+        let input = builder.input("value", self.input)?;
 
         return Ok(Self::Attr {
             bounds,
