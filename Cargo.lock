@@ -2217,6 +2217,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "photonic-output-split"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures",
+ "palette",
+ "photonic",
+ "photonic-output-null",
+ "tokio",
+]
+
+[[package]]
 name = "photonic-output-terminal"
 version = "0.1.0"
 dependencies = [

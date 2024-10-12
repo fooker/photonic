@@ -17,7 +17,7 @@ members = [
     "lua",
     "dynamic",
     "dynamic/runner",
-    "examples",
+    "examples", "output-split",
 ]
 
 [workspace.package]

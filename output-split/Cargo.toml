@@ -1,0 +1,23 @@
+[package]
+name = "photonic-output-split"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+photonic = { workspace = true, features = ["boxed"] }
+
+palette = { workspace = true }
+anyhow = { workspace = true }
+
+futures = { workspace = true }
+
+[dev-dependencies]
+photonic-output-null = { path = "../output-null" }
+
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[lints]
+workspace = true

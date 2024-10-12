@@ -168,6 +168,14 @@ pub trait BufferReader {
     {
         return lerp::Lerp::new(self, other, i);
     }
+
+    fn slice(&self, range: Range<usize>) -> Slice<Self::Element>
+    where Self: Sized {
+        return Slice {
+            inner: self,
+            range,
+        };
+    }
 }
 
 impl<E> BufferReader for Buffer<E>
@@ -195,6 +203,23 @@ where E: Copy
 
     fn size(&self) -> usize {
         return Buffer::size(self);
+    }
+}
+
+pub struct Slice<'a, E> {
+    inner: &'a dyn BufferReader<Element = E>,
+    range: Range<usize>,
+}
+
+impl<'a, E> BufferReader for Slice<'a, E> {
+    type Element = E;
+
+    fn get(&self, index: usize) -> Self::Element {
+        return self.inner.get(index + self.range.start);
+    }
+
+    fn size(&self) -> usize {
+        return self.range.end - self.range.start;
     }
 }
 
