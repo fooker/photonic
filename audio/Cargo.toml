@@ -1,0 +1,23 @@
+[package]
+name = "photonic-audio"
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+photonic = { workspace = true }
+
+anyhow = { workspace = true }
+
+cpal = { git = "https://github.com/abique/cpal", rev = "8d86b110fb88d349a5decf84094bba97949295bf", version = "0.15" }
+
+[dev-dependencies]
+photonic-effects = { path = "../effects" }
+photonic-output-terminal = { path = "../output-terminal" }
+
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[lints]
+workspace = true

@@ -49,6 +49,7 @@
           nativeBuildInputs = with pkgs; [
             pkg-config
             protobuf
+            alsa-lib
             lua5_4
           ];
 
