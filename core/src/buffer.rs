@@ -1,6 +1,7 @@
 use std::ops::{Deref, DerefMut, Range};
 
 use crate::math::Lerp;
+use crate::{Node, NodeBuilder, NodeDecl, RenderContext};
 use anyhow::Result;
 
 mod imap;
@@ -165,10 +166,46 @@ where E: Copy
     type Element = E;
 
     fn get(&self, index: usize) -> Self::Element {
-        return *self.get(index);
+        return *Buffer::get(self, index);
     }
 
     fn size(&self) -> usize {
-        return self.size();
+        return Buffer::size(self);
+    }
+}
+
+impl<E> BufferReader for &Buffer<E>
+where E: Copy
+{
+    type Element = E;
+
+    fn get(&self, index: usize) -> Self::Element {
+        return *Buffer::get(self, index);
+    }
+
+    fn size(&self) -> usize {
+        return Buffer::size(self);
+    }
+}
+
+impl<E> NodeDecl for Buffer<E>
+where E: Default + Copy
+{
+    const KIND: &'static str = "buffer";
+    type Node = Self;
+
+    async fn materialize(self, _builder: &mut NodeBuilder<'_>) -> Result<Self::Node> {
+        return Ok(self);
+    }
+}
+
+impl<E> Node for Buffer<E>
+where E: Default + Copy
+{
+    type Element = E;
+
+    fn update(&mut self, _ctx: &RenderContext, out: &mut Buffer<Self::Element>) -> Result<()> {
+        out.blit_from(&*self);
+        return Ok(());
     }
 }
