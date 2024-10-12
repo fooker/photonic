@@ -37,7 +37,7 @@ impl<Rate, Color, Decay> NodeDecl for Raindrops<Rate, Color, Decay>
 where
     Rate: BoundAttrDecl<f32>,
     Color: FreeAttrDecl<Range<Hsl>>,
-    Decay: BoundAttrDecl<Range<f32>>,
+    Decay: FreeAttrDecl<Range<f32>>,
 {
     const KIND: &'static str = "raindrops";
 
@@ -47,7 +47,7 @@ where
         return Ok(Self::Node {
             rate: builder.bound_attr("rate", self.rate, Bounds::normal())?,
             color: builder.unbound_attr("color", self.color)?,
-            decay: builder.bound_attr("decay", self.decay, Bounds::normal())?,
+            decay: builder.unbound_attr("decay", self.decay)?,
             drops: (0..builder.size).map(|_| Raindrop::default()).collect::<Vec<_>>().into_boxed_slice(),
             random: Random::new(),
         });
@@ -72,8 +72,8 @@ where
                 drop.color = self.random.mix(Hsl::from_color(color.0), Hsl::from_color(color.1));
                 drop.decay = self.random.range(decay.0, decay.1);
             } else {
-                drop.color.lightness =
-                    f32::max(0.0, drop.color.lightness * 1.0 - drop.decay * ctx.duration.as_secs_f32());
+                let decay = f32::exp(-drop.decay * ctx.duration.as_secs_f32());
+                drop.color.lightness = drop.color.lightness * decay;
             }
 
             *out = drop.color;
@@ -107,7 +107,7 @@ pub mod dynamic {
     }
 
     type BoxedRaindrops =
-        Raindrops<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<Hsl>>, BoxedBoundAttrDecl<Range<f32>>>;
+        Raindrops<BoxedBoundAttrDecl<f32>, BoxedFreeAttrDecl<Range<Hsl>>, BoxedFreeAttrDecl<Range<f32>>>;
 
     impl Producible<dyn DynNodeDecl<Rgb>> for Config {
         type Product = BoxedRaindrops;
@@ -117,7 +117,7 @@ pub mod dynamic {
                 color: Box::new(
                     builder.free_attr::<Range<Rgb>>("color", config.color)?.map(|range| range.map(Hsl::from_color)),
                 ), // TODO: Remove box?
-                decay: builder.bound_attr("decay", config.decay)?,
+                decay: builder.free_attr("decay", config.decay)?,
             });
         }
     }
