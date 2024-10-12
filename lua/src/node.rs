@@ -83,7 +83,7 @@ impl Node for LuaNode {
             let ctx = scope.create_nonstatic_userdata(ctx)?;
             let out = scope.create_nonstatic_userdata(out)?;
 
-            module.call_method("update", (ctx, out))?;
+            let () = module.call_method("update", (ctx, out))?;
 
             return Ok(());
         })?;
@@ -94,7 +94,7 @@ impl Node for LuaNode {
 
 struct LuaRenderContext<'ctx>(&'ctx RenderContext<'ctx>);
 
-impl<'ctx> UserData for LuaRenderContext<'ctx> {
+impl UserData for LuaRenderContext<'_> {
     fn add_fields<'lua, F: UserDataFields<'lua, Self>>(fields: &mut F) {
         fields.add_field_method_get("duration", |_, buf| Ok(buf.0.duration.as_secs_f64()));
     }
@@ -102,14 +102,17 @@ impl<'ctx> UserData for LuaRenderContext<'ctx> {
 
 struct LuaBuffer<'buf>(&'buf mut Buffer<Rgb>);
 
-impl<'buf> UserData for LuaBuffer<'buf> {
+impl UserData for LuaBuffer<'_> {
     fn add_fields<'lua, F: UserDataFields<'lua, Self>>(fields: &mut F) {
         fields.add_field_method_get("size", |_, buf| Ok(buf.0.size()));
     }
 
     fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
         methods.add_meta_method("__index", |_, buf, (i,)| Ok(LuaElement(*buf.0.get(i))));
-        methods.add_meta_method_mut("__newindex", |_, buf, (i, v): (usize, LuaElement)| Ok(buf.0.set(i, v.0)));
+        methods.add_meta_method_mut("__newindex", |_, buf, (i, v): (usize, LuaElement)| {
+            buf.0.set(i, v.0);
+            Ok(())
+        });
     }
 }
 

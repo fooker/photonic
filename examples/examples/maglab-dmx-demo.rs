@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 use palette::rgb::Rgb;
-use palette::{FromColor, Hsl, Srgb};
+use palette::{FromColor, Hsl, IntoColor, Srgb};
 
 use photonic::attr::{AsFixedAttr, Range};
 use photonic::node::map::Map;
@@ -46,7 +46,7 @@ async fn main() -> Result<()> {
     })?;
     let noise = scene.node("noise:rgb", Map {
         source: noise,
-        mapper: Rgb::from_color,
+        mapper: IntoColor::<Rgb>::into_color,
     })?;
 
     let colors = scene.node("colors", ColorWheel {

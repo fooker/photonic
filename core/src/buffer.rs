@@ -211,7 +211,7 @@ pub struct Slice<'a, E> {
     range: Range<usize>,
 }
 
-impl<'a, E> BufferReader for Slice<'a, E> {
+impl<E> BufferReader for Slice<'_, E> {
     type Element = E;
 
     fn get(&self, index: usize) -> Self::Element {

@@ -75,7 +75,7 @@ where T: ?Sized
 }
 
 #[allow(dead_code)]
-impl<'arena, T> Slice<'arena, T>
+impl<T> Slice<'_, T>
 where T: ?Sized
 {
     pub fn len(&self) -> usize {

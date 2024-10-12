@@ -77,6 +77,14 @@ where V: InputValue
     value_rx: broadcast::Receiver<V>,
 }
 
+impl<V> Default for Input<V>
+where V: InputValue
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<V> Input<V>
 where V: InputValue
 {

@@ -31,7 +31,7 @@ struct NodeBufferReader<'b, E, O> {
     phantom: PhantomData<O>,
 }
 
-impl<'b, E, O> BufferReader for NodeBufferReader<'b, E, O>
+impl<E, O> BufferReader for NodeBufferReader<'_, E, O>
 where
     E: Copy,
     O: Copy + From<E>,
@@ -47,7 +47,7 @@ where
     }
 }
 
-impl<'ctx, Node> ops::Index<NodeRef<Node>> for RenderContext<'ctx>
+impl<Node> ops::Index<NodeRef<Node>> for RenderContext<'_>
 where Node: self::Node
 {
     type Output = NodeContainer<Node>;
@@ -290,7 +290,7 @@ where
     servers: Vec<Pin<Box<dyn Future<Output = Result<()>>>>>,
 }
 
-impl<'a, Node, Output> Loop<Node, Output>
+impl<Node, Output> Loop<Node, Output>
 where
     Node: self::Node + 'static,
     Output: self::Output,
@@ -375,7 +375,7 @@ pub struct NodeBuilder<'b> {
     info: NodeInfoBuilder,
 }
 
-impl<'b> NodeBuilder<'b> {
+impl NodeBuilder<'_> {
     pub fn key(&self) -> &str {
         return &self.info.key;
     }
@@ -398,7 +398,7 @@ pub struct AttrBuilder<'b> {
     info: AttrInfoBuilder,
 }
 
-impl<'b> AttrBuilder<'b> {
+impl AttrBuilder<'_> {
     pub fn key(&self) -> &str {
         return &self.info.key;
     }
@@ -586,7 +586,7 @@ impl NodeBuilder<'_> {
     }
 }
 
-impl<'b> AttrBuilder<'b> {
+impl AttrBuilder<'_> {
     /// Create a bound child-attribute from its handle.
     ///
     /// The created attribute is registered as an attribute to the currently built node.

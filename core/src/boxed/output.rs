@@ -102,7 +102,7 @@ impl<'a, E> OutputBuffer<'a, E> {
     }
 }
 
-impl<'a, E> BufferReader for OutputBuffer<'a, E>
+impl<E> BufferReader for OutputBuffer<'_, E>
 where E: Copy + FromColor<Rgb>
 {
     type Element = E;

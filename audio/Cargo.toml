@@ -11,7 +11,7 @@ photonic = { workspace = true }
 
 anyhow = { workspace = true }
 
-cpal = { git = "https://github.com/abique/cpal", rev = "8d86b110fb88d349a5decf84094bba97949295bf", version = "0.15" }
+cpal = { version = "0.15" }
 
 [dev-dependencies]
 photonic-effects = { path = "../effects" }

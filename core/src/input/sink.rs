@@ -36,7 +36,8 @@ where V: InputValue + Sync
     }
 
     pub fn subscribe(&self) -> impl Stream<Item = V> + Send {
-        return BroadcastStream::new(self.value_rx.resubscribe()).filter_map(|r| async { r.ok() }); // Ignore lagging errors
+        return BroadcastStream::new(self.value_rx.resubscribe()).filter_map(|r| async { r.ok() });
+        // Ignore lagging errors
     }
 }
 

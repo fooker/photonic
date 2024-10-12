@@ -73,7 +73,7 @@ where
                 drop.decay = self.random.range(decay.0, decay.1);
             } else {
                 let decay = f32::exp(-drop.decay * ctx.duration.as_secs_f32());
-                drop.color.lightness = drop.color.lightness * decay;
+                drop.color.lightness *= decay;
             }
 
             *out = drop.color;
