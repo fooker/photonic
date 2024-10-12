@@ -31,6 +31,16 @@ impl<E> Buffer<E> {
         };
     }
 
+    pub fn from_value(size: usize, value: impl Into<E>) -> Self
+    where E: Copy {
+        let value = value.into();
+        let data = (0..size).map(|_| value).collect();
+
+        return Self {
+            data,
+        };
+    }
+
     /// Returns the size of the buffer.
     pub fn size(&self) -> usize {
         return self.data.len();
