@@ -28,6 +28,18 @@ authors = [
 
 license = "MIT"
 
+description = "Dynamic light controller and animator"
+homepage = "https://photonic.live"
+readme = "./README.md"
+
+keywords = [
+    "lights",
+    "dmx",
+    "leds",
+    "animation",
+    "scene-graph",
+]
+
 [workspace.dependencies]
 photonic = { path = "." }
 photonic-dynamic = { path = "dynamic" }
@@ -84,6 +96,10 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+description.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
 
 [features]
 boxed = ["dep:async-trait"]
