@@ -4,20 +4,21 @@ resolver = "2"
 members = [
     "audio",
     "core",
+    "dynamic",
+    "dynamic/runner",
     "effects",
-    "output-null",
-    "output-terminal",
-    "output-net",
+    "examples",
+    "lua",
     "interface-cli",
     "interface-grpc",
     "interface-grpc/proto",
     "interface-grpc/client",
     "interface-mqtt",
     "interface-restore",
-    "lua",
-    "dynamic",
-    "dynamic/runner",
-    "examples", "output-split",
+    "output-net",
+    "output-null",
+    "output-split",
+    "output-terminal",
 ]
 
 [workspace.package]
