@@ -12,7 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 photonic = { workspace = true }
-photonic-dynamic = { workspace = true, optional = true }
+photonic-dynamic = { workspace = true }
 photonic-effects = { path = "../../effects", features = ["dynamic"] }
 photonic-output-terminal = { path = "../../output-terminal", features = ["dynamic"] }
 photonic-output-null = { path = "../../output-null", features = ["dynamic"] }
