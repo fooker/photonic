@@ -805,26 +805,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "examples"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "noise",
- "palette",
- "photonic",
- "photonic-effects",
- "photonic-interface-cli",
- "photonic-interface-grpc",
- "photonic-interface-mqtt",
- "photonic-interface-restore",
- "photonic-lua",
- "photonic-output-net",
- "photonic-output-null",
- "photonic-output-terminal",
- "tokio",
-]
-
-[[package]]
 name = "ezing"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2030,11 +2010,19 @@ dependencies = [
  "anyhow",
  "async-trait",
  "futures",
+ "noise",
  "num-traits",
  "palette",
  "paste",
  "photonic-effects",
+ "photonic-interface-cli",
+ "photonic-interface-grpc",
+ "photonic-interface-mqtt",
+ "photonic-interface-restore",
+ "photonic-lua",
+ "photonic-output-net",
  "photonic-output-null",
+ "photonic-output-terminal",
  "rand",
  "serde",
  "tokio",

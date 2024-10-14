@@ -3,11 +3,9 @@ resolver = "2"
 
 members = [
     "audio",
-    "core",
     "dynamic",
     "dynamic/runner",
     "effects",
-    "examples",
     "lua",
     "interface-cli",
     "interface-grpc",
@@ -31,7 +29,7 @@ authors = [
 license = "MIT"
 
 [workspace.dependencies]
-photonic = { path = "core" }
+photonic = { path = "." }
 photonic-dynamic = { path = "dynamic" }
 
 tokio = { version = "1.35" }
@@ -78,3 +76,48 @@ incomplete_features = { level = "allow", priority = -1 }
 
 [workspace.lints.clippy]
 needless_return = "allow"
+
+[package]
+name = "photonic"
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[features]
+boxed = ["dep:async-trait"]
+
+[dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true, features = ["time", "macros"] }
+tokio-stream = { workspace = true, features = ["sync"] }
+futures = { workspace = true }
+palette = { workspace = true }
+rand = { workspace = true }
+serde = { workspace = true }
+
+num-traits = { workspace = true }
+
+paste = "1"
+
+async-trait = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["full"] }
+anyhow = { workspace = true }
+palette = { workspace = true }
+noise = { workspace = true }
+
+photonic-effects = { path = "effects" }
+photonic-lua = { path = "lua" }
+photonic-interface-restore = { path = "interface-restore" }
+photonic-interface-cli = { path = "interface-cli" }
+photonic-interface-mqtt = { path = "interface-mqtt" }
+photonic-interface-grpc = { path = "interface-grpc" }
+photonic-output-net = { path = "output-net" }
+photonic-output-null = { path = "output-null" }
+photonic-output-terminal = { path = "output-terminal" }
+
+[lints]
+workspace = true
