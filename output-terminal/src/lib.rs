@@ -136,15 +136,6 @@ pub mod dynamic {
         }
     }
 
-    // pub fn output<B>(config: Config, _builder: &mut B) -> Result<Terminal>
-    // where B: OutputBuilder {
-    //     return Ok(Terminal {
-    //         size: config.size,
-    //         path: config.path,
-    //         waterfall: config.waterfall,
-    //     });
-    // }
-
     pub struct Registry;
 
     impl registry::Registry for Registry {

@@ -6,13 +6,19 @@ authors.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[features]
+dynamic = ["dep:photonic-dynamic", "dep:serde"]
+
 [dependencies]
 photonic = { workspace = true, features = ["boxed"] }
+photonic-dynamic = { path = "../dynamic", optional = true }
 
 palette = { workspace = true }
 anyhow = { workspace = true }
 
 futures = { workspace = true }
+
+serde = { version = "1.0.197", features = ["derive"], optional = true }
 
 [dev-dependencies]
 photonic-output-null = { path = "../output-null" }

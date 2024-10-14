@@ -49,3 +49,43 @@ impl<E> Output for NullOutput<E> {
         return self.size;
     }
 }
+
+#[cfg(feature = "dynamic")]
+pub mod dynamic {
+    use anyhow::Result;
+    use palette::rgb::Rgb;
+    use serde::Deserialize;
+
+    use photonic::boxed::DynOutputDecl;
+    use photonic_dynamic::factory::{factory, OutputFactory, Producible};
+    use photonic_dynamic::{builder, registry};
+
+    use crate::Null;
+
+    #[derive(Deserialize)]
+    pub struct Config {
+        size: usize,
+    }
+
+    impl Producible<dyn DynOutputDecl> for Config {
+        type Product = Null<Rgb>;
+
+        fn produce<Reg: registry::Registry>(
+            config: Self,
+            _builder: builder::OutputBuilder<'_, Reg>,
+        ) -> Result<Self::Product> {
+            return Ok(Null::with_size(config.size));
+        }
+    }
+
+    pub struct Registry;
+
+    impl registry::Registry for Registry {
+        fn output<Reg: registry::Registry>(kind: &str) -> Option<OutputFactory<Reg>> {
+            return match kind {
+                "null" => Some(factory::<Config>()),
+                _ => return None,
+            };
+        }
+    }
+}

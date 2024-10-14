@@ -2078,6 +2078,8 @@ dependencies = [
  "photonic",
  "photonic-dynamic",
  "photonic-effects",
+ "photonic-output-null",
+ "photonic-output-split",
  "photonic-output-terminal",
  "ron",
  "serde",
@@ -2212,6 +2214,8 @@ dependencies = [
  "anyhow",
  "palette",
  "photonic",
+ "photonic-dynamic",
+ "serde",
 ]
 
 [[package]]
@@ -2222,7 +2226,9 @@ dependencies = [
  "futures",
  "palette",
  "photonic",
+ "photonic-dynamic",
  "photonic-output-null",
+ "serde",
  "tokio",
 ]
 

@@ -65,3 +65,51 @@ impl Output for SplitOutput {
         return self.size;
     }
 }
+
+#[cfg(feature = "dynamic")]
+pub mod dynamic {
+    use anyhow::Result;
+    use serde::Deserialize;
+
+    use photonic::boxed::{Boxed, DynOutputDecl};
+    use photonic_dynamic::config::Output;
+    use photonic_dynamic::factory::{factory, OutputFactory, Producible};
+    use photonic_dynamic::{builder, registry};
+
+    use crate::Split;
+
+    #[derive(Deserialize)]
+    pub struct Config {
+        outputs: Vec<Output>,
+    }
+
+    impl Producible<dyn DynOutputDecl> for Config {
+        type Product = Split;
+
+        fn produce<Reg: registry::Registry>(
+            config: Self,
+            mut builder: builder::OutputBuilder<'_, Reg>,
+        ) -> Result<Self::Product> {
+            let outputs = config
+                .outputs
+                .into_iter()
+                .map(|config| anyhow::Ok(builder.output(config)?.boxed()))
+                .collect::<Result<Vec<_>>>()?;
+
+            return Ok(Split {
+                outputs,
+            });
+        }
+    }
+
+    pub struct Registry;
+
+    impl registry::Registry for Registry {
+        fn output<Reg: registry::Registry>(kind: &str) -> Option<OutputFactory<Reg>> {
+            return match kind {
+                "split" => Some(factory::<Config>()),
+                _ => return None,
+            };
+        }
+    }
+}

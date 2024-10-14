@@ -79,7 +79,12 @@ impl Registry for RunnerRegistries {
         return combine!(
             output,
             kind,
-            (photonic_effects::dynamic::Registry, photonic_output_terminal::dynamic::Registry)
+            (
+                photonic_effects::dynamic::Registry,
+                photonic_output_terminal::dynamic::Registry,
+                photonic_output_null::dynamic::Registry,
+                photonic_output_split::dynamic::Registry
+            )
         );
     }
 }
