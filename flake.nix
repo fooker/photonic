@@ -6,7 +6,6 @@
 
     crane = {
       url = "github:ipetkov/crane";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     flake-utils.url = "github:numtide/flake-utils";
@@ -15,7 +14,6 @@
       url = "github:oxalica/rust-overlay";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
       };
     };
 
@@ -49,12 +47,12 @@
           nativeBuildInputs = with pkgs; [
             pkg-config
             protobuf
-            alsa-lib
-            lua5_4
           ];
 
           buildInputs = with pkgs; [
             openssl
+            alsa-lib
+            lua5_4
           ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
             pkgs.libiconv
           ];
