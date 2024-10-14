@@ -48,6 +48,21 @@ jobs:
         with:
           fail-mode: true
 
+      - name: Setup rust cache
+        uses: actions/cache@v3
+        with:
+          key: cargo-${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-build-${{ env.cache-name }}-
+            cargo-${{ runner.os }}-build-
+            cargo-${{ runner.os }}-
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+
       - name: Check Formatting
         run: |
           nix develop --command \
@@ -72,7 +87,11 @@ jobs:
       - name: Setup rust cache
         uses: actions/cache@v4
         with:
-          key: photonic-${{ hashFiles('**/Cargo.lock') }}
+          key: cargo-${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-build-${{ env.cache-name }}-
+            cargo-${{ runner.os }}-build-
+            cargo-${{ runner.os }}-
           path: |
             ~/.cargo/bin/
             ~/.cargo/registry/index/
