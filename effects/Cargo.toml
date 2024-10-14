@@ -14,7 +14,7 @@ dynamic = [
 
 [dependencies]
 photonic = { workspace = true, features = ["boxed"] }
-photonic-dynamic = { path = "../dynamic", optional = true }
+photonic-dynamic = { workspace = true, optional = true }
 
 futures = { workspace = true }
 

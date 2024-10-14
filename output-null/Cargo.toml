@@ -11,7 +11,7 @@ dynamic = ["dep:photonic-dynamic", "dep:serde"]
 
 [dependencies]
 photonic = { workspace = true }
-photonic-dynamic = { path = "../dynamic", optional = true }
+photonic-dynamic = { workspace = true, optional = true }
 
 palette = { workspace = true }
 anyhow = { workspace = true }
