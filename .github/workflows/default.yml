@@ -68,6 +68,11 @@ jobs:
           nix develop --command \
               cargo fmt --all -- --check
 
+      - name: Check Clippy
+        run: |
+          nix develop --command \
+              cargo clippy
+
       - name: Audit rust dependencies
         run: |
           nix develop --command \
@@ -108,6 +113,13 @@ jobs:
         run: |
           nix develop --command \
               cargo test --all --verbose
+
+      - name: Run miri
+        run: |
+          nix develop --command \
+              cargo miri test
+        env:
+          MIRIFLAGS: -Zmiri-strict-provenance
 
   package:
     runs-on: ubuntu-latest
