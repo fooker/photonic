@@ -70,7 +70,7 @@ jobs:
         uses: DeterminateSystems/magic-nix-cache-action@main
 
       - name: Setup rust cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           key: photonic-${{ hashFiles('**/Cargo.lock') }}
           path: |
