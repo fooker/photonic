@@ -5,9 +5,13 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+description.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
 
 [dependencies]
-photonic-interface-grpc-proto = { path = "../proto", features = ["client"] }
+photonic-interface-grpc-proto = { version = "0.1.0", path = "../proto", features = ["client"] }
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
