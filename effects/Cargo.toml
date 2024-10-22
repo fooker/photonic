@@ -32,6 +32,8 @@ ezing = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 humantime-serde = { version = "1.1.1", optional = true }
 
+paste = "1.0.15"
+
 [lints]
 workspace = true
 

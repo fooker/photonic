@@ -2089,6 +2089,7 @@ dependencies = [
  "noise",
  "num-traits",
  "palette",
+ "paste",
  "photonic",
  "photonic-dynamic",
  "rand",

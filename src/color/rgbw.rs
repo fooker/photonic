@@ -1,6 +1,8 @@
 use std::ops::{BitAnd, Deref, DerefMut};
 
+use crate::attr::AttrValueType;
 use crate::math::Lerp;
+use crate::AttrValue;
 use palette::bool_mask::HasBoolMask;
 use palette::convert::FromColorUnclamped;
 use palette::encoding::Srgb;
@@ -21,6 +23,13 @@ pub struct Rgbw<S = Srgb, T = f32> {
 }
 
 impl<S, T> Rgbw<S, T> {
+    pub fn new(red: T, green: T, blue: T, white: T) -> Self {
+        return Self {
+            color: Rgb::new(red, green, blue),
+            white,
+        };
+    }
+
     pub fn into_format<U>(self) -> Rgbw<S, U>
     where U: FromStimulus<T> {
         return Rgbw {
@@ -169,6 +178,10 @@ impl Lerp for Rgbw {
             white: Lerp::lerp(a.white, b.white, i),
         };
     }
+}
+
+impl AttrValue for Rgbw {
+    const TYPE: AttrValueType = AttrValueType::Color;
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]

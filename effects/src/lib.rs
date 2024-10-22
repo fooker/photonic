@@ -43,7 +43,7 @@ pub mod dynamic {
                 "fader" => factory::<crate::attrs::fader::dynamic::Config<V>>(),
                 "sequence" => factory::<crate::attrs::sequence::dynamic::Config<V>>(),
                 "peak" => factory::<crate::attrs::peak::dynamic::Config<V>>(),
-                _ => return None,
+                _ => crate::attrs::color::free_attr(kind)?,
             });
         }
 
