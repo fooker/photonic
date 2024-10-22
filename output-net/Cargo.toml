@@ -14,7 +14,7 @@ keywords.workspace = true
 photonic = { workspace = true }
 
 anyhow = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["net"] }
 palette = { workspace = true }
 
 byteorder = { version = "1.5" }
