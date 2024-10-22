@@ -54,6 +54,7 @@ pub mod dynamic {
                 "switch" => factory::<crate::attrs::switch::dynamic::Config<V>>(),
                 "fader" => factory::<crate::attrs::fader::dynamic::Config<V>>(),
                 "looper" => factory::<crate::attrs::looper::dynamic::Config<V>>(),
+                "noise" => factory::<crate::attrs::noise::dynamic::Config>(),
                 "random" => factory::<crate::attrs::random::dynamic::Config>(),
                 "sequence" => factory::<crate::attrs::sequence::dynamic::Config<V>>(),
                 "peak" => factory::<crate::attrs::peak::dynamic::Config<V>>(),
