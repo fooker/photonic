@@ -10,9 +10,9 @@
 [docs]: https://docs.rs/photonic
 
 
-Photonic is a open-source rust framework for lighting animation and control.
+Photonic is an open-source rust framework for lighting animation and control.
 
-Whether you're creating a dazzling lighting setup for an event or enhancing the ambient lighting of your living space, Photonic provides a verstaile platform for managing and controlling your lighting setup. 
+Whether you're creating a dazzling lighting setup for an event or enhancing the ambient lighting of your living space, Photonic provides a versatile platform for managing and controlling your lighting setup. 
 
 ## Features
 * **🎇 Lighting Animations:** Create dynamic lighting effects by combining a predefined effects or implement your own individual animations.
@@ -60,6 +60,28 @@ async fn main() -> Result<()> {
     return Ok(scene.run(60).await?);
 }
 ```
+
+## Related crates
+The `photonic` crate contains the base framework and some general useful helpers.
+Other, more advanced and specialized functionality is provided by sibling crates.
+Here is a list of all crates known:
+
+| Name                                                                    | Description                                                             |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [photonic-effects](https://crates.io/photonic-effects/)                 | A curated set of nodes and attributes                                   |
+| [photonic-dynamic](https://crates.io/photonic-dynamic/)                 | Deserialize photonic scenes from a declaration file                     |
+| [photonic-dynamic-runner](https://crates.io/photonic-dynamic-runner/)   | Load and run photonic scenes from a declaration file                    |
+| [photonic-audio](https://crates.io/photonic-audio/)                     | React to audio inputs                                                   |
+| [photonic-input-cli](https://crates.io/photonic-interface-cli/)         | Interactive CLI interface                                               |
+| [photonic-input-grpc](https://crates.io/photonic-interface-grpc/)       | Remote control photonic using gRPC calls                                |
+| [photonic-input-mqtt](https://crates.io/photonic-interface-grpc/)       | Expose photonic inputs as MQTT topics                                   |
+| [photonic-input-restore](https://crates.io/photonic-interface-restore/) | Save and restore photonic inputs from persistence file                  |
+| [photonic-output-net](https://crates.io/photonic-output-net/)           | Output scenes to network protocols like WLED, NetDMX, ArtNet and others |
+| [photonic-output-null](https://crates.io/photonic-output-null/)         | Run a scene without any output - for testing                            |
+| [photonic-output-split](https://crates.io/photonic-output-split/)       | Split output to multiple output targets                                 |
+| [photonic-output-terminal](https://crates.io/photonic-output-terminal/) | Output scenes to your to a terminal                                     |
+
+If there is a crate missing in this list, please create a pull request and tell us about it.
 
 ## Contributing
 We welcome contributions from the community to help improve Photonic.
