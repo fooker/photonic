@@ -1,4 +1,14 @@
-# 🌠 Photonic
+# 🌠 Photonic &emsp; [![Latest Version]][crates.io] [![Build Status]][actions] [![Documentation]][docs]
+
+[Build Status]: https://img.shields.io/github/actions/workflow/status/fooker/photonic/default.yml?branch=main
+[actions]: https://github.com/fooker/photonic/actions?query=branch%3Amain
+
+[Latest Version]: https://img.shields.io/crates/v/photonic.svg
+[crates.io]: https://crates.io/crates/photonic
+
+[Documentation]: https://docs.rs/photonic/badge.svg
+[docs]: https://docs.rs/photonic
+
 
 Photonic is a open-source rust framework for lighting animation and control.
 
