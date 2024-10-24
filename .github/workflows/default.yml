@@ -73,6 +73,11 @@ jobs:
           nix develop --command \
               cargo clippy
 
+      - name: Check dependency usage
+        run: |
+          nix develop --command \
+              cargo machete
+
       - name: Audit rust dependencies
         run: |
           nix develop --command \

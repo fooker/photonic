@@ -110,7 +110,7 @@
           packages = with pkgs; [
             cargo-deny
             cargo-outdated
-            cargo-workspaces
+            cargo-machete
 
             codespell
           ];
