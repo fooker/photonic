@@ -17,10 +17,13 @@ client = []
 [dependencies]
 tonic = "0.12.2"
 prost = "0.13.3"
-prost-types = "0.13.3"
 
 [build-dependencies]
 tonic-build = { version = "0.12.2" }
 
 [lints]
 workspace = true
+
+[package.metadata.cargo-machete]
+ignored = ["prost", "tonic"]
+

@@ -20,8 +20,6 @@ photonic-dynamic = { workspace = true, optional = true }
 palette = { workspace = true }
 anyhow = { workspace = true }
 
-futures = { workspace = true }
-
 serde = { version = "1.0.197", features = ["derive"], optional = true }
 
 [dev-dependencies]

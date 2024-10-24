@@ -19,8 +19,6 @@ anyhow = { workspace = true }
 futures = { workspace = true }
 
 tonic = { version = "0.12.2" }
-prost = "0.13.3"
-prost-types = "0.13.3"
 
 [lints]
 workspace = true

@@ -15,7 +15,6 @@ photonic-interface-grpc-proto = { version = "0.1.0", path = "../proto", features
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-futures = { workspace = true }
 palette = { workspace = true }
 
 tonic = "0.12.2"

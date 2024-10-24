@@ -1335,12 +1335,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "inventory"
-version = "0.3.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f958d3d68f4167080a18141e10381e7634563984a537f2a49a30fd8e53ac5767"
-
-[[package]]
 name = "ipnet"
 version = "2.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2046,15 +2040,10 @@ name = "photonic-dynamic"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-trait",
- "futures",
- "inventory",
  "palette",
  "photonic",
  "serde",
  "serde-value",
- "serde_json",
- "tokio",
 ]
 
 [[package]]
@@ -2084,7 +2073,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "ezing",
- "futures",
  "humantime-serde",
  "noise",
  "num-traits",
@@ -2101,7 +2089,6 @@ name = "photonic-interface-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "futures",
  "palette",
  "photonic",
  "shlex",
@@ -2117,8 +2104,6 @@ dependencies = [
  "palette",
  "photonic",
  "photonic-interface-grpc-proto",
- "prost",
- "prost-types",
  "tonic",
 ]
 
@@ -2129,7 +2114,6 @@ dependencies = [
  "anyhow",
  "askama",
  "clap",
- "futures",
  "palette",
  "photonic-interface-grpc-proto",
  "reedline-repl-rs",
@@ -2143,7 +2127,6 @@ name = "photonic-interface-grpc-proto"
 version = "0.1.0"
 dependencies = [
  "prost",
- "prost-types",
  "tonic",
  "tonic-build",
 ]
@@ -2213,7 +2196,6 @@ name = "photonic-output-split"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "futures",
  "palette",
  "photonic",
  "photonic-dynamic",
