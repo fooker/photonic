@@ -12,7 +12,7 @@ async fn main() -> Result<()> {
     let mut scene = Scene::new();
 
     let raindrops = scene.node("raindrops", Raindrops {
-        rate: Power {}.scale(0.3),
+        rate: Power::new().with_low_pass_filter(80.0).scale(0.3),
         decay: (2.0, 3.0).fixed(),
         color: Range(Hsl::new(245.31, 0.5, 0.5), Hsl::new(333.47, 0.7, 0.5)).fixed(),
     })?;
