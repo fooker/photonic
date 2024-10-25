@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use mlua::{FromLua, IntoLua, TableExt, UserData, UserDataFields, UserDataMethods, Value};
+use mlua::{FromLua, IntoLua, ObjectLike, UserData, UserDataFields, UserDataMethods, Value};
 
 use photonic::color::palette::rgb::Rgb;
 use photonic::{Buffer, Node, NodeBuilder, NodeDecl, RenderContext};
@@ -80,8 +80,8 @@ impl Node for LuaNode {
         let out = LuaBuffer(out);
 
         self.lua.scope(|scope| {
-            let ctx = scope.create_nonstatic_userdata(ctx)?;
-            let out = scope.create_nonstatic_userdata(out)?;
+            let ctx = scope.create_userdata(ctx)?;
+            let out = scope.create_userdata(out)?;
 
             let () = module.call_method("update", (ctx, out))?;
 
@@ -95,7 +95,7 @@ impl Node for LuaNode {
 struct LuaRenderContext<'ctx>(&'ctx RenderContext<'ctx>);
 
 impl UserData for LuaRenderContext<'_> {
-    fn add_fields<'lua, F: UserDataFields<'lua, Self>>(fields: &mut F) {
+    fn add_fields<F: UserDataFields<Self>>(fields: &mut F) {
         fields.add_field_method_get("duration", |_, buf| Ok(buf.0.duration.as_secs_f64()));
     }
 }
@@ -103,11 +103,11 @@ impl UserData for LuaRenderContext<'_> {
 struct LuaBuffer<'buf>(&'buf mut Buffer<Rgb>);
 
 impl UserData for LuaBuffer<'_> {
-    fn add_fields<'lua, F: UserDataFields<'lua, Self>>(fields: &mut F) {
+    fn add_fields<'lua, F: UserDataFields<Self>>(fields: &mut F) {
         fields.add_field_method_get("size", |_, buf| Ok(buf.0.size()));
     }
 
-    fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
+    fn add_methods<'lua, M: UserDataMethods<Self>>(methods: &mut M) {
         methods.add_meta_method("__index", |_, buf, (i,)| Ok(LuaElement(*buf.0.get(i))));
         methods.add_meta_method_mut("__newindex", |_, buf, (i, v): (usize, LuaElement)| {
             buf.0.set(i, v.0);
@@ -118,7 +118,7 @@ impl UserData for LuaBuffer<'_> {
 
 struct LuaElement(Rgb);
 
-impl IntoLua<'_> for LuaElement {
+impl IntoLua for LuaElement {
     fn into_lua(self, lua: &mlua::Lua) -> mlua::Result<Value> {
         let array: [f32; 3] = self.0.into();
         let value = array.into_lua(lua)?;
@@ -127,7 +127,7 @@ impl IntoLua<'_> for LuaElement {
     }
 }
 
-impl FromLua<'_> for LuaElement {
+impl FromLua for LuaElement {
     fn from_lua(value: Value, lua: &mlua::Lua) -> mlua::Result<Self> {
         let array = <[f32; 3]>::from_lua(value, lua)?;
         return Ok(Self(array.into()));
