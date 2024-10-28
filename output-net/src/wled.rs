@@ -1,6 +1,7 @@
-use byteorder::{BigEndian, WriteBytesExt};
+use std::net::SocketAddr;
 
 use anyhow::Result;
+use byteorder::{BigEndian, WriteBytesExt};
 use palette::rgb::Rgb;
 
 use photonic::{BufferReader, Output, OutputDecl, WhiteMode};
@@ -32,15 +33,18 @@ impl Mode {
     }
 }
 
-#[derive(Default)]
 pub struct WledSender {
     pub mode: Mode,
     pub size: usize,
+
+    pub target: SocketAddr,
 }
 
 pub struct WledSenderOutput {
     mode: Mode,
     size: usize,
+
+    socket: tokio::net::UdpSocket,
 }
 
 impl OutputDecl for WledSender {
@@ -50,9 +54,13 @@ impl OutputDecl for WledSender {
 
     async fn materialize(self) -> Result<Self::Output>
     where Self::Output: Sized {
+        let socket = tokio::net::UdpSocket::bind("[::]:0").await?;
+        socket.connect(self.target).await?;
+
         return Ok(Self::Output {
             mode: self.mode,
             size: self.size,
+            socket,
         });
     }
 }
@@ -109,6 +117,8 @@ impl Output for WledSenderOutput {
                 }
             }
         }
+
+        self.socket.send(&buffer).await?;
 
         return Ok(());
     }
