@@ -2010,6 +2010,7 @@ dependencies = [
  "num-traits",
  "palette",
  "paste",
+ "photonic-audio",
  "photonic-effects",
  "photonic-interface-cli",
  "photonic-interface-grpc",
