@@ -1,34 +1,30 @@
 #![allow(unused_variables)]
 
 use anyhow::Result;
-use palette::{Hsl, Srgb};
+use palette::Hsl;
 
 use photonic::attr::AsFixedAttr;
 use photonic::Scene;
-use photonic_effects::nodes::{Brightness, Raindrops};
-use photonic_output_null::Null;
+use photonic_effects::nodes::Raindrops;
+use photonic_output_net::wled;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut scene = Scene::new();
 
-    let base = scene.node("raindrops", Raindrops {
+    let raindrops = scene.node("raindrops", Raindrops {
         rate: 0.3.fixed(),
         decay: (0.96, 0.98).fixed(),
-        color: (Hsl::new(187.5, 0.25, 0.5), Hsl::new(223.92, 0.5, 0.5)).fixed(),
+        color: (Hsl::new(27.5, 0.25, 0.5), Hsl::new(79.0, 0.5, 0.5)).fixed(),
     })?;
 
-    let brightness = scene.node("brightness", Brightness {
-        value: 1.0.fixed(),
-        source: base,
-        range: None,
-    })?;
+    let output = wled::WledSender {
+        mode: Default::default(),
+        size: 50,
+        target: "192.168.0.29:21324".parse()?,
+    };
 
-    // let (scene, introspection) = scene.run(brightness, Terminal {
-    //     waterfall: true,
-    // })?;
-
-    let scene = scene.run(brightness, Null::<Srgb>::default()).await?;
+    let scene = scene.run(raindrops, output).await?;
 
     return scene.run(60).await;
 }
