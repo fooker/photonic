@@ -4,7 +4,7 @@ use std::pin::pin;
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use photonic::attr::Range;
 use serde::{Deserialize, Serialize};
 use tokio_stream::{StreamExt, StreamMap};
@@ -38,7 +38,7 @@ impl Interface for Restore {
     async fn listen(self, introspection: Arc<Introspection>) -> Result<()> {
         // Read existing restore data, if possible
         let mut data = if let Ok(data) = tokio::fs::read(&self.path).await {
-            serde_json::from_slice(&data)?
+            serde_json::from_slice(&data).with_context(|| format!("Invalid restore data: {}", self.path.display()))?
         } else {
             HashMap::new()
         };
@@ -95,7 +95,11 @@ impl Interface for Restore {
                 data.insert(name, value);
             }
 
-            tokio::fs::write(&self.path, serde_json::to_vec(&data)?).await?;
+            let data = serde_json::to_vec(&data).context("Failed to serialize restore data")?;
+
+            tokio::fs::write(&self.path, data)
+                .await
+                .with_context(|| format!("Failed to persist restore data: {}", self.path.display()))?;
         }
     }
 }
