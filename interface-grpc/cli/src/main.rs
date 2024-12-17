@@ -2,19 +2,15 @@ use anyhow::Result;
 use askama::Template;
 use clap::{crate_description, crate_version, Arg, ArgMatches, Command};
 use reedline_repl_rs::Repl;
-use tonic::transport::Channel;
 
-use photonic_interface_grpc_proto::interface_client::InterfaceClient;
-use photonic_interface_grpc_proto::{
-    input_value, AttrInfoRequest, AttrRef, InputInfoRequest, InputSendRequest, InputValue, InputValueType,
-    NodeInfoRequest,
-};
+use photonic_interface_grpc_client::input::{InputId, InputSink};
+use photonic_interface_grpc_client::node::NodeId;
+use photonic_interface_grpc_client::values::{ColorValue, RangeValue};
+use photonic_interface_grpc_client::Client;
 
-use crate::output::{AttributeOutput, InputOutput, ListOutput, NodeOutput};
-use crate::values::{ColorValue, RangeValue};
+use crate::output::{AttributeOutput, InputName, InputOutput, ListOutput, NodeName, NodeOutput};
 
 mod output;
-mod values;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -31,10 +27,10 @@ async fn main() -> Result<()> {
         )
         .get_matches();
 
-    let connect = args.get_one::<String>("connect").expect("Arg with default").clone();
+    let connect = args.get_one::<String>("connect").expect("Arg with default");
 
     let context = Context {
-        client: InterfaceClient::connect(connect).await?,
+        client: Client::connect(connect.parse()?).await?,
     };
 
     let mut repl = Repl::new(context)
@@ -78,109 +74,80 @@ async fn main() -> Result<()> {
 }
 
 struct Context {
-    client: InterfaceClient<Channel>,
+    client: Client,
 }
 
 async fn nodes(_args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
-    let nodes = context.client.nodes(()).await?;
+    let nodes = context.client.nodes().await?;
 
-    let output = ListOutput::from(nodes.into_inner());
+    let output = ListOutput::<NodeName>::from(nodes.into_iter());
     let output = Template::render(&output).expect("Template error");
     return Ok(Some(output));
 }
 
 async fn inputs(_args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
-    let inputs = context.client.inputs(()).await?;
+    let inputs = context.client.inputs().await?;
 
-    let output = ListOutput::from(inputs.into_inner());
+    let output = ListOutput::<InputName>::from(inputs.into_iter());
     let output = Template::render(&output).expect("Template error");
     return Ok(Some(output));
 }
 
 async fn root(_args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
-    let node = context.client.root_info(()).await?;
+    let node = context.client.root().await?;
 
-    let output = NodeOutput::from(node.into_inner());
+    let output = NodeOutput::from(node);
     let output = Template::render(&output).expect("Template error");
     return Ok(Some(output));
 }
 
 async fn node(args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
-    let node = context
-        .client
-        .node_info(NodeInfoRequest {
-            name: args.get_one::<String>("node").expect("Required argument").clone(),
-        })
-        .await?;
+    let node = args.get_one::<NodeId>("node").expect("Required argument").clone();
+    let node = context.client.node(&node).await?;
 
-    let output = NodeOutput::from(node.into_inner());
+    let output = NodeOutput::from(node);
     let output = Template::render(&output).expect("Template error");
     return Ok(Some(output));
 }
 
 async fn attr(args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
-    let attr = context
-        .client
-        .attr_info(AttrInfoRequest {
-            attr: Some(AttrRef {
-                node: args.get_one::<String>("node").expect("Required argument").clone(),
-                path: args.get_many::<String>("attribute").expect("Required argument").cloned().collect(),
-            }),
-        })
-        .await?;
+    let node = args.get_one::<NodeId>("node").expect("Required argument").clone();
+    let path = args.get_many::<String>("attribute").expect("Required argument").cloned().collect();
 
-    let output = AttributeOutput::from(attr.into_inner());
+    let attribute = context.client.attribute(&node, path).await?;
+
+    let output = AttributeOutput::from(attribute);
     let output = Template::render(&output).expect("Template error");
     return Ok(Some(output));
 }
 
 async fn input(args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
-    let input = context
-        .client
-        .input_info(InputInfoRequest {
-            name: args.get_one::<String>("input").expect("Required argument").clone(),
-        })
-        .await?;
+    let input = args.get_one::<InputId>("input").expect("Required argument").clone();
+    let input = context.client.input(&input).await?;
 
-    let output = InputOutput::from(input.into_inner());
+    let output = InputOutput::from(input);
     let output = Template::render(&output).expect("Template error");
     return Ok(Some(output));
 }
 
 async fn set(args: ArgMatches, context: &mut Context) -> Result<Option<String>> {
-    let input = args.get_one::<String>("input").expect("Required argument").clone();
+    let input = args.get_one::<InputId>("input").expect("Required argument").clone();
 
     // Fetch input info to figure out required value type
-    let input = context
-        .client
-        .input_info(InputInfoRequest {
-            name: input,
-        })
-        .await?
-        .into_inner();
+    let input = context.client.input(&input).await?;
 
     let value = args.get_one::<String>("value").expect("Required argument").clone();
 
-    let value: input_value::Value = match input.value_type() {
-        InputValueType::Trigger => input_value::Value::Trigger(()),
-        InputValueType::Bool => input_value::Value::Bool(value.parse()?),
-        InputValueType::Integer => input_value::Value::Integer(value.parse()?),
-        InputValueType::Decimal => input_value::Value::Decimal(value.parse()?),
-        InputValueType::Color => input_value::Value::Color(value.parse::<ColorValue>()?.into()),
-        InputValueType::IntegerRange => input_value::Value::IntegerRange(value.parse::<RangeValue<i64>>()?.into()),
-        InputValueType::DecimalRange => input_value::Value::DecimalRange(value.parse::<RangeValue<f32>>()?.into()),
-        InputValueType::ColorRange => input_value::Value::ColorRange(value.parse::<RangeValue<ColorValue>>()?.into()),
+    match input.sink() {
+        InputSink::Trigger(sink) => sink.trigger().await?,
+        InputSink::Boolean(sink) => sink.send(value.parse()?).await?,
+        InputSink::Integer(sink) => sink.send(value.parse()?).await?,
+        InputSink::Decimal(sink) => sink.send(value.parse()?).await?,
+        InputSink::Color(sink) => sink.send(value.parse::<ColorValue>()?.into()).await?,
+        InputSink::IntegerRange(sink) => sink.send(value.parse::<RangeValue<i64>>()?.into()).await?,
+        InputSink::DecimalRange(sink) => sink.send(value.parse::<RangeValue<f32>>()?.into()).await?,
+        InputSink::ColorRange(sink) => sink.send(value.parse::<RangeValue<ColorValue>>()?.into()).await?,
     };
-
-    context
-        .client
-        .input_send(InputSendRequest {
-            name: input.name,
-            value: Some(InputValue {
-                value: Some(value),
-            }),
-        })
-        .await?;
 
     return Ok(None);
 }

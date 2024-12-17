@@ -2,6 +2,18 @@ use palette::Srgb;
 use photonic_interface_grpc_proto::input_value::{ColorRange, DecimalRange, IntegerRange, Rgb};
 use std::str::FromStr;
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
+pub enum ValueType {
+    Trigger,
+    Bool,
+    Integer,
+    Decimal,
+    Color,
+    IntegerRange,
+    DecimalRange,
+    ColorRange,
+}
+
 #[derive(Copy, Clone)]
 pub struct ColorValue {
     pub r: f32,

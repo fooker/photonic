@@ -1,5 +1,5 @@
 [package]
-name = "photonic-interface-grpc-client"
+name = "photonic-interface-grpc-cli"
 
 version.workspace = true
 authors.workspace = true
@@ -11,16 +11,19 @@ readme.workspace = true
 keywords.workspace = true
 
 [dependencies]
-photonic-interface-grpc-proto = { version = "0.1.0", path = "../proto", features = ["client"] }
+photonic-interface-grpc-client = { version = "0.1.0", path = "../client" }
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-futures = { workspace = true }
 palette = { workspace = true }
 
 tonic = "0.12.2"
 
-parking_lot = "0.12.3"
+yansi = "1.0"
+askama = "0.12"
+
+reedline-repl-rs = { version = "1.1.1", features = ["derive", "async"] }
+clap = { version = "4.5.4", features = ["derive", "cargo"] }
 
 [lints]
 workspace = true
