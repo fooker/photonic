@@ -11,6 +11,7 @@ members = [
     "interface-grpc",
     "interface-grpc/proto",
     "interface-grpc/client",
+    "interface-grpc/cli",
     "interface-mqtt",
     "interface-restore",
     "output-net",

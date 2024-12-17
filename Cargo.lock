@@ -2242,18 +2242,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "photonic-interface-grpc-client"
+name = "photonic-interface-grpc-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "askama",
  "clap",
  "palette",
- "photonic-interface-grpc-proto",
+ "photonic-interface-grpc-client",
  "reedline-repl-rs",
  "tokio",
  "tonic",
  "yansi",
+]
+
+[[package]]
+name = "photonic-interface-grpc-client"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "futures",
+ "palette",
+ "parking_lot",
+ "photonic-interface-grpc-proto",
+ "tokio",
+ "tonic",
 ]
 
 [[package]]
