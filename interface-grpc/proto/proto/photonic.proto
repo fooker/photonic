@@ -113,11 +113,11 @@ service Interface {
   rpc Nodes(google.protobuf.Empty) returns (NodesResponse);
   rpc Inputs(google.protobuf.Empty) returns (InputsResponse);
 
-  rpc RootInfo(google.protobuf.Empty) returns (NodeInfoResponse);
+  rpc Root(google.protobuf.Empty) returns (NodeInfoResponse);
 
-  rpc NodeInfo(NodeInfoRequest) returns (NodeInfoResponse);
-  rpc AttrInfo(AttrInfoRequest) returns (AttrInfoResponse);
-  rpc InputInfo(InputInfoRequest) returns (InputInfoResponse);
+  rpc Node(NodeInfoRequest) returns (NodeInfoResponse);
+  rpc Attr(AttrInfoRequest) returns (AttrInfoResponse);
+  rpc Input(InputInfoRequest) returns (InputInfoResponse);
 
   rpc InputSend(InputSendRequest) returns (google.protobuf.Empty);
 
