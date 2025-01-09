@@ -28,14 +28,9 @@
   outputs = { self, nixpkgs, crane, flake-utils, rust-overlay, pre-commit-hooks, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [ (import rust-overlay) ];
-        };
+        pkgs = nixpkgs.legacyPackages.${system}.extend (import rust-overlay);
 
-        rust = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-
-        craneLib = (crane.mkLib pkgs).overrideToolchain rust;
+        craneLib = (crane.mkLib pkgs).overrideToolchain (ps: ps.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml);
 
         photonic = craneLib.buildPackage {
           pname = "photonic";
@@ -71,25 +66,27 @@
               clippy = {
                 enable = true;
                 settings.allFeatures = true;
-                package = rust;
+                package = craneLib.rustc;
               };
 
               cargo-check = {
                 enable = true;
-                package = rust;
+                package = craneLib.rustc;
               };
 
               rustfmt = {
                 enable = true;
-                package = rust;
+                package = craneLib.rustc;
               };
             };
           };
         };
 
-        packages = rec {
+        inherit craneLib;
+
+        packages = {
           inherit photonic;
-          default = photonic;
+          default = self.packages.${system}.photonic;
         };
 
         apps = rec {
@@ -118,7 +115,7 @@
           inherit (self.checks.${system}.pre-commit-check) shellHook;
 
           RUST_BACKTRACE = 1;
-          RUST_SRC_PATH = "${rust}/lib.rs/rustlib/src/rust/library";
+          RUST_SRC_PATH = "${craneLib.rustc}/lib/rustlib/src/rust/library";
         };
       });
 }
