@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use byteorder::{BigEndian, WriteBytesExt};
 use palette::rgb::Rgb;
 
@@ -55,7 +55,8 @@ impl OutputDecl for WledSender {
     async fn materialize(self) -> Result<Self::Output>
     where Self::Output: Sized {
         let socket = tokio::net::UdpSocket::bind("[::]:0").await?;
-        socket.connect(self.target).await?;
+
+        socket.connect(self.target).await.context("Failed to connect WLED socket")?;
 
         return Ok(Self::Output {
             mode: self.mode,
@@ -118,7 +119,9 @@ impl Output for WledSenderOutput {
             }
         }
 
-        self.socket.send(&buffer).await?;
+        // Send out WLED packes but ignore any errors as this is the render loop and a disconnect
+        // or a missing device should not stop the loop
+        let _ = self.socket.send(&buffer).await;
 
         return Ok(());
     }
