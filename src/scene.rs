@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::{future, ops};
 
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use futures::future::SelectAll;
 use futures::FutureExt;
 use palette::FromColor;
@@ -249,10 +249,10 @@ impl Scene {
         <Node as NodeDecl>::Node: 'static,
         <<Node as NodeDecl>::Node as self::Node>::Element: Default, // TODO: Remove this constraint
     {
-        let output = decl.materialize().await?;
+        let output = decl.materialize().await.context("Failed to materialize output")?;
 
         // Materialize the node tree using a builder tracking the info object creation
-        let (scene, root) = SceneBuilder::build(output.size(), root).await?;
+        let (scene, root) = SceneBuilder::build(output.size(), root).await.context("Failed to build scene")?;
 
         let introspection = Introspection::with(scene.root);
         introspection.log();
@@ -311,22 +311,30 @@ where
         loop {
             let duration = tokio::select! {
                 duration = timer.tick() => duration,
-                result = &mut servers => return result,
+
+                result = &mut servers => {
+                    return result.context("Failed to run servers")
+                }
             };
 
-            self.nodes.try_walk(|curr, tail| {
-                let ctx = RenderContext {
-                    duration,
-                    nodes: tail,
-                };
+            self.nodes
+                .try_walk(|curr, tail| {
+                    let ctx = RenderContext {
+                        duration,
+                        nodes: tail,
+                    };
 
-                return curr.update(&ctx);
-            })?;
+                    return curr.update(&ctx);
+                })
+                .context("Failed to update nodes")?;
 
             let root = &self.nodes.as_slice()[self.root.node];
 
             // Render node tree to output
-            self.output.render(root.buffer.map(Output::Element::from_color)).await?;
+            self.output
+                .render(root.buffer.map(Output::Element::from_color))
+                .await
+                .context("Output failed to render")?;
 
             self.stats.update(duration);
 
