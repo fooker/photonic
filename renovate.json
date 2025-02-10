@@ -1,7 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    ":automergeMinor"
   ],
   "nix": {
     "enabled": true
@@ -14,7 +15,6 @@
         "pin",
         "digest"
       ],
-      "matchCurrentVersion": "!/^0/",
       "automerge": true
     }
   ]
