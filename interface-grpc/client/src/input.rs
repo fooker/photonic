@@ -9,19 +9,28 @@ use parking_lot::Mutex;
 use tonic::transport::Channel;
 
 use photonic_interface_grpc_proto::interface_client::InterfaceClient;
-use photonic_interface_grpc_proto::{
-    input_value, InputInfoRequest, InputInfoResponse, InputSendRequest, InputValue, InputValueType,
-};
+use photonic_interface_grpc_proto::{input_value, InputInfoResponse, InputSendRequest, InputValue, InputValueType};
 
 use crate::values::{ColorValue, RangeValue, ValueType};
-use crate::{Identified, Ref};
 
-#[derive(Debug, Eq, PartialEq, Clone, Hash)]
+#[derive(Eq, PartialEq, Clone, Hash)]
 pub struct InputId(pub(crate) String);
 
 impl fmt::Display for InputId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.0)
+    }
+}
+
+impl fmt::Debug for InputId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl AsRef<str> for InputId {
+    fn as_ref(&self) -> &str {
+        return &self.0;
     }
 }
 
@@ -39,14 +48,6 @@ pub struct Input {
     name: InputId,
 
     value_type: ValueType,
-}
-
-impl Identified for Input {
-    type Id = InputId;
-
-    fn name(&self) -> &Self::Id {
-        return &self.name;
-    }
 }
 
 impl Input {
@@ -69,6 +70,10 @@ impl Input {
         }
     }
 
+    pub fn name(&self) -> &InputId {
+        return &self.name;
+    }
+
     pub fn value_type(&self) -> ValueType {
         return self.value_type;
     }
@@ -76,63 +81,38 @@ impl Input {
     pub fn sink(&self) -> InputSink {
         return match self.value_type {
             ValueType::Trigger => InputSink::Trigger(Sink {
-                input: &self,
+                input: self,
                 value_type: PhantomData,
             }),
             ValueType::Bool => InputSink::Boolean(Sink {
-                input: &self,
+                input: self,
                 value_type: PhantomData,
             }),
             ValueType::Integer => InputSink::Integer(Sink {
-                input: &self,
+                input: self,
                 value_type: PhantomData,
             }),
             ValueType::Decimal => InputSink::Decimal(Sink {
-                input: &self,
+                input: self,
                 value_type: PhantomData,
             }),
             ValueType::Color => InputSink::Color(Sink {
-                input: &self,
+                input: self,
                 value_type: PhantomData,
             }),
             ValueType::IntegerRange => InputSink::IntegerRange(Sink {
-                input: &self,
+                input: self,
                 value_type: PhantomData,
             }),
             ValueType::DecimalRange => InputSink::DecimalRange(Sink {
-                input: &self,
+                input: self,
                 value_type: PhantomData,
             }),
             ValueType::ColorRange => InputSink::ColorRange(Sink {
-                input: &self,
+                input: self,
                 value_type: PhantomData,
             }),
         };
-    }
-}
-
-#[derive(Clone)]
-pub(crate) struct InputRef {
-    pub(crate) client: Arc<Mutex<InterfaceClient<Channel>>>,
-
-    pub(crate) name: InputId,
-}
-
-impl Ref<Input> for InputRef {
-    fn name(&self) -> &InputId {
-        return &self.name;
-    }
-
-    async fn resolve(&self) -> Result<Input> {
-        let info = self
-            .client
-            .lock()
-            .input(InputInfoRequest {
-                name: self.name.0.clone(),
-            })
-            .await?;
-
-        return Ok(Input::from_input_info(self.client.clone(), info.into_inner()));
     }
 }
 
@@ -154,9 +134,9 @@ pub struct Sink<'i, V> {
 
 impl Sink<'_, ()> {
     pub async fn trigger(&self) -> Result<()> {
-        self.input
-            .client
-            .lock()
+        let mut client = self.input.client.lock_arc();
+
+        client
             .input_send(InputSendRequest {
                 name: self.input.name.0.clone(),
                 value: Some(InputValue {
@@ -170,9 +150,9 @@ impl Sink<'_, ()> {
 
 impl Sink<'_, bool> {
     pub async fn send(&self, value: bool) -> Result<()> {
-        self.input
-            .client
-            .lock()
+        let mut client = self.input.client.lock_arc();
+
+        client
             .input_send(InputSendRequest {
                 name: self.input.name.0.clone(),
                 value: Some(InputValue {
@@ -186,9 +166,9 @@ impl Sink<'_, bool> {
 
 impl Sink<'_, i64> {
     pub async fn send(&self, value: i64) -> Result<()> {
-        self.input
-            .client
-            .lock()
+        let mut client = self.input.client.lock_arc();
+
+        client
             .input_send(InputSendRequest {
                 name: self.input.name.0.clone(),
                 value: Some(InputValue {
@@ -202,9 +182,9 @@ impl Sink<'_, i64> {
 
 impl Sink<'_, f32> {
     pub async fn send(&self, value: f32) -> Result<()> {
-        self.input
-            .client
-            .lock()
+        let mut client = self.input.client.lock_arc();
+
+        client
             .input_send(InputSendRequest {
                 name: self.input.name.0.clone(),
                 value: Some(InputValue {
@@ -218,9 +198,9 @@ impl Sink<'_, f32> {
 
 impl Sink<'_, ColorValue> {
     pub async fn send(&self, value: ColorValue) -> Result<()> {
-        self.input
-            .client
-            .lock()
+        let mut client = self.input.client.lock_arc();
+
+        client
             .input_send(InputSendRequest {
                 name: self.input.name.0.clone(),
                 value: Some(InputValue {
@@ -234,9 +214,9 @@ impl Sink<'_, ColorValue> {
 
 impl Sink<'_, RangeValue<i64>> {
     pub async fn send(&self, value: RangeValue<i64>) -> Result<()> {
-        self.input
-            .client
-            .lock()
+        let mut client = self.input.client.lock_arc();
+
+        client
             .input_send(InputSendRequest {
                 name: self.input.name.0.clone(),
                 value: Some(InputValue {
@@ -250,9 +230,9 @@ impl Sink<'_, RangeValue<i64>> {
 
 impl Sink<'_, RangeValue<f32>> {
     pub async fn send(&self, value: RangeValue<f32>) -> Result<()> {
-        self.input
-            .client
-            .lock()
+        let mut client = self.input.client.lock_arc();
+
+        client
             .input_send(InputSendRequest {
                 name: self.input.name.0.clone(),
                 value: Some(InputValue {
@@ -266,9 +246,9 @@ impl Sink<'_, RangeValue<f32>> {
 
 impl Sink<'_, RangeValue<ColorValue>> {
     pub async fn send(&self, value: RangeValue<ColorValue>) -> Result<()> {
-        self.input
-            .client
-            .lock()
+        let mut client = self.input.client.lock_arc();
+
+        client
             .input_send(InputSendRequest {
                 name: self.input.name.0.clone(),
                 value: Some(InputValue {

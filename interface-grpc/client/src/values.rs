@@ -1,6 +1,9 @@
-use palette::Srgb;
-use photonic_interface_grpc_proto::input_value::{ColorRange, DecimalRange, IntegerRange, Rgb};
+use std::fmt;
 use std::str::FromStr;
+
+use palette::Srgb;
+
+use photonic_interface_grpc_proto::input_value::{ColorRange, DecimalRange, IntegerRange, Rgb};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)]
 pub enum ValueType {
@@ -12,6 +15,21 @@ pub enum ValueType {
     IntegerRange,
     DecimalRange,
     ColorRange,
+}
+
+impl fmt::Display for ValueType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        return f.write_str(match self {
+            Self::Trigger => "trigger",
+            Self::Bool => "bool",
+            Self::Integer => "integer",
+            Self::Decimal => "decimal",
+            Self::Color => "color",
+            Self::IntegerRange => "range<integer>",
+            Self::DecimalRange => "range<decimal>",
+            Self::ColorRange => "range<color>",
+        });
+    }
 }
 
 #[derive(Copy, Clone)]

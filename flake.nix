@@ -110,6 +110,8 @@
             cargo-machete
 
             codespell
+
+            maturin
           ];
 
           inherit (self.checks.${system}.pre-commit-check) shellHook;

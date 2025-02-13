@@ -5,7 +5,7 @@ import "google/protobuf/any.proto";
 
 package photonic;
 
-message AttrRef {
+message AttrName {
   string node = 1;
   repeated string path = 2;
 }
@@ -39,7 +39,7 @@ message NodeInfoResponse {
 }
 
 message AttrInfoResponse {
-  AttrRef attr = 1;
+  AttrName attr = 1;
 
   string kind = 2;
   string valueType = 3;
@@ -59,7 +59,7 @@ message NodeInfoRequest {
 }
 
 message AttrInfoRequest {
-  AttrRef attr = 1;
+  AttrName name = 1;
 }
 
 message InputInfoRequest {
@@ -103,6 +103,10 @@ message InputValue {
 message InputSendRequest {
   string name = 1;
   InputValue value = 2;
+}
+
+message AttrSubscribeRequest {
+  AttrName name = 1;
 }
 
 message InputSubscribeRequest {

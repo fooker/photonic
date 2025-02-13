@@ -1,5 +1,0 @@
-{% for element in elements -%}
-{{ element }}
-{%- if !loop.last %}
-{% endif -%}
-{%- endfor %}
