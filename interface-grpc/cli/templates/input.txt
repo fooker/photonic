@@ -1,2 +1,0 @@
-Input: {{ name }}
-    Value Type: {{ value_type }}

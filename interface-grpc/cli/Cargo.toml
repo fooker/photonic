@@ -15,14 +15,11 @@ photonic-interface-grpc-client = { version = "0.1.0", path = "../client" }
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
-palette = { workspace = true }
-
-tonic = "0.12.2"
+itertools = { workspace = true }
 
 yansi = "1.0"
-askama = "0.12"
 
-reedline-repl-rs = { version = "1.1.1", features = ["derive", "async"] }
+reedline-repl-rs = { version = "1.1.1", features = ["async_derive", "async", "shlex"] }
 clap = { version = "4.5.4", features = ["derive", "cargo"] }
 
 [lints]

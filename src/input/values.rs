@@ -60,7 +60,7 @@ impl InputValue for Rgb {
 impl super::private::Sealed for Range<i64> {}
 
 impl InputValue for Range<i64> {
-    const TYPE: InputValueType = InputValueType::Integer;
+    const TYPE: InputValueType = InputValueType::IntegerRange;
     fn sink(sink: Sink<Self>) -> InputSink {
         return InputSink::IntegerRange(sink);
     }
@@ -69,7 +69,7 @@ impl InputValue for Range<i64> {
 impl super::private::Sealed for Range<f32> {}
 
 impl InputValue for Range<f32> {
-    const TYPE: InputValueType = InputValueType::Decimal;
+    const TYPE: InputValueType = InputValueType::DecimalRange;
     fn sink(sink: Sink<Self>) -> InputSink {
         return InputSink::DecimalRange(sink);
     }
@@ -78,7 +78,7 @@ impl InputValue for Range<f32> {
 impl super::private::Sealed for Range<Rgb> {}
 
 impl InputValue for Range<Rgb> {
-    const TYPE: InputValueType = InputValueType::Color;
+    const TYPE: InputValueType = InputValueType::ColorRange;
     fn sink(sink: Sink<Self>) -> InputSink {
         return InputSink::ColorRange(sink);
     }

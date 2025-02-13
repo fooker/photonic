@@ -1,12 +1,28 @@
-use std::collections::HashMap;
+use itertools::Itertools;
+use std::fmt;
 
-use askama::Template;
 use yansi::{Paint, Style};
 
-use photonic_interface_grpc_client::attr::Attribute;
+use photonic_interface_grpc_client::attr::Attr;
 use photonic_interface_grpc_client::input::Input;
 use photonic_interface_grpc_client::node::{Node, NodeId};
-use photonic_interface_grpc_client::{values, Identified, Ref};
+use photonic_interface_grpc_client::{values, AttrId, InputId};
+
+pub trait Output {
+    fn render(&self, f: &mut dyn fmt::Write) -> fmt::Result;
+
+    fn display(&self) -> impl fmt::Display {
+        return Render(self);
+    }
+}
+
+struct Render<'s, O>(&'s O)
+where O: Output + ?Sized;
+impl<O: Output + ?Sized> fmt::Display for Render<'_, O> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        return self.0.render(f);
+    }
+}
 
 const NODE_STYLE: Style = Style::new().bright_yellow();
 const ATTR_STYLE: Style = Style::new().bright_cyan();
@@ -14,116 +30,119 @@ const INPUT_STYLE: Style = Style::new().bright_magenta();
 
 const TYPE_STYLE: Style = Style::new().bright_blue();
 
-#[derive(Template)]
-#[template(source = "{{ self.0.paint(NODE_STYLE) }}", ext = "txt")]
-pub struct NodeName(String);
-
-#[derive(Template)]
-#[template(source = "{{ self.0.paint(ATTR_STYLE) }}", ext = "txt")]
-pub struct AttrName(String);
-
-#[derive(Template)]
-#[template(source = "{{ self.0.paint(INPUT_STYLE) }}", ext = "txt")]
-pub struct InputName(String);
-
-#[derive(Template)]
-#[template(source = "{{ self.0.paint(TYPE_STYLE) }}", ext = "txt")]
-pub struct ValueType(String);
-
-impl From<values::ValueType> for ValueType {
-    fn from(value_type: values::ValueType) -> Self {
-        return Self(
-            match value_type {
-                values::ValueType::Trigger => "trigger",
-                values::ValueType::Bool => "bool",
-                values::ValueType::Integer => "integer",
-                values::ValueType::Decimal => "decimal",
-                values::ValueType::Color => "color",
-                values::ValueType::IntegerRange => "range<integer>",
-                values::ValueType::DecimalRange => "range<decimal>",
-                values::ValueType::ColorRange => "range<color>",
-            }
-            .to_string(),
-        );
+impl Output for NodeId {
+    fn render(&self, f: &mut dyn fmt::Write) -> fmt::Result {
+        return write!(f, "{}", self.as_ref().paint(NODE_STYLE));
     }
 }
 
-#[derive(Template)]
-#[template(path = "list.txt")]
-pub struct ListOutput<T: Template> {
+impl Output for AttrId {
+    fn render(&self, f: &mut dyn fmt::Write) -> fmt::Result {
+        let path = self.path().iter().map(|e| e.paint(ATTR_STYLE)).join("/");
+
+        return write!(f, "{}/{}", self.node().display(), path);
+    }
+}
+
+impl Output for InputId {
+    fn render(&self, f: &mut dyn fmt::Write) -> fmt::Result {
+        return write!(f, "{}", self.as_ref().paint(INPUT_STYLE));
+    }
+}
+
+impl Output for values::ValueType {
+    fn render(&self, f: &mut dyn fmt::Write) -> fmt::Result {
+        let value = match self {
+            values::ValueType::Trigger => "trigger",
+            values::ValueType::Bool => "bool",
+            values::ValueType::Integer => "integer",
+            values::ValueType::Decimal => "decimal",
+            values::ValueType::Color => "color",
+            values::ValueType::IntegerRange => "range<integer>",
+            values::ValueType::DecimalRange => "range<decimal>",
+            values::ValueType::ColorRange => "range<color>",
+        };
+
+        return write!(f, "{}", value.paint(TYPE_STYLE));
+    }
+}
+
+impl Output for () {
+    fn render(&self, _f: &mut dyn fmt::Write) -> fmt::Result {
+        return Ok(());
+    }
+}
+
+impl Output for Node {
+    fn render(&self, f: &mut dyn fmt::Write) -> fmt::Result {
+        writeln!(f, "Node: {}", self.name().display())?;
+        writeln!(f, "  Kind: {}", self.kind())?;
+        writeln!(f, "  Nodes:")?;
+        for (key, node) in self.nodes() {
+            writeln!(f, "    - {}: {}", key, node.display())?;
+        }
+        writeln!(f, "  Attributes:")?;
+        for attr in self.attrs() {
+            writeln!(f, "    - {}", attr.display())?;
+        }
+
+        return Ok(());
+    }
+}
+
+impl Output for Attr {
+    fn render(&self, f: &mut dyn fmt::Write) -> fmt::Result {
+        writeln!(f, "Attribute: {}", self.name().display())?;
+        writeln!(f, "  Kind: {}", self.kind())?;
+        writeln!(f, "  Value Type: {}", self.value_type())?;
+        writeln!(f, "  Attributes:")?;
+        for attr in self.attrs() {
+            writeln!(f, "    - {}", attr.display())?;
+        }
+        writeln!(f, "  Inputs:")?;
+        for (key, input) in self.inputs() {
+            writeln!(f, "    - {}: {}", key, input.display())?;
+        }
+
+        return Ok(());
+    }
+}
+
+impl Output for Input {
+    fn render(&self, f: &mut dyn fmt::Write) -> fmt::Result {
+        writeln!(f, "Input: {}", self.name().display())?;
+        writeln!(f, "  Value Type: {}", self.value_type().display())?;
+
+        return Ok(());
+    }
+}
+
+pub struct ListOutput<T: Output> {
     elements: Vec<T>,
 }
 
-impl<R: Ref<Node>, I: Iterator<Item = R>> From<I> for ListOutput<NodeName> {
+impl<T: Output> Output for ListOutput<T> {
+    fn render(&self, f: &mut dyn fmt::Write) -> fmt::Result {
+        for element in &self.elements {
+            writeln!(f, "- {}", element.display())?;
+        }
+
+        return Ok(());
+    }
+}
+
+impl<I: Iterator<Item = NodeId>> From<I> for ListOutput<NodeId> {
     fn from(iter: I) -> Self {
         return Self {
-            elements: iter.map(|node| NodeName(node.name().to_string())).collect(),
+            elements: iter.collect(),
         };
     }
 }
 
-impl<R: Ref<Input>, I: Iterator<Item = R>> From<I> for ListOutput<InputName> {
+impl<I: Iterator<Item = InputId>> From<I> for ListOutput<InputId> {
     fn from(iter: I) -> Self {
         return Self {
-            elements: iter.map(|input| InputName(input.name().to_string())).collect(),
-        };
-    }
-}
-
-#[derive(Template)]
-#[template(path = "node.txt")]
-pub struct NodeOutput {
-    name: NodeId,
-    kind: String,
-    nodes: HashMap<String, NodeName>,
-    attrs: Vec<AttrName>,
-}
-
-impl From<Node> for NodeOutput {
-    fn from(node: Node) -> Self {
-        return Self {
-            name: node.name().clone(),
-            kind: node.kind().to_owned(),
-            nodes: node.nodes().iter().map(|(key, node)| (key.clone(), NodeName(node.name().to_string()))).collect(),
-            attrs: node.attributes().keys().cloned().map(|key| AttrName(key)).collect(),
-        };
-    }
-}
-
-#[derive(Template)]
-#[template(path = "attribute.txt")]
-pub struct AttributeOutput {
-    node: NodeName,
-    path: Vec<AttrName>,
-    kind: String,
-    value_type: ValueType,
-    attrs: Vec<AttrName>,
-}
-
-impl From<Attribute> for AttributeOutput {
-    fn from(attr: Attribute) -> Self {
-        return Self {
-            node: NodeName(attr.name().node().to_string()),
-            path: attr.name().path().into_iter().cloned().map(AttrName).collect(),
-            kind: attr.kind().to_owned(),
-            value_type: ValueType(attr.value_type().to_owned()),
-            attrs: attr.attrs().keys().cloned().map(AttrName).collect(),
-        };
-    }
-}
-
-#[derive(Template)]
-#[template(path = "input.txt")]
-pub struct InputOutput {
-    name: InputName,
-    value_type: ValueType,
-}
-
-impl From<Input> for InputOutput {
-    fn from(input: Input) -> Self {
-        return Self {
-            name: InputName(input.name().to_string()),
-            value_type: ValueType::from(input.value_type()),
+            elements: iter.collect(),
         };
     }
 }

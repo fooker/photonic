@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::Infallible;
 use std::fmt;
 use std::str::FromStr;
@@ -9,17 +9,29 @@ use parking_lot::Mutex;
 use tonic::transport::Channel;
 
 use photonic_interface_grpc_proto::interface_client::InterfaceClient;
-use photonic_interface_grpc_proto::{NodeInfoRequest, NodeInfoResponse};
+use photonic_interface_grpc_proto::{AttrInfoRequest, AttrName, NodeInfoRequest, NodeInfoResponse};
 
-use crate::attr::{Attribute, AttributeId, AttributeRef};
-use crate::{Identified, Ref};
+use crate::attr::Attr;
+use crate::AttrId;
 
-#[derive(Debug, Eq, PartialEq, Clone, Hash)]
+#[derive(Eq, PartialEq, Clone, Hash)]
 pub struct NodeId(pub(crate) String);
 
 impl fmt::Display for NodeId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.0)
+    }
+}
+
+impl fmt::Debug for NodeId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl AsRef<str> for NodeId {
+    fn as_ref(&self) -> &str {
+        return &self.0;
     }
 }
 
@@ -32,50 +44,27 @@ impl FromStr for NodeId {
 }
 
 pub struct Node {
-    #[allow(dead_code)]
     client: Arc<Mutex<InterfaceClient<Channel>>>,
 
     name: NodeId,
     kind: String,
 
-    nodes: HashMap<String, NodeRef>,
-    attrs: HashMap<String, AttributeRef>,
-}
-
-impl Identified for Node {
-    type Id = NodeId;
-
-    fn name(&self) -> &Self::Id {
-        return &self.name;
-    }
+    nodes: HashMap<String, NodeId>,
+    attrs: HashSet<AttrId>,
 }
 
 impl Node {
     pub(crate) fn from_node_info(client: Arc<Mutex<InterfaceClient<Channel>>>, info: NodeInfoResponse) -> Self {
         let name = NodeId(info.name);
 
-        let nodes = info
-            .nodes
-            .into_iter()
-            .map(|(k, v)| {
-                (k, NodeRef {
-                    client: client.clone(),
-                    name: NodeId(v),
-                })
-            })
-            .collect();
+        let nodes = info.nodes.into_iter().map(|(key, node)| (key, NodeId(node))).collect();
 
         let attrs = info
             .attrs
             .into_iter()
-            .map(|k| {
-                (k.clone(), AttributeRef {
-                    client: client.clone(),
-                    name: AttributeId {
-                        node: name.clone(),
-                        path: vec![k],
-                    },
-                })
+            .map(|attr| AttrId {
+                node: name.clone(),
+                path: vec![attr],
             })
             .collect();
 
@@ -88,40 +77,52 @@ impl Node {
         }
     }
 
+    pub fn name(&self) -> &NodeId {
+        return &self.name;
+    }
+
     pub fn kind(&self) -> &str {
         return &self.kind;
     }
 
-    pub fn nodes(&self) -> &HashMap<String, impl Ref<Node>> {
+    pub fn nodes(&self) -> &HashMap<String, NodeId> {
         return &self.nodes;
     }
 
-    pub fn attributes(&self) -> &HashMap<String, impl Ref<Attribute>> {
+    pub fn attrs(&self) -> &HashSet<AttrId> {
         return &self.attrs;
     }
-}
 
-#[derive(Clone)]
-pub(crate) struct NodeRef {
-    pub(crate) client: Arc<Mutex<InterfaceClient<Channel>>>,
+    pub async fn node(&self, name: &str) -> Result<Option<Node>> {
+        let mut client = self.client.lock_arc();
 
-    pub(crate) name: NodeId,
-}
+        let Some(node) = self.nodes.get(name) else {
+            return Ok(None);
+        };
 
-impl Ref<Node> for NodeRef {
-    fn name(&self) -> &NodeId {
-        return &self.name;
+        let response = client
+            .node(NodeInfoRequest {
+                name: node.0.clone(),
+            })
+            .await?
+            .into_inner();
+
+        return Ok(Some(Node::from_node_info(self.client.clone(), response)));
     }
 
-    async fn resolve(&self) -> Result<Node> {
-        let info = self
-            .client
-            .lock()
-            .node(NodeInfoRequest {
-                name: self.name.0.clone(),
-            })
-            .await?;
+    pub async fn attr(&self, name: &str) -> Result<Option<Attr>> {
+        let mut client = self.client.lock_arc();
 
-        return Ok(Node::from_node_info(self.client.clone(), info.into_inner()));
+        let response = client
+            .attr(AttrInfoRequest {
+                name: Some(AttrName {
+                    node: self.name.0.clone(),
+                    path: vec![name.to_owned()],
+                }),
+            })
+            .await?
+            .into_inner();
+
+        return Ok(Some(Attr::from_attr_info(self.client.clone(), response)));
     }
 }

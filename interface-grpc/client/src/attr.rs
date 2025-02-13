@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::sync::Arc;
 
@@ -7,26 +7,40 @@ use parking_lot::Mutex;
 use tonic::transport::Channel;
 
 use photonic_interface_grpc_proto::interface_client::InterfaceClient;
-use photonic_interface_grpc_proto::{AttrInfoRequest, AttrInfoResponse, AttrRef};
+use photonic_interface_grpc_proto::{AttrInfoRequest, AttrInfoResponse, AttrName, InputInfoRequest};
 
-use crate::input::{Input, InputId, InputRef};
 use crate::node::NodeId;
-use crate::{Identified, Ref};
+use crate::{Input, InputId};
 
-#[derive(Debug, Eq, PartialEq, Clone, Hash)]
-pub struct AttributeId {
+#[derive(Eq, PartialEq, Clone, Hash)]
+pub struct AttrId {
     pub(crate) node: NodeId,
     pub(crate) path: Vec<String>,
 }
 
-impl fmt::Display for AttributeId {
+impl fmt::Display for AttrId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        return write!(f, "{}@{}", &self.node, &self.path.join("/"));
+        return write!(f, "{}@{}", &self.node.0, &self.path.join("/"));
     }
 }
 
-impl AttributeId {
-    pub(crate) fn extend(self, attr: String) -> Self {
+impl fmt::Debug for AttrId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        return write!(f, "{}@{}", &self.node.0, &self.path.join("/"));
+    }
+}
+
+impl AttrId {
+    pub fn new(node: NodeId, path: impl IntoIterator<Item = String>) -> Self {
+        let path = path.into_iter().collect();
+
+        return Self {
+            node,
+            path,
+        };
+    }
+
+    pub fn extend(self, attr: String) -> Self {
         let mut path = self.path;
         path.push(attr);
 
@@ -45,59 +59,32 @@ impl AttributeId {
     }
 }
 
-pub struct Attribute {
-    #[allow(dead_code)]
+pub struct Attr {
     client: Arc<Mutex<InterfaceClient<Channel>>>,
 
-    name: AttributeId,
+    name: AttrId,
 
     kind: String,
 
     value_type: String,
 
-    attrs: HashMap<String, AttributeRef>,
-    inputs: HashMap<String, InputRef>,
+    attrs: HashSet<AttrId>,
+    inputs: HashMap<String, InputId>,
 }
 
-impl Identified for Attribute {
-    type Id = AttributeId;
-
-    fn name(&self) -> &Self::Id {
-        return &self.name;
-    }
-}
-
-impl Attribute {
+impl Attr {
     pub(crate) fn from_attr_info(client: Arc<Mutex<InterfaceClient<Channel>>>, info: AttrInfoResponse) -> Self {
         let name = info.attr.expect("name must exist");
-        let name = AttributeId {
+        let name = AttrId {
             node: NodeId(name.node),
             path: name.path,
         };
 
         let value_type = info.value_type;
 
-        let attrs = info
-            .attrs
-            .into_iter()
-            .map(|k| {
-                (k.clone(), AttributeRef {
-                    client: client.clone(),
-                    name: name.clone().extend(k),
-                })
-            })
-            .collect();
+        let attrs = info.attrs.into_iter().map(|attr| name.clone().extend(attr)).collect();
 
-        let inputs = info
-            .inputs
-            .into_iter()
-            .map(|(k, v)| {
-                (k, InputRef {
-                    client: client.clone(),
-                    name: InputId(v),
-                })
-            })
-            .collect();
+        let inputs = info.inputs.into_iter().map(|(key, input)| (key, InputId(input))).collect();
 
         Self {
             client,
@@ -109,6 +96,10 @@ impl Attribute {
         }
     }
 
+    pub fn name(&self) -> &AttrId {
+        return &self.name;
+    }
+
     pub fn kind(&self) -> &str {
         return &self.kind;
     }
@@ -117,39 +108,49 @@ impl Attribute {
         return &self.value_type;
     }
 
-    pub fn attrs(&self) -> &HashMap<String, impl Ref<Attribute>> {
+    pub fn attrs(&self) -> &HashSet<AttrId> {
         return &self.attrs;
     }
 
-    pub fn inputs(&self) -> &HashMap<String, impl Ref<Input>> {
+    pub fn inputs(&self) -> &HashMap<String, InputId> {
         return &self.inputs;
     }
-}
 
-#[derive(Clone)]
-pub(crate) struct AttributeRef {
-    pub(crate) client: Arc<Mutex<InterfaceClient<Channel>>>,
+    pub async fn attr(&self, name: &str) -> Result<Option<Attr>> {
+        let mut client = self.client.lock_arc();
 
-    pub(crate) name: AttributeId,
-}
+        let attr = self.name.clone().extend(name.to_owned());
+        if !self.attrs.contains(&attr) {
+            return Ok(None);
+        }
 
-impl Ref<Attribute> for AttributeRef {
-    fn name(&self) -> &AttributeId {
-        return &self.name;
-    }
-
-    async fn resolve(&self) -> Result<Attribute> {
-        let info = self
-            .client
-            .lock()
+        let response = client
             .attr(AttrInfoRequest {
-                attr: Some(AttrRef {
-                    node: self.name.node.0.clone(),
-                    path: self.name.path.clone(),
+                name: Some(AttrName {
+                    node: attr.node.0,
+                    path: attr.path,
                 }),
             })
-            .await?;
+            .await?
+            .into_inner();
 
-        return Ok(Attribute::from_attr_info(self.client.clone(), info.into_inner()));
+        return Ok(Some(Attr::from_attr_info(self.client.clone(), response)));
+    }
+
+    pub async fn input(&self, name: &str) -> Result<Option<Input>> {
+        let mut client = self.client.lock_arc();
+
+        let Some(input) = self.inputs.get(name) else {
+            return Ok(None);
+        };
+
+        let response = client
+            .input(InputInfoRequest {
+                name: input.0.clone(),
+            })
+            .await?
+            .into_inner();
+
+        return Ok(Some(Input::from_input_info(self.client.clone(), response)));
     }
 }

@@ -35,5 +35,8 @@ async fn main() -> Result<()> {
     let cli = photonic_interface_cli::stdio::CLI;
     scene.serve("CLI", cli);
 
+    let grpc = photonic_interface_grpc::GRPC::new()?;
+    scene.serve("GRPC", grpc);
+
     return scene.run(60).await;
 }

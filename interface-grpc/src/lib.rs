@@ -66,7 +66,7 @@ impl interface_server::Interface for InterfaceImpl {
             inputs,
         }));
     }
-    async fn root_info(&self, _request: Request<()>) -> Result<Response<NodeInfoResponse>, Status> {
+    async fn root(&self, _request: Request<()>) -> Result<Response<NodeInfoResponse>, Status> {
         let root = &*self.introspection.root;
 
         return Ok(Response::new(NodeInfoResponse {
@@ -77,7 +77,7 @@ impl interface_server::Interface for InterfaceImpl {
         }));
     }
 
-    async fn node_info(&self, request: Request<NodeInfoRequest>) -> Result<Response<NodeInfoResponse>, Status> {
+    async fn node(&self, request: Request<NodeInfoRequest>) -> Result<Response<NodeInfoResponse>, Status> {
         let request = request.get_ref();
 
         let node = &**self
@@ -94,10 +94,10 @@ impl interface_server::Interface for InterfaceImpl {
         }));
     }
 
-    async fn attr_info(&self, request: Request<AttrInfoRequest>) -> Result<Response<AttrInfoResponse>, Status> {
+    async fn attr(&self, request: Request<AttrInfoRequest>) -> Result<Response<AttrInfoResponse>, Status> {
         let request = request.get_ref();
 
-        let attr_ref = request.attr.as_ref().ok_or_else(|| Status::invalid_argument("Value missing: attr"))?;
+        let attr_ref = request.name.as_ref().ok_or_else(|| Status::invalid_argument("Value missing: attr"))?;
 
         let node = &**self
             .introspection
@@ -118,7 +118,7 @@ impl interface_server::Interface for InterfaceImpl {
         }));
     }
 
-    async fn input_info(&self, request: Request<InputInfoRequest>) -> Result<Response<InputInfoResponse>, Status> {
+    async fn input(&self, request: Request<InputInfoRequest>) -> Result<Response<InputInfoResponse>, Status> {
         let request = request.get_ref();
 
         let input = &**self
