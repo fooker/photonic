@@ -21,15 +21,13 @@ impl AttrValue for ! {
 
 macro_rules! attr_value {
     (
-        $vt:expr
+        $vt:ident
         =>
         $($t:ty),*
     ) => {
         $(
-            ::paste::paste! {
-                impl AttrValue for $t {
-                    const TYPE: AttrValueType = AttrValueType::$vt;
-                }
+            impl AttrValue for $t {
+                const TYPE: AttrValueType = AttrValueType::$vt;
             }
         )*
     };

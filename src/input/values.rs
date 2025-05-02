@@ -110,14 +110,12 @@ macro_rules! impl_coerced_from {
         $($t:ty),*
     ) => {
         $(
-            ::paste::paste! {
-                impl Coerced for $t {
-                    type Input = $i;
-                    type Error = <$t as TryFrom<$i>>::Error;
+            impl Coerced for $t {
+                type Input = $i;
+                type Error = <$t as TryFrom<$i>>::Error;
 
-                    fn try_from_input(input: Self::Input) -> Result<Self, Self::Error> {
-                        return TryFrom::try_from(input);
-                    }
+                fn try_from_input(input: Self::Input) -> Result<Self, Self::Error> {
+                    return TryFrom::try_from(input);
                 }
             }
         )*
@@ -130,14 +128,12 @@ macro_rules! impl_coerced_color {
         $($t:ty),*
     ) => {
         $(
-            ::paste::paste! {
-                impl Coerced for $t {
-                    type Input = $i;
-                    type Error = Infallible;
+            impl Coerced for $t {
+                type Input = $i;
+                type Error = Infallible;
 
-                    fn try_from_input(input: Self::Input) -> Result<Self, Self::Error> {
-                        return Ok(FromColor::from_color(input));
-                    }
+                fn try_from_input(input: Self::Input) -> Result<Self, Self::Error> {
+                    return Ok(FromColor::from_color(input));
                 }
             }
         )*
