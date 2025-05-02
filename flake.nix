@@ -2,7 +2,7 @@
   description = "photonic - dynamic light controller";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     crane = {
       url = "github:ipetkov/crane";
