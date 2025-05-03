@@ -15,11 +15,11 @@ server = []
 client = []
 
 [dependencies]
-tonic = "0.12.2"
+tonic = "0.13.0"
 prost = "0.13.3"
 
 [build-dependencies]
-tonic-build = { version = "0.12.2" }
+tonic-build = { version = "0.13.0" }
 
 [lints]
 workspace = true
