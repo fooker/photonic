@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
 use anyhow::Result;
-use rand::distributions::uniform::SampleUniform;
-use rand::distributions::{Distribution, Uniform};
+use rand::distr::uniform::SampleUniform;
+use rand::distr::{Distribution, Uniform};
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
@@ -48,8 +48,8 @@ where V: AttrValue + SampleUniform + Bounded
     type Attr = RandomAttr<V>;
 
     fn materialize(self, bounds: Bounds<V>, builder: &mut AttrBuilder) -> Result<Self::Attr> {
-        let mut random = SmallRng::from_entropy();
-        let uniform = Uniform::new_inclusive(bounds.min, bounds.max);
+        let mut random = SmallRng::from_os_rng();
+        let uniform = Uniform::new_inclusive(bounds.min, bounds.max)?;
 
         // Generate a random initial value
         let current = uniform.sample(&mut random);
