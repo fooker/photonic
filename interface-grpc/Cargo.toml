@@ -18,7 +18,7 @@ palette = { workspace = true }
 anyhow = { workspace = true }
 futures = { workspace = true }
 
-tonic = { version = "0.12.2" }
+tonic = { version = "0.13.0" }
 
 [lints]
 workspace = true
