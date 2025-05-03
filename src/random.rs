@@ -1,8 +1,8 @@
 use palette::Mix;
 use std::time::Duration;
 
-use rand::distributions::uniform::SampleUniform;
-use rand::distributions::{Distribution, Standard};
+use rand::distr::uniform::SampleUniform;
+use rand::distr::{Distribution, StandardUniform};
 use rand::rngs::SmallRng;
 use rand::{Rng, SeedableRng};
 
@@ -20,17 +20,17 @@ impl Default for Random {
 
 impl Random {
     pub fn new() -> Self {
-        Self(SmallRng::from_entropy())
+        Self(SmallRng::from_os_rng())
     }
 
     pub fn rate(&mut self, value: f64, duration: Duration) -> bool {
         let chance = math::clamp(duration.as_secs_f64() * value, (0.0, 1.0));
-        return self.0.gen_bool(chance);
+        return self.0.random_bool(chance);
     }
 
     pub fn lerp<V>(&mut self, v1: V, v2: V) -> V
     where V: Lerp {
-        let v = self.0.gen();
+        let v = self.0.random();
         return Lerp::lerp(v1, v2, v);
     }
 
@@ -38,9 +38,9 @@ impl Random {
     pub fn mix<V>(&mut self, v1: V, v2: V) -> V
     where
         V: Mix,
-        Standard: Distribution<<V as Mix>::Scalar>,
+        StandardUniform: Distribution<<V as Mix>::Scalar>,
     {
-        let v = self.0.gen();
+        let v = self.0.random();
         return Mix::mix(v1, v2, v);
     }
 
@@ -51,6 +51,6 @@ impl Random {
             return values.0;
         }
 
-        return self.0.gen_range(values.0..=values.1);
+        return self.0.random_range(values.0..=values.1);
     }
 }
