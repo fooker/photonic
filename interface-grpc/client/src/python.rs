@@ -1,22 +1,12 @@
 use std::collections::{HashMap, HashSet};
-use std::future::Future;
 use std::str::FromStr;
 
 use anyhow::Result;
-use futures::FutureExt;
 use pyo3::prelude::*;
 
 use crate::input::InputSink;
 use crate::values::{ColorValue, RangeValue};
 use crate::{Attr, AttrId, Client, Input, InputId, Node, NodeId};
-
-fn asyncify<R: for<'py> IntoPyObject<'py>>(
-    py: Python,
-    f: impl Future<Output = Result<R>> + Send + 'static,
-) -> PyResult<Bound<PyAny>> {
-    let f = f.map(|r| r.map_err(PyErr::from));
-    return pyo3_async_runtimes::tokio::future_into_py(py, f);
-}
 
 #[pymodule]
 fn photonic_grpc_client(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -34,11 +24,12 @@ fn photonic_grpc_client(m: &Bound<'_, PyModule>) -> PyResult<()> {
 }
 
 #[pyfunction]
-fn connect<'py>(py: Python<'py>, url: String) -> PyResult<Bound<'py, PyAny>> {
-    asyncify(py, async move {
-        let client = Client::connect(url.parse()?).await?;
-        return Ok(PyClient(client));
-    })
+async fn connect(url: String) -> PyResult<PyClient> {
+    let uri = url.parse().map_err(anyhow::Error::from)?;
+
+    let client = Client::connect(uri).await?;
+
+    return Ok(PyClient(client));
 }
 
 #[pyclass(frozen, name = "Client")]
@@ -46,40 +37,28 @@ struct PyClient(#[allow(unused)] Client);
 
 #[pymethods]
 impl PyClient {
-    fn nodes(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            return Ok(slf.get().0.nodes().await?);
-        })
+    async fn nodes(&self) -> PyResult<HashSet<NodeId>> {
+        return Ok(self.0.nodes().await?);
     }
 
-    fn inputs(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            return Ok(slf.get().0.inputs().await?);
-        })
+    async fn inputs(&self) -> PyResult<HashSet<InputId>> {
+        return Ok(self.0.inputs().await?);
     }
 
-    fn root(slf: Py<Self>, py: Python) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            return Ok(PyNode(slf.get().0.root().await?));
-        })
+    async fn root(&self) -> PyResult<PyNode> {
+        return Ok(PyNode(self.0.root().await?));
     }
 
-    fn node(slf: Py<Self>, py: Python, name: PyNodeId) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            return Ok(PyNode(slf.get().0.node(&name.0).await?));
-        })
+    async fn node(&self, name: PyNodeId) -> PyResult<PyNode> {
+        return Ok(PyNode(self.0.node(&name.0).await?));
     }
 
-    fn attribute(slf: Py<Self>, py: Python, name: PyAttrId) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            return Ok(PyAttr(slf.get().0.attr(&name.0).await?));
-        })
+    async fn attribute(&self, name: PyAttrId) -> PyResult<PyAttr> {
+        return Ok(PyAttr(self.0.attr(&name.0).await?));
     }
 
-    fn input(slf: Py<Self>, py: Python, name: PyInputId) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            return Ok(PyInput(slf.get().0.input(&name.0).await?));
-        })
+    async fn input(&self, name: PyInputId) -> PyResult<PyInput> {
+        return Ok(PyInput(self.0.input(&name.0).await?));
     }
 }
 
@@ -108,24 +87,20 @@ impl PyNode {
         return &self.0.attrs();
     }
 
-    fn node(slf: Py<Self>, py: Python, name: String) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            let Some(node) = slf.get().0.node(&name).await? else {
-                return Ok(None);
-            };
+    async fn node(&self, name: String) -> PyResult<Option<PyNode>> {
+        let Some(node) = self.0.node(&name).await? else {
+            return Ok(None);
+        };
 
-            return Ok(Some(PyNode(node)));
-        })
+        return Ok(Some(PyNode(node)));
     }
 
-    fn attr(slf: Py<Self>, py: Python, name: String) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            let Some(attr) = slf.get().0.attr(&name).await? else {
-                return Ok(None);
-            };
+    async fn attr(&self, name: String) -> PyResult<Option<PyAttr>> {
+        let Some(attr) = self.0.attr(&name).await? else {
+            return Ok(None);
+        };
 
-            return Ok(Some(PyAttr(attr)));
-        })
+        return Ok(Some(PyAttr(attr)));
     }
 
     fn __repr__(&self) -> PyResult<String> {
@@ -163,24 +138,20 @@ impl PyAttr {
         return self.0.inputs();
     }
 
-    fn attr(slf: Py<Self>, py: Python, name: String) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            let Some(attr) = slf.get().0.attr(&name).await? else {
-                return Ok(None);
-            };
+    async fn attr(&self, name: String) -> PyResult<Option<PyAttr>> {
+        let Some(attr) = self.0.attr(&name).await? else {
+            return Ok(None);
+        };
 
-            return Ok(Some(PyAttr(attr)));
-        })
+        return Ok(Some(PyAttr(attr)));
     }
 
-    fn input(slf: Py<Self>, py: Python, name: String) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            let Some(input) = slf.get().0.input(&name).await? else {
-                return Ok(None);
-            };
+    async fn input(&self, name: String) -> PyResult<Option<PyInput>> {
+        let Some(input) = self.0.input(&name).await? else {
+            return Ok(None);
+        };
 
-            return Ok(Some(PyInput(input)));
-        })
+        return Ok(Some(PyInput(input)));
     }
 
     fn __repr__(&self) -> PyResult<String> {
@@ -203,23 +174,21 @@ impl PyInput {
         return self.0.value_type().to_string();
     }
 
-    pub fn send(slf: Py<Self>, py: Python, value: Py<PyAny>) -> PyResult<Bound<PyAny>> {
-        asyncify(py, async move {
-            fn extract<T: for<'a> FromPyObject<'a>>(value: Py<PyAny>) -> PyResult<T> {
-                Python::with_gil(|py| value.extract(py))
-            }
+    pub async fn send(&self, value: Py<PyAny>) -> PyResult<()> {
+        fn extract<T: for<'a> FromPyObject<'a>>(value: Py<PyAny>) -> PyResult<T> {
+            Python::with_gil(|py| value.extract(py))
+        }
 
-            return match slf.get().0.sink() {
-                InputSink::Trigger(sink) => sink.trigger().await,
-                InputSink::Boolean(sink) => sink.send(extract(value)?).await,
-                InputSink::Integer(sink) => sink.send(extract(value)?).await,
-                InputSink::Decimal(sink) => sink.send(extract(value)?).await,
-                InputSink::Color(sink) => sink.send(extract(value)?).await,
-                InputSink::IntegerRange(sink) => sink.send(extract(value)?).await,
-                InputSink::DecimalRange(sink) => sink.send(extract(value)?).await,
-                InputSink::ColorRange(sink) => sink.send(extract(value)?).await,
-            };
-        })
+        return Ok(match self.0.sink() {
+            InputSink::Trigger(sink) => sink.trigger().await?,
+            InputSink::Boolean(sink) => sink.send(extract(value)?).await?,
+            InputSink::Integer(sink) => sink.send(extract(value)?).await?,
+            InputSink::Decimal(sink) => sink.send(extract(value)?).await?,
+            InputSink::Color(sink) => sink.send(extract(value)?).await?,
+            InputSink::IntegerRange(sink) => sink.send(extract(value)?).await?,
+            InputSink::DecimalRange(sink) => sink.send(extract(value)?).await?,
+            InputSink::ColorRange(sink) => sink.send(extract(value)?).await?,
+        });
     }
 
     fn __repr__(&self) -> PyResult<String> {
