@@ -17,7 +17,7 @@ crate-type = ["cdylib", "rlib"]
 python = ["dep:pyo3"] #, "dep:pyo3-async-runtimes"]
 
 [dependencies]
-photonic-interface-grpc-proto = { version = "0.1.0", path = "../proto", features = ["client"] }
+photonic-interface-grpc-proto = { version = "0.1.1", path = "../proto", features = ["client"] }
 
 anyhow = { workspace = true }
 palette = { workspace = true }
