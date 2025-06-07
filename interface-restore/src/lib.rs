@@ -62,7 +62,7 @@ impl Interface for Restore {
             };
 
             if let Err(err) = result {
-                eprintln!("Failed to restore input value: {}", err);
+                eprintln!("Failed to restore input value: {err}");
             }
         }
 

@@ -24,7 +24,7 @@ impl std::fmt::Display for AttrValueType {
             Self::Integer => f.write_str("integer"),
             Self::Decimal => f.write_str("decimal"),
             Self::Color => f.write_str("color"),
-            Self::Range(element) => write!(f, "range<{}>", element),
+            Self::Range(element) => write!(f, "range<{element}>"),
         };
     }
 }

@@ -66,7 +66,7 @@ impl Interface for MQTT {
         let mut inputs = introspection
             .inputs
             .iter()
-            .map(|(name, input)| (realm.topic(format!("input/{}", name)), input.subscribe()))
+            .map(|(name, input)| (realm.topic(format!("input/{name}")), input.subscribe()))
             .collect::<StreamMap<_, _>>();
 
         loop {
@@ -96,7 +96,7 @@ impl Interface for MQTT {
 
                     Ok(Event::Incoming(Incoming::Publish(publish))) => {
                         let input = introspection.inputs.iter()
-                            .find_map(|(name, input)| (realm.topic(format!("input/{}/set", name)) == publish.topic).then_some(input));
+                            .find_map(|(name, input)| (realm.topic(format!("input/{name}/set")) == publish.topic).then_some(input));
 
                         let input = match input {
                             Some(input) => input,
@@ -137,7 +137,7 @@ impl Interface for MQTT {
                     Ok(_) => {}
 
                     Err(err) => {
-                        eprintln!("MQTT error: {}", err);
+                        eprintln!("MQTT error: {err}");
                         tokio::time::sleep(Duration::from_secs(5)).await;
                     }
                 }

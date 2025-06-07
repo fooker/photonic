@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::future::Future;
-use std::marker::PhantomData;
 use std::pin::Pin;
 use std::sync::Arc;
 use std::time::Duration;
@@ -24,27 +23,6 @@ pub struct RenderContext<'ctx> {
     pub duration: Duration,
 
     nodes: Slice<'ctx, dyn NodeHolder>,
-}
-
-struct NodeBufferReader<'b, E, O> {
-    buffer: &'b Buffer<E>,
-    phantom: PhantomData<O>,
-}
-
-impl<E, O> BufferReader for NodeBufferReader<'_, E, O>
-where
-    E: Copy,
-    O: Copy + From<E>,
-{
-    type Element = O;
-
-    fn get(&self, index: usize) -> Self::Element {
-        return O::from(*self.buffer.get(index));
-    }
-
-    fn size(&self) -> usize {
-        return self.buffer.size();
-    }
 }
 
 impl<Node> ops::Index<NodeRef<Node>> for RenderContext<'_>
@@ -353,7 +331,7 @@ where
         let interface = interface.listen(self.introspection.clone());
         let interface = interface.inspect(move |result| {
             if let Ok(()) = result {
-                eprintln!("Server terminated: {}", name);
+                eprintln!("Server terminated: {name}");
             }
         });
 

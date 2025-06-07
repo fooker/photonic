@@ -169,7 +169,7 @@ pub mod dynamic {
                 .sources
                 .into_iter()
                 .enumerate()
-                .map(|(i, source)| builder.node(&format!("sources.{}", i), source))
+                .map(|(i, source)| builder.node(&format!("sources.{i}"), source))
                 .collect::<Result<_>>()?;
 
             return Ok(Select {

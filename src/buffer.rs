@@ -169,7 +169,7 @@ pub trait BufferReader {
         return lerp::Lerp::new(self, other, i);
     }
 
-    fn slice(&self, range: Range<usize>) -> Slice<Self::Element>
+    fn slice(&self, range: Range<usize>) -> Slice<'_, Self::Element>
     where Self: Sized {
         return Slice {
             inner: self,

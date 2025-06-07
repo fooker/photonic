@@ -113,7 +113,7 @@ impl<Reg: Registry> Builder<Reg> {
 
                 let decl = factory
                     .produce(config, AttrBuilder(self))
-                    .with_context(|| format!("Failed to build attribute: (type={}) @{}", kind, name))?;
+                    .with_context(|| format!("Failed to build attribute: (type={kind}) @{name}"))?;
 
                 return Ok(decl);
             }
@@ -123,7 +123,7 @@ impl<Reg: Registry> Builder<Reg> {
                 initial,
             } => {
                 let input: InputHandle<V::Input> =
-                    self.input(input).with_context(|| format!("Failed to build input: @{}", name))?;
+                    self.input(input).with_context(|| format!("Failed to build input: @{name}"))?;
                 return Ok(input.attr(initial).boxed());
             }
 
@@ -146,7 +146,7 @@ impl<Reg: Registry> Builder<Reg> {
 
                 let decl = factory
                     .produce(config, AttrBuilder(self))
-                    .with_context(|| format!("Failed to build attribute: (type={}) @{}", kind, name))?;
+                    .with_context(|| format!("Failed to build attribute: (type={kind}) @{name}"))?;
 
                 return Ok(decl);
             }
@@ -156,7 +156,7 @@ impl<Reg: Registry> Builder<Reg> {
                 initial,
             } => {
                 let input: InputHandle<V::Input> =
-                    self.input(input).with_context(|| format!("Failed to build input: @{}", name))?;
+                    self.input(input).with_context(|| format!("Failed to build input: @{name}"))?;
                 return Ok(input.attr(initial).boxed());
             }
 
