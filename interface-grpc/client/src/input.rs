@@ -78,7 +78,7 @@ impl Input {
         return self.value_type;
     }
 
-    pub fn sink(&self) -> InputSink {
+    pub fn sink(&self) -> InputSink<'_> {
         return match self.value_type {
             ValueType::Trigger => InputSink::Trigger(Sink {
                 input: self,

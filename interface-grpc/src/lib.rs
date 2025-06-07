@@ -218,7 +218,7 @@ impl interface_server::Interface for InterfaceImpl {
                 sink.send(value).await
             }
         }
-        .map_err(|err| Status::invalid_argument(format!("Invalid value: {}", err)))?;
+        .map_err(|err| Status::invalid_argument(format!("Invalid value: {err}")))?;
 
         return Ok(Response::new(()));
     }

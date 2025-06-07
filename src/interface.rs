@@ -309,12 +309,12 @@ impl Introspection {
 
         fn log_input(depth: usize, key: &str, input: &InputInfo) {
             let indent = String::from("  ").repeat(depth);
-            eprintln!("🔎  {}🎛 {} = {}", indent, key, input.name);
+            eprintln!("🔎  {indent}🎛 {} = {}", key, input.name);
         }
 
         fn log_attr(depth: usize, key: &str, attr: &AttrInfo) {
             let indent = String::from("  ").repeat(depth);
-            eprintln!("🔎  {}🪛 {} = {}:{} {{", indent, key, attr.value_type, attr.kind);
+            eprintln!("🔎  {indent}🪛 {} = {}:{} {{", key, attr.value_type, attr.kind);
 
             for (name, attr) in attr.attrs() {
                 log_attr(depth + 1, name, attr);
@@ -324,12 +324,12 @@ impl Introspection {
                 log_input(depth + 1, name, input);
             }
 
-            eprintln!("🔎  {}}}", indent);
+            eprintln!("🔎  {indent}}}");
         }
 
         fn log_node(depth: usize, key: &str, node: &NodeInfo) {
             let indent = String::from("  ").repeat(depth);
-            eprintln!("🔎  {}⭐ {} = {}@{} {{", indent, key, node.kind, node.name);
+            eprintln!("🔎  {indent}⭐ {} = {}@{} {{", key, node.kind, node.name);
 
             for (name, attr) in node.attrs() {
                 log_attr(depth + 1, name, attr);
@@ -339,7 +339,7 @@ impl Introspection {
                 log_node(depth + 1, name, node);
             }
 
-            eprintln!("🔎  {}}}", indent)
+            eprintln!("🔎  {indent}}}")
         }
 
         log_node(0, "root", &self.root);

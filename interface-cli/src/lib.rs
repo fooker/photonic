@@ -59,7 +59,7 @@ async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspectio
                             // TODO: Show attached inputs
                         }
                     } else {
-                        o.write_all(format!("No such node: '{}'\n", node).as_bytes()).await?;
+                        o.write_all(format!("No such node: '{node}'\n").as_bytes()).await?;
                     }
                 } else {
                     for (name, info) in introspection.nodes.iter() {
@@ -105,7 +105,7 @@ async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspectio
                             o.write_all(format!("  Value: {}\n", input.value_type()).as_bytes()).await?;
                         }
                     } else {
-                        o.write_all(format!("No such input: '{}'\n", input).as_bytes()).await?;
+                        o.write_all(format!("No such input: '{input}'\n").as_bytes()).await?;
                     }
                 } else {
                     for (name, info) in introspection.inputs.iter() {
@@ -115,7 +115,7 @@ async fn run(i: impl AsyncRead + Unpin, o: impl AsyncWrite + Unpin, introspectio
             }
 
             Some(unknown) => {
-                o.write_all(format!("Unknown command: '{}'\n", unknown).as_bytes()).await?;
+                o.write_all(format!("Unknown command: '{unknown}'\n").as_bytes()).await?;
                 continue;
             }
             None => {

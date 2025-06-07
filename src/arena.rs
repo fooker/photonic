@@ -59,7 +59,7 @@ where T: ?Sized
         return self.elements.iter_mut().map(|e| e.as_mut());
     }
 
-    pub fn as_slice(&self) -> Slice<T> {
+    pub fn as_slice(&self) -> Slice<'_, T> {
         return Slice {
             offset: 0,
             elements: self.elements.as_slice(),

@@ -84,7 +84,7 @@ impl Output for TerminalOutput {
             let rgb = rgb.into_format::<u8>();
             let (r, g, b) = rgb.into_components();
 
-            write!(&mut buf, "\x1b[48;2;{:03};{:03};{:03}m ", r, g, b)?;
+            write!(&mut buf, "\x1b[48;2;{r:03};{g:03};{b:03}m ")?;
         }
 
         write!(&mut buf, "\x1b[0m")?;
