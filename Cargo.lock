@@ -2072,7 +2072,7 @@ dependencies = [
 
 [[package]]
 name = "photonic"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2098,7 +2098,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-audio"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "cpal",
@@ -2110,7 +2110,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-dynamic"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "palette",
@@ -2121,7 +2121,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-dynamic-runner"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -2142,7 +2142,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-effects"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "ezing",
@@ -2159,7 +2159,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-interface-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "palette",
@@ -2170,7 +2170,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-interface-grpc"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "futures",
@@ -2182,7 +2182,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-interface-grpc-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -2195,7 +2195,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-interface-grpc-client"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "palette",
@@ -2208,7 +2208,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-interface-grpc-proto"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "prost",
  "tonic",
@@ -2217,7 +2217,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-interface-mqtt"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "bytes",
@@ -2231,7 +2231,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-interface-restore"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "photonic",
@@ -2243,7 +2243,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-lua"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "mlua",
@@ -2254,7 +2254,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-output-net"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "byteorder",
@@ -2265,7 +2265,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-output-null"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "palette",
@@ -2276,7 +2276,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-output-split"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "palette",
@@ -2289,7 +2289,7 @@ dependencies = [
 
 [[package]]
 name = "photonic-output-terminal"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "nix",
