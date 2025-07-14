@@ -16,7 +16,7 @@ photonic = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["fs"] }
 
-mlua = { version = "0.10.0", features = ["async", "anyhow", "lua54"] }
+mlua = { version = "0.11.0", features = ["async", "anyhow", "lua54"] }
 
 [dev-dependencies]
 photonic-output-terminal = { path = "../output-terminal" }
