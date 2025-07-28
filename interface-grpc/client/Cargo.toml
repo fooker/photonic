@@ -22,7 +22,7 @@ photonic-interface-grpc-proto = { version = "0.1.0", path = "../proto", features
 anyhow = { workspace = true }
 palette = { workspace = true }
 
-tonic = "0.13.0"
+tonic = "0.14.0"
 
 parking_lot = { version = "0.12.3", features = ["arc_lock", "send_guard"] }
 
