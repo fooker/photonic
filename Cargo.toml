@@ -21,7 +21,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = [
     "Dustin Frisch <fooker@lab.sh>",
@@ -42,8 +42,8 @@ keywords = [
 ]
 
 [workspace.dependencies]
-photonic = { version = "0.1.0", path = "." }
-photonic-dynamic = { version = "0.1.0", path = "dynamic" }
+photonic = { version = "0.1.1", path = "." }
+photonic-dynamic = { version = "0.1.1", path = "dynamic" }
 
 tokio = { version = "1.35" }
 tokio-stream = { version = "0.1.15" }
