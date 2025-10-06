@@ -1,8 +1,8 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_prost_build::configure()
         .build_transport(true)
-        .build_client(cfg!(feature = "client"))
-        .build_server(cfg!(feature = "server"))
+        .server_mod_attribute("photonic", "#[cfg(feature = \"server\")]")
+        .client_mod_attribute("photonic", "#[cfg(feature = \"client\")]")
         .compile_protos(&["proto/photonic.proto"], &["proto/"])?;
 
     return Ok(());
