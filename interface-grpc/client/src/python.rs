@@ -176,7 +176,7 @@ impl PyInput {
 
     pub async fn send(&self, value: Py<PyAny>) -> PyResult<()> {
         fn extract<T: for<'a> FromPyObject<'a>>(value: Py<PyAny>) -> PyResult<T> {
-            Python::with_gil(|py| value.extract(py))
+            Python::attach(|py| value.extract(py))
         }
 
         return Ok(match self.0.sink() {
