@@ -2340,6 +2340,7 @@ name = "photonic-interface-restore"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "palette",
  "photonic",
  "serde",
  "serde_json",
