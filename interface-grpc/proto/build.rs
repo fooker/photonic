@@ -1,5 +1,5 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tonic_build::configure()
+    tonic_prost_build::configure()
         .build_transport(true)
         .build_client(cfg!(feature = "client"))
         .build_server(cfg!(feature = "server"))
