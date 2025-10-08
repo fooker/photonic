@@ -11,10 +11,10 @@ readme.workspace = true
 keywords.workspace = true
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib", "lib"]
 
 [features]
-python = ["dep:pyo3"] #, "dep:pyo3-async-runtimes"]
+python = ["dep:pyo3"]
 
 [dependencies]
 photonic-interface-grpc-proto = { version = "0.1.0", path = "../proto", features = ["client"] }
@@ -27,7 +27,6 @@ tonic = "0.14.0"
 parking_lot = { version = "0.12.3", features = ["arc_lock", "send_guard"] }
 
 pyo3 = { version = "0.26", optional = true, features = ["extension-module", "anyhow", "experimental-async"] }
-#pyo3-async-runtimes = { version = "0.25", optional = true, features = ["tokio-runtime"] }
 
 static_assertions = "1.1.0"
 
