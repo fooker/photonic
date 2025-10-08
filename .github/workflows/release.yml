@@ -20,6 +20,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
+      - name: Install deps
+        run: |
+          sudo apt update
+          sudo apt install -y libasound2-dev pkg-config protobuf-compiler
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz release
@@ -43,6 +47,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
+      - name: Install deps
+        run: |
+          sudo apt update
+          sudo apt install -y libasound2-dev pkg-config protobuf-compiler
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
       - name: Run release-plz release-pr
