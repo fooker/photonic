@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/fooker/photonic/compare/photonic-dynamic-runner-v0.1.1...photonic-dynamic-runner-v0.1.2) - 2025-10-10
+
+### Other
+
+- update Cargo.lock dependencies
+
 ## [0.1.1](https://github.com/fooker/photonic/compare/photonic-dynamic-runner-v0.1.0...photonic-dynamic-runner-v0.1.1) - 2025-10-08
 
 ### Added
