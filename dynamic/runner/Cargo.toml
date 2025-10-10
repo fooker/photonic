@@ -17,10 +17,10 @@ path = "src/main.rs"
 [dependencies]
 photonic = { workspace = true }
 photonic-dynamic = { workspace = true }
-photonic-effects = { version = "0.1.1", path = "../../effects", features = ["dynamic"] }
-photonic-output-terminal = { version = "0.1.1", path = "../../output-terminal", features = ["dynamic"] }
-photonic-output-null = { version = "0.1.1", path = "../../output-null", features = ["dynamic"] }
-photonic-output-split = { version = "0.1.1", path = "../../output-split", features = ["dynamic"] }
+photonic-effects = { version = "0.1.2", path = "../../effects", features = ["dynamic"] }
+photonic-output-terminal = { version = "0.1.2", path = "../../output-terminal", features = ["dynamic"] }
+photonic-output-null = { version = "0.1.2", path = "../../output-null", features = ["dynamic"] }
+photonic-output-split = { version = "0.1.2", path = "../../output-split", features = ["dynamic"] }
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

@@ -11,7 +11,7 @@ readme.workspace = true
 keywords.workspace = true
 
 [dependencies]
-photonic-interface-grpc-client = { version = "0.1.1", path = "../client" }
+photonic-interface-grpc-client = { version = "0.1.2", path = "../client" }
 
 anyhow = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
