@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/fooker/photonic/compare/photonic-v0.1.1...photonic-v0.1.2) - 2025-10-14
+
+### Fixed
+
+- *(release)* Add deps
+
+### Other
+
+- *(deps)* update rust crate tokio to v1.48.0 ([#179](https://github.com/fooker/photonic/pull/179))
+- *(deps)* update rust crate clap to v4.5.49 ([#178](https://github.com/fooker/photonic/pull/178))
+- *(deps)* update rust crate toml to v0.9.8 ([#177](https://github.com/fooker/photonic/pull/177))
+
 ## [0.1.1](https://github.com/fooker/photonic/compare/photonic-v0.1.0...photonic-v0.1.1) - 2025-10-08
 
 ### Added
