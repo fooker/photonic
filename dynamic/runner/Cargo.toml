@@ -30,7 +30,7 @@ serde_json = "1"
 serde_yaml = "0.9"
 serde_dhall = "0.13"
 toml = "0.9"
-ron = "0.11"
+ron = "0.12"
 
 clap = { version = "4.5.4", features = ["derive"] }
 
