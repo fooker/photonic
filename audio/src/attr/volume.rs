@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Result};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use cpal::{BufferSize, SampleRate, Stream, StreamConfig};
+use cpal::{BufferSize, Stream, StreamConfig};
 
 use photonic::attr::Bounds;
 use photonic::math::Lerp;
@@ -17,7 +17,7 @@ impl Volume {
 
         let config = StreamConfig {
             channels: 1,
-            sample_rate: SampleRate(44100),
+            sample_rate: 44100,
             buffer_size: BufferSize::Default,
         };
 

@@ -15,7 +15,7 @@ photonic = { workspace = true }
 
 anyhow = { workspace = true }
 
-cpal = { version = "0.16" }
+cpal = { version = "0.17" }
 
 [dev-dependencies]
 photonic-effects = { path = "../effects" }

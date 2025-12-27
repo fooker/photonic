@@ -39,7 +39,7 @@ impl Power {
 
         let config = StreamConfig {
             channels: 1,
-            sample_rate: SampleRate(44100),
+            sample_rate: 44100,
             buffer_size: BufferSize::Default,
         };
 
@@ -59,7 +59,7 @@ impl Power {
 
         let alpha = cutoff_freq.map(|cutoff_freq| {
             let rc = 1.0 / (cutoff_freq * 2.0 * core::f32::consts::PI);
-            let dt = 1.0 / sample_rate.0 as f32;
+            let dt = 1.0 / sample_rate as f32;
             let alpha = dt / (rc + dt);
             return alpha;
         });
@@ -119,7 +119,7 @@ impl FreeAttrDecl<f32> for Power {
         let last = Arc::new(Mutex::new(0.0));
         let next = last.clone();
 
-        let stream = Self::low_pass(self.cutoff_freq, SampleRate(44100), Self::analyzer(next, Bounds::normal()));
+        let stream = Self::low_pass(self.cutoff_freq, 44100, Self::analyzer(next, Bounds::normal()));
         let stream = Self::stream(stream)?;
 
         return Ok(Self::Attr {
@@ -138,7 +138,7 @@ impl BoundAttrDecl<f32> for Power {
         let last = Arc::new(Mutex::new(0.0));
         let next = last.clone();
 
-        let stream = Self::low_pass(self.cutoff_freq, SampleRate(44100), Self::analyzer(next, bounds));
+        let stream = Self::low_pass(self.cutoff_freq, 44100, Self::analyzer(next, bounds));
 
         let stream = Self::stream(stream)?;
 
