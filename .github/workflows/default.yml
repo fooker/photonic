@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: git checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: git checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ "check" ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
@@ -124,7 +124,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ "check" ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@main
