@@ -12,7 +12,7 @@ keywords.workspace = true
 
 [dependencies]
 photonic = { workspace = true }
-photonic-interface-grpc-proto = { version = "0.1.1", path = "./proto", features = ["server"] }
+photonic-interface-grpc-proto = { version = "0.1.2", path = "./proto", features = ["server"] }
 
 palette = { workspace = true }
 anyhow = { workspace = true }

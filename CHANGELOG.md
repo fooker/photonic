@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/fooker/photonic/compare/photonic-v0.1.1...photonic-v0.1.2) - 2026-01-23
+
+### Fixed
+
+- *(deps)* update rust crate nix to 0.31 ([#200](https://github.com/fooker/photonic/pull/200))
+- *(deps)* update rust crate ron to 0.12 ([#185](https://github.com/fooker/photonic/pull/185))
+- *(deps)* update rust crate pyo3 to 0.27 ([#180](https://github.com/fooker/photonic/pull/180))
+- *(release)* Add deps
+
+### Other
+
+- *(deps)* update rust crate nix to v0.31.1 ([#201](https://github.com/fooker/photonic/pull/201))
+- *(deps)* update rust crate prost to v0.14.3 ([#199](https://github.com/fooker/photonic/pull/199))
+- *(deps)* update rust crate toml to v0.9.11 ([#198](https://github.com/fooker/photonic/pull/198))
+- *(deps)* update rust crate serde_json to v1.0.149 ([#197](https://github.com/fooker/photonic/pull/197))
+- *(deps)* update rust crate cpal to v0.17.1 ([#196](https://github.com/fooker/photonic/pull/196))
+- *(deps)* update rust crate tokio-stream to v0.1.18 ([#195](https://github.com/fooker/photonic/pull/195))
+- *(deps)* update rust crate tokio to v1.49.0 ([#194](https://github.com/fooker/photonic/pull/194))
+- *(deps)* update rust crate clap to v4.5.54 ([#183](https://github.com/fooker/photonic/pull/183))
+- *(deps)* Update rust cpal deps
+- *(deps)* Update Rust deps
+- *(deps)* Update nix flake deps
+- *(deps)* update rust crate pyo3 to v0.27.1 ([#182](https://github.com/fooker/photonic/pull/182))
+- *(deps)* update rust crate clap to v4.5.50 ([#181](https://github.com/fooker/photonic/pull/181))
+- *(deps)* update rust crate tokio to v1.48.0 ([#179](https://github.com/fooker/photonic/pull/179))
+- *(deps)* update rust crate clap to v4.5.49 ([#178](https://github.com/fooker/photonic/pull/178))
+- *(deps)* update rust crate toml to v0.9.8 ([#177](https://github.com/fooker/photonic/pull/177))
+
 ## [0.1.1](https://github.com/fooker/photonic/compare/photonic-v0.1.0...photonic-v0.1.1) - 2025-10-08
 
 ### Added
