@@ -26,7 +26,7 @@ tonic = "0.14.0"
 
 parking_lot = { version = "0.12.3", features = ["arc_lock", "send_guard"] }
 
-pyo3 = { version = "0.27", optional = true, features = ["extension-module", "anyhow", "experimental-async"] }
+pyo3 = { version = "0.28", optional = true, features = ["extension-module", "anyhow", "experimental-async"] }
 
 static_assertions = "1.1.0"
 
