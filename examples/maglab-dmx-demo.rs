@@ -42,6 +42,8 @@ async fn main() -> Result<()> {
     let noise = scene.node("noise", Noise {
         speed: 0.05.fixed(),
         stretch: 0.05.fixed(),
+        shift: 90.0.fixed(),
+        scale: 2.0.fixed(),
         noise: noise::OpenSimplex::default(),
     })?;
     let noise = scene.node("noise:rgb", Map {

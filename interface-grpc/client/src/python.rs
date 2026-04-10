@@ -175,8 +175,9 @@ impl PyInput {
     }
 
     pub async fn send(&self, value: Py<PyAny>) -> PyResult<()> {
-        fn extract<T: for<'a> FromPyObject<'a>>(value: Py<PyAny>) -> PyResult<T> {
-            Python::attach(|py| value.extract(py))
+        fn extract<T>(value: Py<PyAny>) -> PyResult<T>
+        where T: for<'a, 'py> FromPyObject<'a, 'py, Error = PyErr> {
+            Python::attach(|py| Ok(value.extract(py)?))
         }
 
         return Ok(match self.0.sink() {
@@ -321,16 +322,20 @@ impl<'py> IntoPyObject<'py> for &InputId {
     }
 }
 
-impl<'py> FromPyObject<'py> for ColorValue {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        let ob: String = ob.extract()?;
+impl<'a, 'py> FromPyObject<'a, 'py> for ColorValue {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> std::result::Result<Self, Self::Error> {
+        let ob: String = obj.extract()?;
         return Ok(ColorValue::from_str(&ob)?);
     }
 }
 
-impl<'py, T: FromPyObject<'py>> FromPyObject<'py> for RangeValue<T> {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        let (a, b): (T, T) = ob.extract()?;
+impl<'a, 'py, T: FromPyObject<'a, 'py>> FromPyObject<'a, 'py> for RangeValue<T> {
+    type Error = PyErr;
+
+    fn extract(obj: Borrowed<'a, 'py, PyAny>) -> std::result::Result<Self, Self::Error> {
+        let (a, b): (T, T) = obj.extract()?;
         return Ok(RangeValue {
             a,
             b,
