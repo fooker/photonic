@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/fooker/photonic/compare/photonic-interface-grpc-cli-v0.1.1...photonic-interface-grpc-cli-v0.2.0) - 2026-04-11
+
+### Other
+
+- update Cargo.lock dependencies
+
 ## [0.1.1](https://github.com/fooker/photonic/compare/photonic-interface-grpc-cli-v0.1.0...photonic-interface-grpc-cli-v0.1.1) - 2025-10-08
 
 ### Added

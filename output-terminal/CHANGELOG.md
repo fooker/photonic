@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/fooker/photonic/compare/photonic-output-terminal-v0.1.1...photonic-output-terminal-v0.2.0) - 2026-04-11
+
+### Fixed
+
+- *(deps)* update rust crate nix to 0.31 ([#200](https://github.com/fooker/photonic/pull/200))
+
 ## [0.1.1](https://github.com/fooker/photonic/compare/photonic-output-terminal-v0.1.0...photonic-output-terminal-v0.1.1) - 2025-10-08
 
 ### Added

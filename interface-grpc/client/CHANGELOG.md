@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/fooker/photonic/compare/photonic-interface-grpc-client-v0.1.1...photonic-interface-grpc-client-v0.2.0) - 2026-04-11
+
+### Added
+
+- *(effects)* Improve noise effect with better color model and shift option
+
+### Fixed
+
+- *(deps)* update rust crate pyo3 to 0.27 ([#180](https://github.com/fooker/photonic/pull/180))
+
 ## [0.1.1](https://github.com/fooker/photonic/compare/photonic-interface-grpc-client-v0.1.0...photonic-interface-grpc-client-v0.1.1) - 2025-10-08
 
 ### Added
